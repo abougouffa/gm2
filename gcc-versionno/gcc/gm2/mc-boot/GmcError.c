@@ -293,8 +293,12 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   memcpy (b, b_, _b_high+1);
 
   if (_a_high == _b_high)
-    for (i=0; i<=_a_high; i++)
-      a[i] = b[i];
+    {
+      for (i=0; i<=_a_high; i++)
+        {
+          a[i] = b[i];
+        }
+    }
 }
 
 static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsigned int n)
@@ -322,8 +326,10 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
             }
           argno += 1;
           if (argno > n)
-            /* all done  */
-            return FALSE;
+            {
+              /* all done  */
+              return FALSE;
+            }
         }
       i += 1;
     }
@@ -346,9 +352,13 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
 
   col += 1;
   if (Xcode)
-    leader = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:", 6)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1));
+    {
+      leader = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:", 6)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1));
+    }
   else
-    leader = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:%d:", 9)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1), (unsigned char *) &col, (sizeof (col)-1));
+    {
+      leader = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:%d:", 9)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1), (unsigned char *) &col, (sizeof (col)-1));
+    }
   p = DynamicStrings_string (s);
   newline = TRUE;
   space = FALSE;
@@ -366,7 +376,9 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
       newline = (*p) == ASCII_nl;
       space = (*p) == ' ';
       if (newline && Xcode)
-        mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, (sizeof (col)-1));
+        {
+          mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, (sizeof (col)-1));
+        }
       StdIO_Write ((*p));
       p += 1;
     }
@@ -375,7 +387,9 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
       if (Xcode)
         {
           if (! space)
-            StdIO_Write (' ');
+            {
+              StdIO_Write (' ');
+            }
           mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, (sizeof (col)-1));
         }
       StdIO_Write (ASCII_nl);
@@ -409,7 +423,9 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
       s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s, (sizeof (s)-1));
     }
   else
-    s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w, _w_high);
+    {
+      s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w, _w_high);
+    }
   return s;
 }
 
@@ -599,13 +615,21 @@ static void checkIncludes (unsigned int token, unsigned int depth)
     {
       lineno = mcLexBuf_tokenToLineNo (token, depth+1);
       if (depth == 0)
-        mcPrintf_printf2 ((char *) "In file included from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
+        {
+          mcPrintf_printf2 ((char *) "In file included from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
+        }
       else
-        mcPrintf_printf2 ((char *) "                 from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
+        {
+          mcPrintf_printf2 ((char *) "                 from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
+        }
       if ((mcLexBuf_findFileNameFromToken (token, depth+2)) == NULL)
-        mcPrintf_printf0 ((char *) ":\\n", 3);
+        {
+          mcPrintf_printf0 ((char *) ":\\n", 3);
+        }
       else
-        mcPrintf_printf0 ((char *) ",\\n", 3);
+        {
+          mcPrintf_printf0 ((char *) ",\\n", 3);
+        }
       checkIncludes (token, depth+1);
     }
 }
@@ -622,28 +646,34 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
 
   written = FALSE;
   if (e != NULL)
-    do {
-      if ((FatalStatus == e->fatal) && (e->s != NULL))
-        {
-          checkIncludes (e->token, 0);
-          if (e->fatal)
-            e->s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " error: ", 8), DynamicStrings_Mark (e->s));
-          else
-            e->s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " warning: ", 10), DynamicStrings_Mark (e->s));
-          outString (mcLexBuf_findFileNameFromToken (e->token, 0), mcLexBuf_tokenToLineNo (e->token, 0), mcLexBuf_tokenToColumnNo (e->token, 0), e->s);
-          if ((e->child != NULL) && (flushAll (e->child, FatalStatus)))
-            {}  /* empty.  */
-          e->s = NULL;
-          written = TRUE;
-        }
-      f = e;
-      e = e->next;
-      if (! Debugging)
-        {
-          f->s = DynamicStrings_KillString (f->s);
-          Storage_DEALLOCATE ((void **) &f, sizeof (_T1));
-        }
-    } while (! (e == NULL));
+    {
+      do {
+        if ((FatalStatus == e->fatal) && (e->s != NULL))
+          {
+            checkIncludes (e->token, 0);
+            if (e->fatal)
+              {
+                e->s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " error: ", 8), DynamicStrings_Mark (e->s));
+              }
+            else
+              {
+                e->s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " warning: ", 10), DynamicStrings_Mark (e->s));
+              }
+            outString (mcLexBuf_findFileNameFromToken (e->token, 0), mcLexBuf_tokenToLineNo (e->token, 0), mcLexBuf_tokenToColumnNo (e->token, 0), e->s);
+            if ((e->child != NULL) && (flushAll (e->child, FatalStatus)))
+              {}  /* empty.  */
+            e->s = NULL;
+            written = TRUE;
+          }
+        f = e;
+        e = e->next;
+        if (! Debugging)
+          {
+            f->s = DynamicStrings_KillString (f->s);
+            Storage_DEALLOCATE ((void **) &f, sizeof (_T1));
+          }
+      } while (! (e == NULL));
+    }
   return written;
 }
 
@@ -789,7 +819,9 @@ mcError_error mcError_newError (unsigned int atTokenNo)
     {
       f = head;
       while ((f->next != NULL) && (f->next->token < atTokenNo))
-        f = f->next;
+        {
+          f = f->next;
+        }
       e->next = f->next;
       f->next = e;
     }
@@ -823,7 +855,9 @@ mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e)
   mcError_error f;
 
   if (e == NULL)
-    return mcError_newError (atTokenNo);
+    {
+      return mcError_newError (atTokenNo);
+    }
   else
     {
       Storage_ALLOCATE ((void **) &f, sizeof (_T1));
@@ -849,9 +883,13 @@ void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high)
    errorFormat routines provide a printf capability for the error handle.
   */
   if (e->s == NULL)
-    e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
+    {
+      e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
+    }
   else
-    e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)))));
+    {
+      e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)))));
+    }
 }
 
 void mcError_errorFormat1 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
@@ -866,9 +904,13 @@ void mcError_errorFormat1 (mcError_error e, char *a_, unsigned int _a_high, unsi
 
   s1 = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
   if (e->s == NULL)
-    e->s = s1;
+    {
+      e->s = s1;
+    }
   else
-    e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    {
+      e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    }
 }
 
 void mcError_errorFormat2 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
@@ -885,9 +927,13 @@ void mcError_errorFormat2 (mcError_error e, char *a_, unsigned int _a_high, unsi
 
   s1 = doFormat2 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
   if (e->s == NULL)
-    e->s = s1;
+    {
+      e->s = s1;
+    }
   else
-    e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    {
+      e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    }
 }
 
 void mcError_errorFormat3 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
@@ -906,9 +952,13 @@ void mcError_errorFormat3 (mcError_error e, char *a_, unsigned int _a_high, unsi
 
   s1 = doFormat3 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
   if (e->s == NULL)
-    e->s = s1;
+    {
+      e->s = s1;
+    }
   else
-    e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    {
+      e->s = DynamicStrings_ConCat (e->s, DynamicStrings_Mark (s1));
+    }
 }
 
 void mcError_errorString (mcError_error e, DynamicStrings_String str)
@@ -955,7 +1005,9 @@ void mcError_errorStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2
   mcError_error e;
 
   if (s1 == s2)
-    s2 = DynamicStrings_Dup (s1);
+    {
+      s2 = DynamicStrings_Dup (s1);
+    }
   e = mcError_newError (tok1);
   mcError_errorString (e, s1);
   mcError_errorString (mcError_chainError (tok2, e), s2);
@@ -1000,7 +1052,9 @@ void mcError_warnStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2,
   mcError_error e;
 
   if (s1 == s2)
-    s2 = DynamicStrings_Dup (s1);
+    {
+      s2 = DynamicStrings_Dup (s1);
+    }
   e = mcError_newWarning (tok1);
   mcError_errorString (e, s1);
   mcError_errorString (mcError_chainError (tok2, e), s2);
@@ -1093,7 +1147,9 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
 
   mcError_flushWarnings ();
   if (! (StrLib_StrEqual ((char *) a, _a_high, (char *) "", 0)))
-    mcError_writeFormat0 ((char *) a, _a_high);
+    {
+      mcError_writeFormat0 ((char *) a, _a_high);
+    }
   if (! (flushAll (head, TRUE)))
     {
       mcError_writeFormat0 ((char *) "unidentified error", 18);

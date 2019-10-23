@@ -180,7 +180,9 @@ void lists_killList (lists_list *l)
   if ((*l) != NULL)
     {
       if ((*l)->next != NULL)
-        lists_killList (&(*l)->next);
+        {
+          lists_killList (&(*l)->next);
+        }
       Storage_DEALLOCATE ((void **) &(*l), sizeof (_T1));
     }
 }
@@ -198,9 +200,13 @@ void lists_putItemIntoList (lists_list l, void * c)
       l->elements.array[l->noOfelements-1] = c;
     }
   else if (l->next != NULL)
-    lists_putItemIntoList (l->next, c);
+    {
+      /* avoid dangling else.  */
+      lists_putItemIntoList (l->next, c);
+    }
   else
     {
+      /* avoid dangling else.  */
       l->next = lists_initList ();
       lists_putItemIntoList (l->next, c);
     }
@@ -216,9 +222,13 @@ void * lists_getItemFromList (lists_list l, unsigned int n)
   while (l != NULL)
     {
       if (n <= l->noOfelements)
-        return l->elements.array[n-1];
+        {
+          return l->elements.array[n-1];
+        }
       else
-        n -= l->noOfelements;
+        {
+          n -= l->noOfelements;
+        }
       l = l->next;
     }
   return 0;
@@ -236,15 +246,23 @@ unsigned int lists_getIndexOfList (lists_list l, void * c)
   unsigned int i;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       i = 1;
       while (i <= l->noOfelements)
-        if (l->elements.array[i-1] == c)
-          return i;
-        else
-          i += 1;
+        {
+          if (l->elements.array[i-1] == c)
+            {
+              return i;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
       return l->noOfelements+(lists_getIndexOfList (l->next, c));
     }
 }
@@ -259,7 +277,9 @@ unsigned int lists_noOfItemsInList (lists_list l)
   unsigned int t;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       t = 0;
@@ -280,7 +300,9 @@ unsigned int lists_noOfItemsInList (lists_list l)
 void lists_includeItemIntoList (lists_list l, void * c)
 {
   if (! (lists_isItemInList (l, c)))
-    lists_putItemIntoList (l, c);
+    {
+      lists_putItemIntoList (l, c);
+    }
 }
 
 
@@ -302,9 +324,13 @@ void lists_removeItemFromList (lists_list l, void * c)
       do {
         i = 1;
         while ((i <= l->noOfelements) && (l->elements.array[i-1] != c))
-          i += 1;
+          {
+            i += 1;
+          }
         if ((i <= l->noOfelements) && (l->elements.array[i-1] == c))
-          found = TRUE;
+          {
+            found = TRUE;
+          }
         else
           {
             p = l;
@@ -312,7 +338,9 @@ void lists_removeItemFromList (lists_list l, void * c)
           }
       } while (! ((l == NULL) || found));
       if (found)
-        removeItem (p, l, i);
+        {
+          removeItem (p, l, i);
+        }
     }
 }
 
@@ -328,10 +356,16 @@ unsigned int lists_isItemInList (lists_list l, void * c)
   do {
     i = 1;
     while (i <= l->noOfelements)
-      if (l->elements.array[i-1] == c)
-        return TRUE;
-      else
-        i += 1;
+      {
+        if (l->elements.array[i-1] == c)
+          {
+            return TRUE;
+          }
+        else
+          {
+            i += 1;
+          }
+      }
     l = l->next;
   } while (! (l == NULL));
   return FALSE;

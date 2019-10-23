@@ -60,14 +60,18 @@ void TimeString_GetTimeString (char *a, unsigned int _a_high)
   Addr = wrapc_strtime ();
   i = 0;
   if (Addr != NULL)
-    while ((i < _a_high) && ((*Addr) != ASCII_nul))
-      {
-        a[i] = (*Addr);
-        i += 1;
-        Addr += 1;
-      }
+    {
+      while ((i < _a_high) && ((*Addr) != ASCII_nul))
+        {
+          a[i] = (*Addr);
+          i += 1;
+          Addr += 1;
+        }
+    }
   if (i < _a_high)
-    a[i] = ASCII_nul;
+    {
+      a[i] = ASCII_nul;
+    }
 }
 
 void _M2_TimeString_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

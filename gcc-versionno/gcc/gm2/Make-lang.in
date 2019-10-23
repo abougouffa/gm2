@@ -1427,7 +1427,8 @@ gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def $(
 #  replaced by mc-bootstrap.
 #
 BOOTGM2VERSION=svn-trunc
-BOOTGM2VERSION=10.0.0
+BOOTGM2VERSION=9.2.0
+BOOTGM2VERSION=trunk
 PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/gm2/pge
 BOOTGM2=gm2
 
@@ -1436,7 +1437,7 @@ MCLINK=-g -fmodules -c
 MCLINK=-g
 # GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
 GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/pim
-GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs
+GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso
 
 mc:  $(GM2_DIRS) mc-clean mc-devel
 
@@ -1540,7 +1541,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/keyc.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcComment.mod
 	cp $(srcdir)/gm2/init/mcinit top.lst
-	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/gm2/mc/top.mod -o mc
+	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/gm2/mc/top.mod -o mc gm2/gm2-libs-boot/RTcodummy.o
 
 gm2/boot-bin/mc-opt$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \

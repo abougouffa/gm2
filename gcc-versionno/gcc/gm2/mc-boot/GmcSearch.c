@@ -209,7 +209,9 @@ static void Init (void)
 void mcSearch_initSearchPath (DynamicStrings_String path)
 {
   if (InitialPath != NULL)
-    InitialPath = DynamicStrings_KillString (InitialPath);
+    {
+      InitialPath = DynamicStrings_KillString (InitialPath);
+    }
   InitialPath = path;
 }
 
@@ -227,7 +229,9 @@ void mcSearch_prependSearchPath (DynamicStrings_String path)
       UserPath = DynamicStrings_Dup (path);
     }
   else
-    UserPath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (UserPath, ':'), path);
+    {
+      UserPath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (UserPath, ':'), path);
+    }
   DSdbExit (UserPath);
 }
 
@@ -254,17 +258,27 @@ unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStr
   DynamicStrings_String newpath;
 
   if (DynamicStrings_EqualArray (UserPath, (char *) "", 0))
-    if (DynamicStrings_EqualArray (InitialPath, (char *) "", 0))
-      completeSearchPath = DynamicStrings_InitString ((char *) ".", 1);
-    else
-      completeSearchPath = DynamicStrings_Dup (InitialPath);
+    {
+      if (DynamicStrings_EqualArray (InitialPath, (char *) "", 0))
+        {
+          completeSearchPath = DynamicStrings_InitString ((char *) ".", 1);
+        }
+      else
+        {
+          completeSearchPath = DynamicStrings_Dup (InitialPath);
+        }
+    }
   else
-    completeSearchPath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Dup (UserPath), ':'), InitialPath);
+    {
+      completeSearchPath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Dup (UserPath), ':'), InitialPath);
+    }
   start = 0;
   end = DynamicStrings_Index (completeSearchPath, ':', (unsigned int ) (start));
   do {
     if (end == -1)
-      end = 0;
+      {
+        end = 0;
+      }
     newpath = DynamicStrings_Slice (completeSearchPath, start, end);
     if (DynamicStrings_EqualArray (newpath, (char *) ".", 1))
       {
@@ -272,7 +286,9 @@ unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStr
         newpath = DynamicStrings_Dup (FileName);
       }
     else
-      newpath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (newpath, Directory), FileName);
+      {
+        newpath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (newpath, Directory), FileName);
+      }
     if (SFIO_Exists (newpath))
       {
         (*fullPath) = newpath;
@@ -308,7 +324,9 @@ unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStri
     {
       f = mcFileName_calculateFileName (stem, Def);
       if (mcSearch_findSourceFile (f, fullPath))
-        return TRUE;
+        {
+          return TRUE;
+        }
       f = DynamicStrings_KillString (f);
     }
   /* and try the GNU Modula-2 default extension  */
@@ -332,7 +350,9 @@ unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStri
     {
       f = mcFileName_calculateFileName (stem, Mod);
       if (mcSearch_findSourceFile (f, fullPath))
-        return TRUE;
+        {
+          return TRUE;
+        }
       f = DynamicStrings_KillString (f);
     }
   /* and try the GNU Modula-2 default extension  */

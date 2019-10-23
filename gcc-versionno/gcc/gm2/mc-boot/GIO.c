@@ -161,24 +161,31 @@ static void doWrite (int fd, FIO_File f, char ch)
     {
       /* avoid dangling else.  */
       if (! fdState.array[fd].IsEof)
-        for (;;)
         {
-          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, (size_t) 1);
-          if (r == 1)
-            return;
-          else if (r == -1)
-            {
-              r = errno_geterrno ();
-              if ((r != errno_EAGAIN) && (r != errno_EINTR))
-                {
-                  fdState.array[fd].IsEof = TRUE;
-                  return;
-                }
-            }
+          for (;;)
+          {
+            r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, (size_t) 1);
+            if (r == 1)
+              {
+                return;
+              }
+            else if (r == -1)
+              {
+                /* avoid dangling else.  */
+                r = errno_geterrno ();
+                if ((r != errno_EAGAIN) && (r != errno_EINTR))
+                  {
+                    fdState.array[fd].IsEof = TRUE;
+                    return;
+                  }
+              }
+          }
         }
     }
   else
-    FIO_WriteChar (f, ch);
+    {
+      FIO_WriteChar (f, ch);
+    }
 }
 
 
@@ -289,27 +296,38 @@ void IO_Read (char *ch)
   FIO_FlushBuffer (FIO_StdOut);
   FIO_FlushBuffer (FIO_StdErr);
   if (fdState.array[0].IsRaw)
-    if (fdState.array[0].IsEof)
-      (*ch) = ASCII_eof;
-    else
-      for (;;)
-      {
-        r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, (size_t) 1);
-        if (r == 1)
-          return;
-        else if (r == -1)
+    {
+      if (fdState.array[0].IsEof)
+        {
+          (*ch) = ASCII_eof;
+        }
+      else
+        {
+          for (;;)
           {
-            r = errno_geterrno ();
-            if (r != errno_EAGAIN)
+            r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, (size_t) 1);
+            if (r == 1)
               {
-                fdState.array[0].IsEof = TRUE;
-                (*ch) = ASCII_eof;
                 return;
               }
+            else if (r == -1)
+              {
+                /* avoid dangling else.  */
+                r = errno_geterrno ();
+                if (r != errno_EAGAIN)
+                  {
+                    fdState.array[0].IsEof = TRUE;
+                    (*ch) = ASCII_eof;
+                    return;
+                  }
+              }
           }
-      }
+        }
+    }
   else
-    (*ch) = FIO_ReadChar (FIO_StdIn);
+    {
+      (*ch) = FIO_ReadChar (FIO_StdIn);
+    }
 }
 
 
@@ -340,15 +358,21 @@ void IO_UnBufferedMode (int fd, unsigned int input)
   int r;
 
   if (IsDefaultFd (fd))
-    fdState.array[fd].IsRaw = TRUE;
+    {
+      fdState.array[fd].IsRaw = TRUE;
+    }
   term = termios_InitTermios ();
   if ((termios_tcgetattr (fd, term)) == 0)
     {
       doraw (term);
       if (input)
-        r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        }
       else
-        r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        }
     }
   term = termios_KillTermios (term);
 }
@@ -359,15 +383,21 @@ void IO_BufferedMode (int fd, unsigned int input)
   int r;
 
   if (IsDefaultFd (fd))
-    fdState.array[fd].IsRaw = FALSE;
+    {
+      fdState.array[fd].IsRaw = FALSE;
+    }
   term = termios_InitTermios ();
   if ((termios_tcgetattr (fd, term)) == 0)
     {
       dononraw (term);
       if (input)
-        r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        }
       else
-        r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        }
     }
   term = termios_KillTermios (term);
 }
@@ -391,9 +421,13 @@ void IO_EchoOn (int fd, unsigned int input)
     {
       setFlag (term, (termios_Flag) termios_lecho, TRUE);
       if (input)
-        r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        }
       else
-        r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        }
     }
   term = termios_KillTermios (term);
 }
@@ -417,9 +451,13 @@ void IO_EchoOff (int fd, unsigned int input)
     {
       setFlag (term, (termios_Flag) termios_lecho, FALSE);
       if (input)
-        r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsflush (), term);
+        }
       else
-        r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        {
+          r = termios_tcsetattr (fd, termios_tcsdrain (), term);
+        }
     }
   term = termios_KillTermios (term);
 }

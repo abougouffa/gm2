@@ -76,7 +76,8 @@ RTco_currentThread (void)
 
 int
 RTco_initThread (__attribute__ ((unused)) void (*proc)(void),
-		 __attribute__ ((unused)) unsigned int stackSize)
+		 __attribute__ ((unused)) unsigned int stackSize,
+		 __attribute__ ((unused)) unsigned int interruptLevel)
 {
   return 0;
 }
@@ -97,6 +98,22 @@ RTco_select (__attribute__ ((unused)) int p1,
 {
 }
 
+
+unsigned int
+RTco_currentInterruptLevel (void)
+{
+  return 0;
+}
+
+
+/* turninterrupts returns the old interrupt level and assigns the interrupt level
+   to newLevel.  */
+
+unsigned int
+RTco_turnInterrupts (unsigned int newLevel)
+{
+  return 0;
+}
 
 void
 _M2_RTco_init (void)

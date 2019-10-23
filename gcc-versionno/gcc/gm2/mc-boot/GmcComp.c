@@ -240,7 +240,9 @@ static decl_node examineCompilationUnit (void)
                 {
                   mcLexBuf_getToken ();
                   if (mcLexBuf_currenttoken == mcReserved_stringtok)
-                    mcLexBuf_getToken ();
+                    {
+                      mcLexBuf_getToken ();
+                    }
                   else
                     {
                       mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "expecting language string after FOR keyword", 43)));
@@ -248,29 +250,41 @@ static decl_node examineCompilationUnit (void)
                     }
                 }
               if (mcLexBuf_currenttoken == mcReserved_identtok)
-                return decl_lookupDef (nameKey_makekey (mcLexBuf_currentstring));
+                {
+                  return decl_lookupDef (nameKey_makekey (mcLexBuf_currentstring));
+                }
             }
           else
-            mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after DEFINITION keyword", 39)));
+            {
+              mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after DEFINITION keyword", 39)));
+            }
         }
       else if (mcLexBuf_currenttoken == mcReserved_implementationtok)
         {
+          /* avoid dangling else.  */
           mcLexBuf_getToken ();
           if (mcLexBuf_currenttoken == mcReserved_moduletok)
             {
               /* avoid dangling else.  */
               mcLexBuf_getToken ();
               if (mcLexBuf_currenttoken == mcReserved_identtok)
-                return decl_lookupImp (nameKey_makekey (mcLexBuf_currentstring));
+                {
+                  return decl_lookupImp (nameKey_makekey (mcLexBuf_currentstring));
+                }
             }
           else
-            mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after IMPLEMENTATION keyword", 43)));
+            {
+              mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after IMPLEMENTATION keyword", 43)));
+            }
         }
       else if (mcLexBuf_currenttoken == mcReserved_moduletok)
         {
+          /* avoid dangling else.  */
           mcLexBuf_getToken ();
           if (mcLexBuf_currenttoken == mcReserved_identtok)
-            return decl_lookupModule (nameKey_makekey (mcLexBuf_currentstring));
+            {
+              return decl_lookupModule (nameKey_makekey (mcLexBuf_currentstring));
+            }
         }
       mcLexBuf_getToken ();
     }
@@ -331,10 +345,14 @@ static void p1 (decl_node n)
       /* avoid dangling else.  */
       pass (1, n, (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
-        pass (1, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        {
+          pass (1, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        }
     }
   else
-    pass (1, n, (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    {
+      pass (1, n, (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    }
 }
 
 
@@ -349,10 +367,14 @@ static void p2 (decl_node n)
       /* avoid dangling else.  */
       pass (2, n, (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
-        pass (2, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        {
+          pass (2, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        }
     }
   else
-    pass (2, n, (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    {
+      pass (2, n, (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    }
 }
 
 
@@ -367,10 +389,14 @@ static void p3 (decl_node n)
       /* avoid dangling else.  */
       pass (3, n, (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
-        pass (3, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        {
+          pass (3, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        }
     }
   else
-    pass (3, n, (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    {
+      pass (3, n, (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    }
 }
 
 
@@ -385,10 +411,14 @@ static void p4 (decl_node n)
       /* avoid dangling else.  */
       pass (4, n, (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
-        pass (4, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        {
+          pass (4, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
+        }
     }
   else
-    pass (4, n, (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    {
+      pass (4, n, (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
+    }
 }
 
 
@@ -415,10 +445,14 @@ static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicS
   decl_setSource (n, nameKey_makekey (DynamicStrings_string (postProcessed)));
   decl_setCurrentModule (n);
   if (mcLexBuf_openSource (postProcessed))
-    return TRUE;
+    {
+      return TRUE;
+    }
   mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &fileName, (sizeof (fileName)-1));
   if (exitOnFailure)
-    libc_exit (1);
+    {
+      libc_exit (1);
+    }
   return FALSE;
 }
 
@@ -444,11 +478,15 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
         {
           mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find definition module %s.def\\n", 41, (unsigned char *) &symName, (sizeof (symName)-1));
           if (exitOnFailure)
-            libc_exit (1);
+            {
+              libc_exit (1);
+            }
         }
     }
   else
-    fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
+    {
+      fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
+    }
   return doOpen (n, symName, fileName, exitOnFailure);
 }
 
@@ -473,15 +511,23 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
       if (! (mcSearch_findSourceModFile (symName, &fileName)))
         {
           if (decl_isImp (n))
-            mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\n", 45, (unsigned char *) &symName, (sizeof (symName)-1));
+            {
+              mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\n", 45, (unsigned char *) &symName, (sizeof (symName)-1));
+            }
           else
-            mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\n", 38, (unsigned char *) &symName, (sizeof (symName)-1));
+            {
+              mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\n", 38, (unsigned char *) &symName, (sizeof (symName)-1));
+            }
           if (exitOnFailure)
-            libc_exit (1);
+            {
+              libc_exit (1);
+            }
         }
     }
   else
-    fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
+    {
+      fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
+    }
   return doOpen (n, symName, fileName, exitOnFailure);
 }
 
@@ -530,12 +576,16 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
     {
       decl_unsetVisited (decl_getMainModule ());
       if (parseDefs && (decl_isImp (decl_getMainModule ())))
-        /* we need to parse the definition module of a corresponding implementation module.  */
-        (*p.proc) ((void *) decl_lookupDef (decl_getSymName (decl_getMainModule ())));
+        {
+          /* we need to parse the definition module of a corresponding implementation module.  */
+          (*p.proc) ((void *) decl_lookupDef (decl_getSymName (decl_getMainModule ())));
+        }
       (*p.proc) ((void *) decl_getMainModule ());
     }
   if (parseDefs)
-    decl_foreachDefModuleDo (p);
+    {
+      decl_foreachDefModuleDo (p);
+    }
   mcError_flushWarnings ();
   mcError_flushErrors ();
   setToPassNo (0);
@@ -569,7 +619,9 @@ static void init (void)
 void mcComp_compile (DynamicStrings_String s)
 {
   if (s != NULL)
-    doCompile (s);
+    {
+      doCompile (s);
+    }
 }
 
 

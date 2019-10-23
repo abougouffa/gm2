@@ -2390,18 +2390,34 @@ static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static void followNode (decl_node n)
 {
   if (decl_isVar (n))
-    mcPrintf_printf0 ((char *) "variable: ", 10);
+    {
+      mcPrintf_printf0 ((char *) "variable: ", 10);
+    }
   else if (decl_isParameter (n))
-    mcPrintf_printf0 ((char *) "parameter: ", 11);
+    {
+      /* avoid dangling else.  */
+      mcPrintf_printf0 ((char *) "parameter: ", 11);
+    }
   n = decl_skipType (decl_getType (n));
   if (decl_isArray (n))
-    mcPrintf_printf0 ((char *) "array\\n", 7);
+    {
+      mcPrintf_printf0 ((char *) "array\\n", 7);
+    }
   else if (decl_isPointer (n))
-    mcPrintf_printf0 ((char *) "pointer\\n", 9);
+    {
+      /* avoid dangling else.  */
+      mcPrintf_printf0 ((char *) "pointer\\n", 9);
+    }
   else if (decl_isRecord (n))
-    mcPrintf_printf0 ((char *) "record\\n", 8);
+    {
+      /* avoid dangling else.  */
+      mcPrintf_printf0 ((char *) "record\\n", 8);
+    }
   else
-    mcPrintf_printf0 ((char *) "other\\n", 7);
+    {
+      /* avoid dangling else.  */
+      mcPrintf_printf0 ((char *) "other\\n", 7);
+    }
 }
 
 
@@ -2473,7 +2489,9 @@ static unsigned int isQualident (decl_node n)
   decl_node type;
 
   if (decl_isDef (n))
-    return TRUE;
+    {
+      return TRUE;
+    }
   else
     {
       type = decl_skipType (decl_getType (n));
@@ -2679,12 +2697,16 @@ static void importInto (decl_node m, nameKey_Name name, decl_node current)
   mcDebug_assert (((decl_isDef (current)) || (decl_isModule (current))) || (decl_isImp (current)));
   s = decl_lookupExported (m, name);
   if (s == NULL)
-    mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, (sizeof (name)-1), (unsigned char *) &m, (sizeof (m)-1));
+    {
+      mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, (sizeof (name)-1), (unsigned char *) &m, (sizeof (m)-1));
+    }
   else
     {
       o = decl_import (current, s);
       if (s != o)
-        mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &o, (sizeof (o)-1));
+        {
+          mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &o, (sizeof (o)-1));
+        }
     }
 }
 
@@ -2724,387 +2746,387 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
   message = DynamicStrings_InitString ((char *) "", 0);
   if ((((1 << (mcReserved_stringtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`string'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "string", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_realtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`real number'", 13)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "real number", 11)));
       n += 1;
     }
   if ((((1 << (mcReserved_identtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`identifier'", 12)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "identifier", 10)));
       n += 1;
     }
   if ((((1 << (mcReserved_integertok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`integer number'", 16)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "integer number", 14)));
       n += 1;
     }
   if ((((1 << (mcReserved_inlinetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__INLINE__'", 12)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__INLINE__", 10)));
       n += 1;
     }
   if ((((1 << (mcReserved_builtintok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__BUILTIN__'", 13)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__BUILTIN__", 11)));
       n += 1;
     }
   if ((((1 << (mcReserved_attributetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__ATTRIBUTE__'", 15)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__ATTRIBUTE__", 13)));
       n += 1;
     }
   if ((((1 << (mcReserved_filetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__FILE__'", 10)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__FILE__", 8)));
       n += 1;
     }
   if ((((1 << (mcReserved_linetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__LINE__'", 10)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__LINE__", 8)));
       n += 1;
     }
   if ((((1 << (mcReserved_datetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`__DATE__'", 10)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "__DATE__", 8)));
       n += 1;
     }
   if ((((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`...'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "...", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_volatiletok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`VOLATILE'", 10)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "VOLATILE", 8)));
       n += 1;
     }
   if ((((1 << (mcReserved_asmtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`ASM'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "ASM", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_withtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`WITH'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "WITH", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_whiletok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`WHILE'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "WHILE", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_vartok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`VAR'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "VAR", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_untiltok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`UNTIL'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "UNTIL", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_typetok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`TYPE'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "TYPE", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_totok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`TO'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "TO", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_thentok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`THEN'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "THEN", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_settok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`SET'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "SET", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_returntok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`RETURN'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "RETURN", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_retrytok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`RETRY'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "RETRY", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_repeattok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`REPEAT'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "REPEAT", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_remtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`REM'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "REM", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_recordtok-mcReserved_recordtok)) & (stopset2)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`RECORD'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "RECORD", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_unqualifiedtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`UNQUALIFIED'", 13)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "UNQUALIFIED", 11)));
       n += 1;
     }
   if ((((1 << (mcReserved_qualifiedtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`QUALIFIED'", 11)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "QUALIFIED", 9)));
       n += 1;
     }
   if ((((1 << (mcReserved_proceduretok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`PROCEDURE'", 11)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "PROCEDURE", 9)));
       n += 1;
     }
   if ((((1 << (mcReserved_pointertok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`POINTER'", 9)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "POINTER", 7)));
       n += 1;
     }
   if ((((1 << (mcReserved_packedsettok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`PACKEDSET'", 11)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "PACKEDSET", 9)));
       n += 1;
     }
   if ((((1 << (mcReserved_ortok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`OR'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "OR", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_oftok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`OF'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "OF", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_nottok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`NOT'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "NOT", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_moduletok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`MODULE'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "MODULE", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_modtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`MOD'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "MOD", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_looptok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`LOOP'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "LOOP", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_intok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`IN'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "IN", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_importtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`IMPORT'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "IMPORT", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_implementationtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`IMPLEMENTATION'", 16)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "IMPLEMENTATION", 14)));
       n += 1;
     }
   if ((((1 << (mcReserved_iftok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`IF'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "IF", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_fromtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`FROM'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "FROM", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_fortok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`FOR'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "FOR", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_finallytok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`FINALLY'", 9)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "FINALLY", 7)));
       n += 1;
     }
   if ((((1 << (mcReserved_exporttok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`EXPORT'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "EXPORT", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_exittok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`EXIT'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "EXIT", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_excepttok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`EXCEPT'", 8)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "EXCEPT", 6)));
       n += 1;
     }
   if ((((1 << (mcReserved_endtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`END'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "END", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_elsiftok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`ELSIF'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "ELSIF", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_elsetok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`ELSE'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "ELSE", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_dotok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`DO'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "DO", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_divtok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`DIV'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "DIV", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_definitiontok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`DEFINITION'", 12)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "DEFINITION", 10)));
       n += 1;
     }
   if ((((1 << (mcReserved_consttok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`CONST'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "CONST", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_casetok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`CASE'", 6)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "CASE", 4)));
       n += 1;
     }
   if ((((1 << (mcReserved_bytok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`BY'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "BY", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_begintok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`BEGIN'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "BEGIN", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_arraytok-mcReserved_arraytok)) & (stopset1)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`ARRAY'", 7)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "ARRAY", 5)));
       n += 1;
     }
   if ((((1 << (mcReserved_andtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`AND'", 5)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "AND", 3)));
       n += 1;
     }
   if ((((1 << (mcReserved_colontok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`:'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ":", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_periodperiodtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`..'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "..", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_rdirectivetok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`*>'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "*>", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_ldirectivetok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`<*'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "<*", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_greaterequaltok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`>='", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ">=", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_lessequaltok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`<='", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "<=", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_lessgreatertok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`<>'", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "<>", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_hashtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`#'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "#", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_equaltok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`='", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "=", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_uparrowtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`^'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "^", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_semicolontok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`;'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ";", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_commatok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`,'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ",", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_periodtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`.'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ".", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_ambersandtok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`&'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "&", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_dividetok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`/'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "/", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_timestok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`*'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "*", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_minustok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`-'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "-", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_plustok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`+'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "+", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_doublequotestok-mcReserved_eoftok)) & (stopset0)) != 0))
@@ -3119,52 +3141,52 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
     }
   if ((((1 << (mcReserved_greatertok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`>'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ">", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_lesstok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`<'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "<", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_rparatok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`)'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ")", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_lparatok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`('", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "(", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_rcbratok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`}'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "}", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_lcbratok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`{'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "{", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_rsbratok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`]'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "]", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_lsbratok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`['", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "[", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_bartok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`|'", 3)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "|", 1)));
       n += 1;
     }
   if ((((1 << (mcReserved_becomestok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "`:='", 4)));
+      message = DynamicStrings_ConCat (DynamicStrings_ConCatChar (message, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) ":=", 2)));
       n += 1;
     }
   if ((((1 << (mcReserved_eoftok-mcReserved_eoftok)) & (stopset0)) != 0))
@@ -3176,9 +3198,13 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   else if (n == 1)
-    str = DynamicStrings_ConCat (message, DynamicStrings_Mark (DynamicStrings_InitString ((char *) " missing ", 9)));
+    {
+      /* avoid dangling else.  */
+      str = DynamicStrings_ConCat (message, DynamicStrings_Mark (DynamicStrings_InitString ((char *) " missing ", 9)));
+    }
   else
     {
+      /* avoid dangling else.  */
       str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " expecting one of", 17), message);
       message = DynamicStrings_KillString (message);
     }
@@ -3198,311 +3224,311 @@ static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   switch (mcLexBuf_currenttoken)
     {
       case mcReserved_stringtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `string'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found string", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_realtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `real number'", 33), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found real number", 31), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_identtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `identifier'", 32), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found identifier", 30), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_integertok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `integer number'", 36), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found integer number", 34), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_inlinetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__INLINE__'", 32), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __INLINE__", 30), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_builtintok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__BUILTIN__'", 33), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __BUILTIN__", 31), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_attributetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__ATTRIBUTE__'", 35), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __ATTRIBUTE__", 33), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_filetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__FILE__'", 30), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __FILE__", 28), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_linetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__LINE__'", 30), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __LINE__", 28), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_datetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `__DATE__'", 30), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found __DATE__", 28), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_periodperiodperiodtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `...'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ...", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_volatiletok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `VOLATILE'", 30), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found VOLATILE", 28), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_asmtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `ASM'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ASM", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_withtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `WITH'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found WITH", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_whiletok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `WHILE'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found WHILE", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_vartok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `VAR'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found VAR", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_untiltok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `UNTIL'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found UNTIL", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_typetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `TYPE'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found TYPE", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_totok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `TO'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found TO", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_thentok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `THEN'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found THEN", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_settok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `SET'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found SET", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_returntok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `RETURN'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found RETURN", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_retrytok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `RETRY'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found RETRY", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_repeattok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `REPEAT'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found REPEAT", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_remtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `REM'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found REM", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_recordtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `RECORD'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found RECORD", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_unqualifiedtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `UNQUALIFIED'", 33), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found UNQUALIFIED", 31), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_qualifiedtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `QUALIFIED'", 31), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found QUALIFIED", 29), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_proceduretok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `PROCEDURE'", 31), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found PROCEDURE", 29), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_pointertok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `POINTER'", 29), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found POINTER", 27), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_packedsettok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `PACKEDSET'", 31), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found PACKEDSET", 29), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_ortok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `OR'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found OR", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_oftok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `OF'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found OF", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_nottok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `NOT'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found NOT", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_moduletok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `MODULE'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found MODULE", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_modtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `MOD'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found MOD", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_looptok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `LOOP'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found LOOP", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_intok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `IN'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found IN", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_importtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `IMPORT'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found IMPORT", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_implementationtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `IMPLEMENTATION'", 36), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found IMPLEMENTATION", 34), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_iftok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `IF'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found IF", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_fromtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `FROM'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found FROM", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_fortok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `FOR'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found FOR", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_finallytok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `FINALLY'", 29), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found FINALLY", 27), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_exporttok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `EXPORT'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found EXPORT", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_exittok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `EXIT'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found EXIT", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_excepttok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `EXCEPT'", 28), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found EXCEPT", 26), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_endtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `END'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found END", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_elsiftok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `ELSIF'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ELSIF", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_elsetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `ELSE'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ELSE", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_dotok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `DO'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found DO", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_divtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `DIV'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found DIV", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_definitiontok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `DEFINITION'", 32), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found DEFINITION", 30), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_consttok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `CONST'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found CONST", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_casetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `CASE'", 26), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found CASE", 24), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_bytok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `BY'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found BY", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_begintok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `BEGIN'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found BEGIN", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_arraytok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `ARRAY'", 27), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ARRAY", 25), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_andtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `AND'", 25), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found AND", 23), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_colontok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `:'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found :", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_periodperiodtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `..'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ..", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_rdirectivetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `*>'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found *>", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_ldirectivetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `<*'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found <*", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_greaterequaltok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `>='", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found >=", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lessequaltok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `<='", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found <=", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lessgreatertok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `<>'", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found <>", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_hashtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `#'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found #", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_equaltok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `='", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found =", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_uparrowtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `^'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ^", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_semicolontok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `;'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ;", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_commatok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `,'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ,", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_periodtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `.'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found .", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_ambersandtok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `&'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found &", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_dividetok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `/'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found /", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_timestok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `*'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found *", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_minustok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `-'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found -", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_plustok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `+'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found +", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_doublequotestok:
@@ -3514,47 +3540,47 @@ static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
         break;
 
       case mcReserved_greatertok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `>'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found >", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lesstok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `<'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found <", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_rparatok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `)'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found )", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lparatok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `('", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found (", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_rcbratok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `}'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found }", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lcbratok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `{'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found {", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_rsbratok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `]'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ]", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_lsbratok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `['", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found [", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_bartok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `|'", 23), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found |", 21), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_becomestok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `:='", 24), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found :=", 22), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_eoftok:
-        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found `'", 22), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error, found ", 20), DynamicStrings_Mark (str));
         break;
 
 
@@ -3574,7 +3600,9 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 {
   DescribeError (stopset0, stopset1, stopset2);
   if (Debugging)
-    mcPrintf_printf0 ((char *) "\\nskipping token *** ", 21);
+    {
+      mcPrintf_printf0 ((char *) "\\nskipping token *** ", 21);
+    }
   /* 
       yes the ORD(currenttoken) looks ugly, but it is *much* safer than
       using currenttoken<sometok as a change to the ordering of the
@@ -3582,9 +3610,13 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
       immune from such changes
   */
   while (! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
-    mcLexBuf_getToken ();
+    {
+      mcLexBuf_getToken ();
+    }
   if (Debugging)
-    mcPrintf_printf0 ((char *) " ***\\n", 6);
+    {
+      mcPrintf_printf0 ((char *) " ***\\n", 6);
+    }
 }
 
 
@@ -3597,7 +3629,9 @@ static void SyntaxCheck (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   /* and again (see above re: ORD)
   */
   if (! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
-    SyntaxError (stopset0, stopset1, stopset2);
+    {
+      SyntaxError (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -3616,11 +3650,19 @@ static void WarnMissingToken (mcReserved_toktype t)
   s1 = (SetOfStop1) 0;
   s2 = (SetOfStop2) 0;
   if ( ((unsigned int) (t)) < 32)
-    s0 = (SetOfStop0) ((1 << (t-mcReserved_eoftok)));
+    {
+      s0 = (SetOfStop0) ((1 << (t-mcReserved_eoftok)));
+    }
   else if ( ((unsigned int) (t)) < 64)
-    s1 = (SetOfStop1) ((1 << (t-mcReserved_arraytok)));
+    {
+      /* avoid dangling else.  */
+      s1 = (SetOfStop1) ((1 << (t-mcReserved_arraytok)));
+    }
   else
-    s2 = (SetOfStop2) ((1 << (t-mcReserved_recordtok)));
+    {
+      /* avoid dangling else.  */
+      s2 = (SetOfStop2) ((1 << (t-mcReserved_recordtok)));
+    }
   str = DescribeStop (s0, s1, s2);
   str = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "syntax error,", 13), DynamicStrings_Mark (str));
   mcError_errorStringAt (str, mcLexBuf_getTokenNo ());
@@ -3637,7 +3679,9 @@ static void MissingToken (mcReserved_toktype t)
   if ((((t != mcReserved_identtok) && (t != mcReserved_integertok)) && (t != mcReserved_realtok)) && (t != mcReserved_stringtok))
     {
       if (Debugging)
-        mcPrintf_printf0 ((char *) "inserting token\\n", 17);
+        {
+          mcPrintf_printf0 ((char *) "inserting token\\n", 17);
+        }
       mcLexBuf_insertToken (t);
     }
 }
@@ -3656,7 +3700,9 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
       return TRUE;
     }
   else
-    return FALSE;
+    {
+      return FALSE;
+    }
 }
 
 
@@ -3667,9 +3713,13 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (((( ((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (t)) >= 32) && ( ((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
-    return TRUE;
+    {
+      return TRUE;
+    }
   else
-    return FALSE;
+    {
+      return FALSE;
+    }
 }
 
 
@@ -3686,10 +3736,12 @@ static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   /* and again (see above re: ORD)
   */
   if ((! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0))))) && (! (InStopSet ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2))))
-    /* SyntaxCheck would fail since currentoken is not part of the stopset
+    {
+      /* SyntaxCheck would fail since currentoken is not part of the stopset
          we check to see whether any of currenttoken might be a commonly omitted token  */
-    if ((((((((CheckAndInsert ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2)) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2)))
-      {}  /* empty.  */
+      if ((((((((CheckAndInsert ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2)) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2)))
+        {}  /* empty.  */
+    }
 }
 
 
@@ -3704,10 +3756,14 @@ static void Expect (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopse
       /* avoid dangling else.  */
       mcLexBuf_getToken ();
       if (Pass1)
-        PeepToken (stopset0, stopset1, stopset2);
+        {
+          PeepToken (stopset0, stopset1, stopset2);
+        }
     }
   else
-    MissingToken (t);
+    {
+      MissingToken (t);
+    }
   SyntaxCheck (stopset0, stopset1, stopset2);
 }
 
@@ -3771,11 +3827,19 @@ static void Real (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 static void FileUnit (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_definitiontok)
-    DefinitionModule (stopset0, stopset1, stopset2);
+    {
+      DefinitionModule (stopset0, stopset1, stopset2);
+    }
   else if (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_implementationtok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0)))
-    ImplementationOrProgramModule (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ImplementationOrProgramModule (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: IMPLEMENTATION MODULE DEFINITION", 50);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: IMPLEMENTATION MODULE DEFINITION", 50);
+    }
 }
 
 
@@ -3809,10 +3873,14 @@ static void ProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   decl_enterScope (curmodule);
   decl_resetConstExpPos (curmodule);
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
-    Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    {
+      Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    }
    /* while  */
   Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -3856,10 +3924,14 @@ static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
   decl_enterScope (curmodule);
   decl_resetConstExpPos (curmodule);
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
-    Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    {
+      Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    }
    /* while  */
   Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -3882,11 +3954,19 @@ static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
 static void ImplementationOrProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_implementationtok)
-    ImplementationModule (stopset0, stopset1, stopset2);
+    {
+      ImplementationModule (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_moduletok)
-    ProgramModule (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ProgramModule (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: MODULE IMPLEMENTATION", 39);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: MODULE IMPLEMENTATION", 39);
+    }
 }
 
 
@@ -3943,11 +4023,19 @@ static void ConstReal (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static void ConstNumber (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_integertok)
-    ConstInteger (stopset0, stopset1, stopset2);
+    {
+      ConstInteger (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_realtok)
-    ConstReal (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstReal (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: real number integer number", 44);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: real number integer number", 44);
+    }
 }
 
 
@@ -3962,11 +4050,19 @@ static void ConstNumber (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 static void Number (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_integertok)
-    Integer (stopset0, stopset1, stopset2);
+    {
+      Integer (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_realtok)
-    Real (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Real (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: real number integer number", 44);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: real number integer number", 44);
+    }
 }
 
 
@@ -4070,23 +4166,49 @@ static void ConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
 static void Relation (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_equaltok)
-    Expect ((mcReserved_toktype) mcReserved_equaltok, stopset0, stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_equaltok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_hashtok)
-    Expect ((mcReserved_toktype) mcReserved_hashtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_hashtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lessgreatertok)
-    Expect ((mcReserved_toktype) mcReserved_lessgreatertok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_lessgreatertok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lesstok)
-    Expect ((mcReserved_toktype) mcReserved_lesstok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_lesstok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lessequaltok)
-    Expect ((mcReserved_toktype) mcReserved_lessequaltok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_lessequaltok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_greatertok)
-    Expect ((mcReserved_toktype) mcReserved_greatertok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_greatertok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_greaterequaltok)
-    Expect ((mcReserved_toktype) mcReserved_greaterequaltok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_greaterequaltok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_intok)
-    Expect ((mcReserved_toktype) mcReserved_intok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_intok, stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: IN >= > <= < <> # =", 37);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: IN >= > <= < <> # =", 37);
+    }
 }
 
 
@@ -4128,13 +4250,20 @@ static void UnaryOrConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     }
   else if (mcLexBuf_currenttoken == mcReserved_minustok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_minustok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
       ConstTerm (stopset0, stopset1, stopset2);
     }
   else if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok))))) != 0))))
-    ConstTerm (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstTerm (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: NOT ( integer number real number __ATTRIBUTE__ identifier { string - +", 88);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: NOT ( integer number real number __ATTRIBUTE__ identifier { string - +", 88);
+    }
 }
 
 
@@ -4149,13 +4278,24 @@ static void UnaryOrConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
 static void AddOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_plustok)
-    Expect ((mcReserved_toktype) mcReserved_plustok, stopset0, stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_plustok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_minustok)
-    Expect ((mcReserved_toktype) mcReserved_minustok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_minustok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_ortok)
-    Expect ((mcReserved_toktype) mcReserved_ortok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_ortok, stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: OR - +", 24);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: OR - +", 24);
+    }
 }
 
 
@@ -4191,21 +4331,44 @@ static void ConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static void MulOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_timestok)
-    Expect ((mcReserved_toktype) mcReserved_timestok, stopset0, stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_timestok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_dividetok)
-    Expect ((mcReserved_toktype) mcReserved_dividetok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_dividetok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_divtok)
-    Expect ((mcReserved_toktype) mcReserved_divtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_divtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_modtok)
-    Expect ((mcReserved_toktype) mcReserved_modtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_modtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_remtok)
-    Expect ((mcReserved_toktype) mcReserved_remtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_remtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_andtok)
-    Expect ((mcReserved_toktype) mcReserved_andtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_andtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_ambersandtok)
-    Expect ((mcReserved_toktype) mcReserved_ambersandtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_ambersandtok, stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: & AND REM MOD DIV / *", 39);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: & AND REM MOD DIV / *", 39);
+    }
 }
 
 
@@ -4244,23 +4407,41 @@ static void NotConstFactor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void ConstFactor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok))))) != 0)))
-    ConstNumber (stopset0, stopset1, stopset2);
+    {
+      ConstNumber (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_stringtok)
-    ConstString (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstString (stopset0, stopset1, stopset2);
+    }
   else if ((mcLexBuf_currenttoken == mcReserved_lcbratok) || (mcLexBuf_currenttoken == mcReserved_identtok))
-    ConstSetOrQualidentOrFunction (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstSetOrQualidentOrFunction (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lparatok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok))));
       ConstExpressionNop (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_nottok)
-    NotConstFactor (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      NotConstFactor (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_attributetok)
-    ConstAttribute (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstAttribute (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: __ATTRIBUTE__ NOT ( identifier { string integer number real number", 84);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: __ATTRIBUTE__ NOT ( identifier { string integer number real number", 84);
+    }
 }
 
 
@@ -4348,7 +4529,9 @@ static void ConstConstructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
 {
   Expect ((mcReserved_toktype) mcReserved_lcbratok, stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok))))) != 0))))
-    ConstArraySetRecordValue (stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      ConstArraySetRecordValue (stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2);
 }
 
@@ -4374,18 +4557,32 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           /* seen optional [ | ] expression  */
           if (mcLexBuf_currenttoken == mcReserved_lcbratok)
-            ConstConstructor (stopset0, stopset1, stopset2);
+            {
+              ConstConstructor (stopset0, stopset1, stopset2);
+            }
           else if (mcLexBuf_currenttoken == mcReserved_lparatok)
-            ConstActualParameters (stopset0, stopset1, stopset2);
+            {
+              /* avoid dangling else.  */
+              ConstActualParameters (stopset0, stopset1, stopset2);
+            }
           else
-            ErrorArray ((char *) "expecting one of: ( {", 21);
+            {
+              /* avoid dangling else.  */
+              ErrorArray ((char *) "expecting one of: ( {", 21);
+            }
         }
       /* end of optional [ | ] expression  */
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
-    ConstConstructor (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ConstConstructor (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: { identifier", 30);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: { identifier", 30);
+    }
 }
 
 
@@ -4401,7 +4598,9 @@ static void ConstActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, Set
 {
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok))))) != 0))))
-    ConstExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      ConstExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
 
@@ -4459,9 +4658,12 @@ static void ConstAttribute (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void ConstAttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    Ident (stopset0, stopset1, stopset2);
+    {
+      Ident (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lesstok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_lesstok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -4469,7 +4671,10 @@ static void ConstAttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, 
       Expect ((mcReserved_toktype) mcReserved_greatertok, stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: < identifier", 30);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: < identifier", 30);
+    }
 }
 
 
@@ -4500,7 +4705,9 @@ static void ByteAlignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
 static void OptAlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
-    AlignmentExpression (stopset0, stopset1, stopset2);
+    {
+      AlignmentExpression (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -4531,7 +4738,9 @@ static void AlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
 static void Alignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_ldirectivetok)
-    ByteAlignment (stopset0, stopset1, stopset2);
+    {
+      ByteAlignment (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -4610,7 +4819,9 @@ static void RecordType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
 {
   Expect ((mcReserved_toktype) mcReserved_recordtok, stopset0|(SetOfStop0) ((1 << (mcReserved_ldirectivetok-mcReserved_eoftok)) | (1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   if (mcLexBuf_currenttoken == mcReserved_ldirectivetok)
-    DefaultRecordAttributes (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+    {
+      DefaultRecordAttributes (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+    }
   FieldListSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
@@ -4739,7 +4950,9 @@ static void FieldListSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
 static void FieldListStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_casetok) || (mcLexBuf_currenttoken == mcReserved_identtok))
-    FieldList (stopset0, stopset1, stopset2);
+    {
+      FieldList (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -4764,6 +4977,7 @@ static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
     }
   else if (mcLexBuf_currenttoken == mcReserved_casetok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_casetok, stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       CaseTag (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
       Expect ((mcReserved_toktype) mcReserved_oftok, stopset0|(SetOfStop0) ((1 << (mcReserved_bartok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_elsetok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
@@ -4782,7 +4996,10 @@ static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: CASE identifier", 33);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: CASE identifier", 33);
+    }
 }
 
 
@@ -4799,9 +5016,13 @@ static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static void TagIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    Ident (stopset0, stopset1, stopset2);
+    {
+      Ident (stopset0, stopset1, stopset2);
+    }
   else
-    curident = nameKey_NulName;
+    {
+      curident = nameKey_NulName;
+    }
 }
 
 
@@ -4893,11 +5114,19 @@ static void VarientCaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
 static void SetType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_settok)
-    Expect ((mcReserved_toktype) mcReserved_settok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_settok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_packedsettok)
-    Expect ((mcReserved_toktype) mcReserved_packedsettok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_packedsettok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: PACKEDSET SET", 31);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: PACKEDSET SET", 31);
+    }
   Expect ((mcReserved_toktype) mcReserved_oftok, stopset0|(SetOfStop0) ((1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   SimpleType (stopset0, stopset1, stopset2);
 }
@@ -4931,7 +5160,9 @@ static void ProcedureType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
 {
   Expect ((mcReserved_toktype) mcReserved_proceduretok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
-    FormalTypeList (stopset0, stopset1, stopset2);
+    {
+      FormalTypeList (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -4954,12 +5185,16 @@ static void FormalTypeList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
     }
   else if ((mcLexBuf_currenttoken == mcReserved_arraytok) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
     {
+      /* avoid dangling else.  */
       ProcedureParameters (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
       FormalReturn (stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: VAR ... ARRAY identifier )", 44);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: VAR ... ARRAY identifier )", 44);
+    }
 }
 
 
@@ -4998,9 +5233,15 @@ static void OptReturnType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
       Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_identtok)
-    Qualident (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Qualident (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: identifier [", 30);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: identifier [", 30);
+    }
 }
 
 
@@ -5036,16 +5277,25 @@ static void ProcedureParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
 static void ProcedureParameter (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_periodperiodperiodtok)
-    Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       FormalType (stopset0, stopset1, stopset2);
     }
   else if ((mcLexBuf_currenttoken == mcReserved_arraytok) || (mcLexBuf_currenttoken == mcReserved_identtok))
-    FormalType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      FormalType (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: ARRAY identifier VAR ...", 42);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: ARRAY identifier VAR ...", 42);
+    }
 }
 
 
@@ -5118,7 +5368,9 @@ static void Designator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
 {
   PushQualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
   while ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
-    SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
+    }
    /* while  */
 }
 
@@ -5173,27 +5425,44 @@ static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
         {
           field = decl_lookupInScope (type, curident);
           if (field == NULL)
-            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+            {
+              mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+            }
           else
-            n = replace (decl_makeComponentRef (n, field));
+            {
+              n = replace (decl_makeComponentRef (n, field));
+            }
         }
       else
-        mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+        {
+          mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+        }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lsbratok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_lsbratok, stopset0|(SetOfStop0) ((1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
       ArrayExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rsbratok-mcReserved_eoftok))), stopset1, stopset2);
       if (decl_isArray (type))
-        n = replace (decl_makeArrayRef (n, pop ()));
+        {
+          n = replace (decl_makeArrayRef (n, pop ()));
+        }
       else
-        mcMetaError_metaError1 ((char *) "attempting to access an array but the expression is not an array but a {%1d}", 76, (unsigned char *) &type, (sizeof (type)-1));
+        {
+          mcMetaError_metaError1 ((char *) "attempting to access an array but the expression is not an array but a {%1d}", 76, (unsigned char *) &type, (sizeof (type)-1));
+        }
       Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_uparrowtok)
-    SubPointer (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      SubPointer (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: ^ [ .", 23);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: ^ [ .", 23);
+    }
 }
 
 
@@ -5257,21 +5526,35 @@ static void SubPointer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
             {
               field = decl_lookupInScope (type, curident);
               if (field == NULL)
-                mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+                {
+                  mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+                }
               else
-                n = replace (decl_makePointerRef (n, field));
+                {
+                  n = replace (decl_makePointerRef (n, field));
+                }
             }
           else
-            mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+            {
+              mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
+            }
         }
       else
-        mcMetaError_metaError2 ((char *) "trying to dereference {%1k} which was not declared as a pointer but a {%2tad}", 77, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &n, (sizeof (n)-1));
+        {
+          mcMetaError_metaError2 ((char *) "trying to dereference {%1k} which was not declared as a pointer but a {%2tad}", 77, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &n, (sizeof (n)-1));
+        }
     }
   else
-    if (decl_isPointer (type))
-      n = replace (decl_makeDeRef (n));
-    else
-      mcMetaError_metaError1 ((char *) "attempting to dereference a pointer but the expression is not a pointer but a {%1d}", 83, (unsigned char *) &type, (sizeof (type)-1));
+    {
+      if (decl_isPointer (type))
+        {
+          n = replace (decl_makeDeRef (n));
+        }
+      else
+        {
+          mcMetaError_metaError1 ((char *) "attempting to dereference a pointer but the expression is not a pointer but a {%1d}", 83, (unsigned char *) &type, (sizeof (type)-1));
+        }
+    }
 }
 
 
@@ -5455,14 +5738,21 @@ static void UnaryOrTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_minustok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_minustok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
       Term (stopset0, stopset1, stopset2);
       n = push (decl_makeUnaryTok ((mcReserved_toktype) mcReserved_minustok, pop ()));
     }
   else if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
-    Term (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Term (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: NOT ( string integer number real number { identifier - +", 74);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: NOT ( string integer number real number { identifier - +", 74);
+    }
 }
 
 
@@ -5542,19 +5832,29 @@ static void Factor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
   decl_node n;
 
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok))))) != 0)))
-    Number (stopset0, stopset1, stopset2);
+    {
+      Number (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_stringtok)
-    PushString (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      PushString (stopset0, stopset1, stopset2);
+    }
   else if ((mcLexBuf_currenttoken == mcReserved_lcbratok) || (mcLexBuf_currenttoken == mcReserved_identtok))
-    SetOrDesignatorOrFunction (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      SetOrDesignatorOrFunction (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lparatok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
       Expression (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_nottok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_nottok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
       if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
         {
@@ -5563,14 +5863,21 @@ static void Factor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
         }
       else if (mcLexBuf_currenttoken == mcReserved_attributetok)
         {
+          /* avoid dangling else.  */
           ConstAttribute (stopset0, stopset1, stopset2);
           n = push (decl_makeUnaryTok ((mcReserved_toktype) mcReserved_nottok, pop ()));
         }
       else
-        ErrorArray ((char *) "expecting one of: __ATTRIBUTE__ real number integer number string ( NOT { identifier", 84);
+        {
+          /* avoid dangling else.  */
+          ErrorArray ((char *) "expecting one of: __ATTRIBUTE__ real number integer number string ( NOT { identifier", 84);
+        }
     }
   else
-    ErrorArray ((char *) "expecting one of: NOT ( { identifier string integer number real number", 70);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: NOT ( { identifier string integer number real number", 70);
+    }
 }
 
 
@@ -5675,7 +5982,9 @@ static void Constructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   Expect ((mcReserved_toktype) mcReserved_lcbratok, stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
   n = push (decl_makeSetValue ());
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
-    ArraySetRecordValue (stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      ArraySetRecordValue (stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2);
 }
 
@@ -5738,14 +6047,23 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
                 }
             }
           else
-            ErrorArray ((char *) "expecting one of: ( [ . ^ {", 27);
+            {
+              /* avoid dangling else.  */
+              ErrorArray ((char *) "expecting one of: ( [ . ^ {", 27);
+            }
         }
       /* end of optional [ | ] expression  */
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
-    Constructor (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Constructor (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: { identifier", 30);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: { identifier", 30);
+    }
 }
 
 
@@ -5760,7 +6078,9 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
 static void SimpleDes (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   while ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
-    SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
+    }
    /* while  */
 }
 
@@ -5786,7 +6106,9 @@ static void ActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
   n = push (decl_makeExpList ());
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
-    ExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      ExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
   mcDebug_assert (decl_isExpList (peep ()));
 }
@@ -5815,9 +6137,13 @@ static void ExitStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
 
   Expect ((mcReserved_toktype) mcReserved_exittok, stopset0, stopset1, stopset2);
   if (loopNo == 0)
-    ErrorArray ((char *) "EXIT can only be used inside a LOOP statement", 45);
+    {
+      ErrorArray ((char *) "EXIT can only be used inside a LOOP statement", 45);
+    }
   else
-    n = pushStmt (decl_makeExit (peepLoop (), loopNo));
+    {
+      n = pushStmt (decl_makeExit (peepLoop (), loopNo));
+    }
 }
 
 
@@ -5881,31 +6207,69 @@ static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   decl_node s;
 
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    AssignmentOrProcedureCall (stopset0, stopset1, stopset2);
+    {
+      AssignmentOrProcedureCall (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_iftok)
-    IfStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      IfStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_casetok)
-    CaseStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      CaseStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_whiletok)
-    WhileStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      WhileStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_repeattok)
-    RepeatStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      RepeatStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_looptok)
-    LoopStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      LoopStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_fortok)
-    ForStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ForStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_withtok)
-    WithStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      WithStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_asmtok)
-    AsmStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      AsmStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_exittok)
-    ExitStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ExitStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_returntok)
-    ReturnStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ReturnStatement (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_retrytok)
-    RetryStatement (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      RetryStatement (stopset0, stopset1, stopset2);
+    }
   else
-    s = pushStmt ((decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      s = pushStmt ((decl_node) NULL);
+    }
 }
 
 
@@ -5968,11 +6332,15 @@ static void AssignmentOrProcedureCall (SetOfStop0 stopset0, SetOfStop1 stopset1,
     }
   else if (mcLexBuf_currenttoken == mcReserved_lparatok)
     {
+      /* avoid dangling else.  */
       ActualParameters (stopset0, stopset1, stopset2);
       a = pushStmt (decl_makeFuncCall (d, pop ()));
     }
   else
-    a = pushStmt (decl_makeFuncCall (d, (decl_node) NULL));
+    {
+      /* avoid dangling else.  */
+      a = pushStmt (decl_makeFuncCall (d, (decl_node) NULL));
+    }
   decl_addCommentBody (peepStmt ());
   decl_addCommentAfter (peepStmt ());
 }
@@ -6151,9 +6519,12 @@ static void CaseEndStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   decl_node c;
 
   if (mcLexBuf_currenttoken == mcReserved_endtok)
-    Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_elsetok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_elsetok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
       c = peepStmt ();
       StatementSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
@@ -6161,7 +6532,10 @@ static void CaseEndStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
       Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: ELSE END", 26);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: ELSE END", 26);
+    }
 }
 
 
@@ -6586,9 +6960,15 @@ static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, Se
           Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
         }
       else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
-        Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+        {
+          /* avoid dangling else.  */
+          Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+        }
       else
-        ErrorArray ((char *) "expecting one of: __INLINE__ __ATTRIBUTE__", 42);
+        {
+          /* avoid dangling else.  */
+          ErrorArray ((char *) "expecting one of: __INLINE__ __ATTRIBUTE__", 42);
+        }
     }
   /* end of optional [ | ] expression  */
 }
@@ -6610,7 +6990,9 @@ static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   DefineBuiltinProcedure (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   ProcedureIdent (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
-    FormalParameters (stopset0, stopset1, stopset2);
+    {
+      FormalParameters (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -6629,11 +7011,19 @@ static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       /* seen optional [ | ] expression  */
       if (mcLexBuf_currenttoken == mcReserved_builtintok)
-        Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
+        {
+          Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
+        }
       else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
-        Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+        {
+          /* avoid dangling else.  */
+          Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+        }
       else
-        ErrorArray ((char *) "expecting one of: __INLINE__ __BUILTIN__", 40);
+        {
+          /* avoid dangling else.  */
+          ErrorArray ((char *) "expecting one of: __INLINE__ __BUILTIN__", 40);
+        }
     }
   /* end of optional [ | ] expression  */
 }
@@ -6654,7 +7044,9 @@ static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   Builtin (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   DefProcedureIdent (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
-    DefFormalParameters (stopset0, stopset1, stopset2);
+    {
+      DefFormalParameters (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -6670,7 +7062,9 @@ static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
 static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
-    Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    {
+      Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    }
    /* while  */
   if (mcLexBuf_currenttoken == mcReserved_begintok)
     {
@@ -6692,7 +7086,9 @@ static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void Block (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
-    Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    {
+      Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    }
    /* while  */
   InitialBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok))), stopset2);
   FinalBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
@@ -6870,13 +7266,17 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_typetok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       while (mcLexBuf_currenttoken == mcReserved_identtok)
-        TypeDeclaration (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        {
+          TypeDeclaration (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        }
        /* while  */
     }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         {
@@ -6887,16 +7287,21 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_proceduretok)
     {
+      /* avoid dangling else.  */
       ProcedureDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_moduletok)
     {
+      /* avoid dangling else.  */
       ModuleDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: MODULE PROCEDURE VAR TYPE CONST", 49);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: MODULE PROCEDURE VAR TYPE CONST", 49);
+    }
 }
 
 
@@ -6917,7 +7322,9 @@ static void DefFormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   decl_paramEnter (curproc);
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
-    DefMultiFPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      DefMultiFPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
   decl_paramLeave (curproc);
   FormalReturn (stopset0, stopset1, stopset2);
@@ -6935,7 +7342,9 @@ static void DefFormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
 static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || (mcLexBuf_currenttoken == mcReserved_periodperiodperiodtok))
-    DefExtendedFP (stopset0, stopset1, stopset2);
+    {
+      DefExtendedFP (stopset0, stopset1, stopset2);
+    }
   else if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0)))
     {
       /* avoid dangling else.  */
@@ -6947,7 +7356,10 @@ static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
         }
     }
   else
-    ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
+    }
 }
 
 
@@ -6968,7 +7380,9 @@ static void FormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   decl_paramEnter (curproc);
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
-    MultiFPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      MultiFPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
   decl_paramLeave (curproc);
   FormalReturn (stopset0, stopset1, stopset2);
@@ -6986,7 +7400,9 @@ static void FormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
 static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || (mcLexBuf_currenttoken == mcReserved_periodperiodperiodtok))
-    ExtendedFP (stopset0, stopset1, stopset2);
+    {
+      ExtendedFP (stopset0, stopset1, stopset2);
+    }
   else if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0)))
     {
       /* avoid dangling else.  */
@@ -6998,7 +7414,10 @@ static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
         }
     }
   else
-    ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
+    }
 }
 
 
@@ -7013,11 +7432,19 @@ static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void FPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    NonVarFPSection (stopset0, stopset1, stopset2);
+    {
+      NonVarFPSection (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
-    VarFPSection (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      VarFPSection (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: VAR identifier", 32);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: VAR identifier", 32);
+    }
 }
 
 
@@ -7032,11 +7459,19 @@ static void FPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static void DefExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    DefOptArg (stopset0, stopset1, stopset2);
+    {
+      DefOptArg (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_periodperiodperiodtok)
-    Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: ... [", 23);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: ... [", 23);
+    }
 }
 
 
@@ -7051,11 +7486,19 @@ static void DefExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
 static void ExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    OptArg (stopset0, stopset1, stopset2);
+    {
+      OptArg (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_periodperiodperiodtok)
-    Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Expect ((mcReserved_toktype) mcReserved_periodperiodperiodtok, stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: ... [", 23);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: ... [", 23);
+    }
 }
 
 
@@ -7171,13 +7614,19 @@ static void ModuleDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
   Expect ((mcReserved_toktype) mcReserved_moduletok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      Priority (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
-    Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    {
+      Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    }
    /* while  */
   if (mcLexBuf_currenttoken == mcReserved_exporttok)
-    Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    {
+      Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
+    }
   Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0, stopset1, stopset2);
 }
@@ -7219,13 +7668,20 @@ static void Export (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
     }
   else if (mcLexBuf_currenttoken == mcReserved_unqualifiedtok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_unqualifiedtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       IdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_identtok)
-    IdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      IdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: identifier UNQUALIFIED QUALIFIED", 50);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: identifier UNQUALIFIED QUALIFIED", 50);
+    }
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
 }
 
@@ -7315,11 +7771,19 @@ static void WithoutFromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
 static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_fromtok)
-    FromImport (stopset0, stopset1, stopset2);
+    {
+      FromImport (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_importtok)
-    WithoutFromImport (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      WithoutFromImport (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: IMPORT FROM", 29);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: IMPORT FROM", 29);
+    }
 }
 
 
@@ -7355,12 +7819,18 @@ static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   curmodule = decl_lookupDef (curident);
   decl_enterScope (curmodule);
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
-    Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    {
+      Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    }
    /* while  */
   if (mcLexBuf_currenttoken == mcReserved_exporttok)
-    Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    {
+      Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    }
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
-    Definition (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    {
+      Definition (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
+    }
    /* while  */
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -7418,26 +7888,38 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   qualid = push (lookupWithSym (curident));
   if (qualid == NULL)
-    mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, (sizeof (curident)-1));
+    {
+      mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, (sizeof (curident)-1));
+    }
   if (mcLexBuf_currenttoken == mcReserved_periodtok)
     {
       Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       if (! (isQualident (qualid)))
-        ErrorArray ((char *) "the first component of this qualident must be a definition module or a parameter/variable/constant which has record type", 120);
+        {
+          ErrorArray ((char *) "the first component of this qualident must be a definition module or a parameter/variable/constant which has record type", 120);
+        }
       Ident (stopset0, stopset1, stopset2);
       if (decl_isDef (qualid))
-        qualid = replace (decl_lookupInScope (qualid, curident));
+        {
+          qualid = replace (decl_lookupInScope (qualid, curident));
+        }
       else
         {
           type = decl_skipType (decl_getType (qualid));
           field = decl_lookupInScope (type, curident);
           if (field == NULL)
-            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in {%2ad}", 37, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &qualid, (sizeof (qualid)-1));
+            {
+              mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in {%2ad}", 37, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &qualid, (sizeof (qualid)-1));
+            }
           else
-            qualid = replace (decl_makeComponentRef (qualid, field));
+            {
+              qualid = replace (decl_makeComponentRef (qualid, field));
+            }
         }
       if (qualid == NULL)
-        mcMetaError_metaError1 ((char *) "qualified component of the identifier {%1k} cannot be found", 59, (unsigned char *) &curident, (sizeof (curident)-1));
+        {
+          mcMetaError_metaError1 ((char *) "qualified component of the identifier {%1k} cannot be found", 59, (unsigned char *) &curident, (sizeof (curident)-1));
+        }
     }
 }
 
@@ -7453,7 +7935,9 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
 static void OptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    SubrangeType (stopset0, stopset1, stopset2);
+    {
+      SubrangeType (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -7519,13 +8003,24 @@ static void Enumeration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 static void SimpleType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    TypeEquiv (stopset0, stopset1, stopset2);
+    {
+      TypeEquiv (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lparatok)
-    Enumeration (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      Enumeration (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    SubrangeType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      SubrangeType (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: [ ( identifier", 32);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: [ ( identifier", 32);
+    }
 }
 
 
@@ -7541,19 +8036,39 @@ static void SimpleType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
 static void Type (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_identtok))
-    SimpleType (stopset0, stopset1, stopset2);
+    {
+      SimpleType (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_arraytok)
-    ArrayType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ArrayType (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_recordtok)
-    RecordType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      RecordType (stopset0, stopset1, stopset2);
+    }
   else if ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_packedsettok-mcReserved_arraytok)) | (1 << (mcReserved_oftok-mcReserved_arraytok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_settok))
-    SetType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      SetType (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_pointertok)
-    PointerType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      PointerType (stopset0, stopset1, stopset2);
+    }
   else if (mcLexBuf_currenttoken == mcReserved_proceduretok)
-    ProcedureType (stopset0, stopset1, stopset2);
+    {
+      /* avoid dangling else.  */
+      ProcedureType (stopset0, stopset1, stopset2);
+    }
   else
-    ErrorArray ((char *) "expecting one of: PROCEDURE POINTER SET PACKEDSET OF RECORD ARRAY identifier ( [", 80);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: PROCEDURE POINTER SET PACKEDSET OF RECORD ARRAY identifier ( [", 80);
+    }
 }
 
 
@@ -7571,16 +8086,22 @@ static void TypeDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
     {
       Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok)) | (1 << (mcReserved_equaltok-mcReserved_eoftok))), stopset1, stopset2);
       if (mcLexBuf_currenttoken == mcReserved_semicolontok)
-        Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        {
+          Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        }
       else if (mcLexBuf_currenttoken == mcReserved_equaltok)
         {
+          /* avoid dangling else.  */
           Expect ((mcReserved_toktype) mcReserved_equaltok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_pointertok-mcReserved_arraytok)) | (1 << (mcReserved_packedsettok-mcReserved_arraytok)) | (1 << (mcReserved_oftok-mcReserved_arraytok)) | (1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_settok-mcReserved_recordtok)) | (1 << (mcReserved_recordtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
           Type (stopset0|(SetOfStop0) ((1 << (mcReserved_ldirectivetok-mcReserved_eoftok)) | (1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
           Alignment (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
           Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
         }
       else
-        ErrorArray ((char *) "expecting one of: = ;", 21);
+        {
+          /* avoid dangling else.  */
+          ErrorArray ((char *) "expecting one of: = ;", 21);
+        }
     }
    /* while  */
 }
@@ -7611,13 +8132,17 @@ static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
   else if (mcLexBuf_currenttoken == mcReserved_typetok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       while (mcLexBuf_currenttoken == mcReserved_identtok)
-        TypeDeclaration (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        {
+          TypeDeclaration (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+        }
        /* while  */
     }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
     {
+      /* avoid dangling else.  */
       Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         {
@@ -7628,11 +8153,15 @@ static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
   else if (mcLexBuf_currenttoken == mcReserved_proceduretok)
     {
+      /* avoid dangling else.  */
       DefProcedureHeading (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
       Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
     }
   else
-    ErrorArray ((char *) "expecting one of: PROCEDURE VAR TYPE CONST", 42);
+    {
+      /* avoid dangling else.  */
+      ErrorArray ((char *) "expecting one of: PROCEDURE VAR TYPE CONST", 42);
+    }
 }
 
 
@@ -7655,7 +8184,9 @@ static void AsmStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   s = pushStmt (decl_makeComment ((char *) "asm", 3));
   Expect ((mcReserved_toktype) mcReserved_asmtok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_volatiletok-mcReserved_recordtok))));
   if (mcLexBuf_currenttoken == mcReserved_volatiletok)
-    Expect ((mcReserved_toktype) mcReserved_volatiletok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      Expect ((mcReserved_toktype) mcReserved_volatiletok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok))));
   AsmOperands (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
@@ -7674,7 +8205,9 @@ static void AsmOperands (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 {
   string (stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_colontok)
-    AsmOperandSpec (stopset0, stopset1, stopset2);
+    {
+      AsmOperandSpec (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -7717,7 +8250,9 @@ static void AsmOperandSpec (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void AsmList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || (mcLexBuf_currenttoken == mcReserved_stringtok))
-    AsmElement (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      AsmElement (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   while (mcLexBuf_currenttoken == mcReserved_commatok)
     {
       Expect ((mcReserved_toktype) mcReserved_commatok, stopset0|(SetOfStop0) ((1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok))));
@@ -7754,7 +8289,9 @@ static void NamedOperand (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
 static void AsmOperandName (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
-    NamedOperand (stopset0, stopset1, stopset2);
+    {
+      NamedOperand (stopset0, stopset1, stopset2);
+    }
 }
 
 
@@ -7787,7 +8324,9 @@ static void AsmElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
 static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_stringtok)
-    string (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
+    {
+      string (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
+    }
   while (mcLexBuf_currenttoken == mcReserved_commatok)
     {
       Expect ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok))));

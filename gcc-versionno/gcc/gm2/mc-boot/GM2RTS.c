@@ -220,7 +220,9 @@ void M2RTS_ExecuteTerminationProcedures (void)
 unsigned int M2RTS_InstallTerminationProcedure (PROC p)
 {
   if (tPtr > MaxProcedures)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
     {
       TerminateProc.array[tPtr] = p;
@@ -256,7 +258,9 @@ void M2RTS_ExecuteInitialProcedures (void)
 unsigned int M2RTS_InstallInitialProcedure (PROC p)
 {
   if (iPtr > MaxProcedures)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
     {
       InitialProc.array[iPtr] = p;
@@ -298,17 +302,23 @@ void M2RTS_HALT (int exitcode)
       ExitValue = exitcode;
     }
   if (isHalting)
-    /* double HALT found  */
-    libc_exit (-1);
+    {
+      /* double HALT found  */
+      libc_exit (-1);
+    }
   else
     {
       isHalting = TRUE;
       M2RTS_ExecuteTerminationProcedures ();
     }
   if (CallExit)
-    libc_exit (ExitValue);
+    {
+      libc_exit (ExitValue);
+    }
   else
-    libc_abort ();
+    {
+      libc_abort ();
+    }
 }
 
 
@@ -400,7 +410,9 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
   l = 0;
   h = _a_high;
   while ((l <= h) && (a[l] != ASCII_nul))
-    l += 1;
+    {
+      l += 1;
+    }
   return l;
 }
 

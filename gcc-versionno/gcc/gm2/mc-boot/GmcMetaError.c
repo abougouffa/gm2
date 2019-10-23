@@ -397,7 +397,9 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
   FIO_WriteLine (FIO_StdOut);
   s = DynamicStrings_KillString (s);
   if (i > 0)
-    i -= 1;
+    {
+      i -= 1;
+    }
   s = DynamicStrings_Mult (DynamicStrings_InitString ((char *) " ", 1), (unsigned int) i);
   s = DynamicStrings_ConCatChar (s, '^');
   s = SFIO_WriteS (FIO_StdOut, s);
@@ -413,7 +415,9 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
 static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b)
 {
   if (a != b)
-    mcError_internalError ((char *) "different string returned", 25, (char *) "../../gcc-versionno/gcc/gm2/mc/mcMetaError.mod", 46, 110);
+    {
+      mcError_internalError ((char *) "different string returned", 25, (char *) "../../gcc-versionno/gcc/gm2/mc/mcMetaError.mod", 46, 110);
+    }
   return a;
 }
 
@@ -439,7 +443,9 @@ static void then (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
       (*i) += 1;
       ebnf (e, t, r, s, sym, i, l);
       if (((*i) < l) && ((DynamicStrings_char (s, (*i))) != '}'))
-        internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        {
+          internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        }
     }
 }
 
@@ -453,7 +459,9 @@ static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, Dyn
   unsigned int c;
 
   if ((DynamicStrings_Length (o)) > 0)
-    return o;
+    {
+      return o;
+    }
   else
     {
       (*quotes) = FALSE;
@@ -473,7 +481,9 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
   unsigned int c;
 
   if ((DynamicStrings_Length (o)) > 0)
-    return o;
+    {
+      return o;
+    }
   else
     {
       (*quotes) = FALSE;
@@ -481,7 +491,9 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
       varargs_arg (sym, (unsigned char *) &c, (sizeof (c)-1));
       o = DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
       if (((c % 100) >= 11) && ((c % 100) <= 13))
-        o = DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "th", 2)));
+        {
+          o = DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "th", 2)));
+        }
 
       else {
         switch (c % 10)
@@ -520,9 +532,13 @@ static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, Dyna
   varargs_next (sym, bol);
   varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
-    return o;
+    {
+      return o;
+    }
   else
-    return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
+    {
+      return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
+    }
 }
 
 
@@ -537,22 +553,33 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
   varargs_next (sym, bol);
   varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
-    return o;
-  else
-    if (decl_isZtype (n))
-      {
-        (*quotes) = FALSE;
-        return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the ZType", 9)));
-      }
-    else if (decl_isRtype (n))
-      {
-        (*quotes) = FALSE;
-        return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the RType", 9)));
-      }
-    else if ((decl_getSymName (n)) != nameKey_NulName)
-      return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
-    else
+    {
       return o;
+    }
+  else
+    {
+      if (decl_isZtype (n))
+        {
+          (*quotes) = FALSE;
+          return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the ZType", 9)));
+        }
+      else if (decl_isRtype (n))
+        {
+          /* avoid dangling else.  */
+          (*quotes) = FALSE;
+          return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the RType", 9)));
+        }
+      else if ((decl_getSymName (n)) != nameKey_NulName)
+        {
+          /* avoid dangling else.  */
+          return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
+        }
+      else
+        {
+          /* avoid dangling else.  */
+          return o;
+        }
+    }
 }
 
 
@@ -569,7 +596,9 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
   varargs_next (sym, bol);
   varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
-    return o;
+    {
+      return o;
+    }
   else
     {
       s = decl_getScope (n);
@@ -581,7 +610,9 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
           o = x (o, DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)))));
         }
       else
-        o = x (o, doAscii (bol, sym, o));
+        {
+          o = x (o, doAscii (bol, sym, o));
+        }
       varargs_end (&mod);
       return o;
     }
@@ -601,7 +632,9 @@ static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, Dyna
   varargs_next ((*sym), bol);
   varargs_arg ((*sym), (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || ((decl_getType (n)) == NULL))
-    return o;
+    {
+      return o;
+    }
   else
     {
       n = decl_skipType (decl_getType (n));
@@ -624,16 +657,22 @@ static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, 
   varargs_next ((*sym), bol);
   varargs_arg ((*sym), (unsigned char *) &n, (sizeof (n)-1));
   if ((DynamicStrings_Length (o)) > 0)
-    return o;
+    {
+      return o;
+    }
   else
     {
       n = decl_skipType (decl_getType (n));
       varargs_next ((*sym), bol);
       varargs_replace ((*sym), (unsigned char *) &n, (sizeof (n)-1));
       if ((decl_getSymName (n)) == nameKey_NulName)
-        return o;
+        {
+          return o;
+        }
       else
-        return x (o, doAscii (bol, (*sym), o));
+        {
+          return x (o, doAscii (bol, (*sym), o));
+        }
     }
 }
 
@@ -648,7 +687,9 @@ static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, Dynami
   nameKey_Name n;
 
   if ((DynamicStrings_Length (o)) > 0)
-    return o;
+    {
+      return o;
+    }
   else
     {
       varargs_next (sym, bol);
@@ -668,19 +709,27 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
     {
       case chained:
         if (e == NULL)
-          mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gcc-versionno/gcc/gm2/mc/mcMetaError.mod", 46, 356);
+          {
+            mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gcc-versionno/gcc/gm2/mc/mcMetaError.mod", 46, 356);
+          }
         else
-          e = mcError_chainError (tok, e);
+          {
+            e = mcError_chainError (tok, e);
+          }
         break;
 
       case newerror:
         if (e == NULL)
-          e = mcError_newError (tok);
+          {
+            e = mcError_newError (tok);
+          }
         break;
 
       case newwarning:
         if (e == NULL)
-          e = mcError_newWarning (tok);
+          {
+            e = mcError_newWarning (tok);
+          }
         break;
 
 
@@ -753,11 +802,18 @@ static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, var
 static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings_String b)
 {
   if (((DynamicStrings_Length (a)) == 1) && ((DynamicStrings_char (a, 0)) == 'a'))
-    a = x (a, DynamicStrings_ConCatChar (a, 'n'));
+    {
+      a = x (a, DynamicStrings_ConCatChar (a, 'n'));
+    }
   else if ((((DynamicStrings_Length (a)) > 1) && ((DynamicStrings_char (a, -1)) == 'a')) && (isWhite (DynamicStrings_char (a, -2))))
-    a = x (a, DynamicStrings_ConCatChar (a, 'n'));
+    {
+      /* avoid dangling else.  */
+      a = x (a, DynamicStrings_ConCatChar (a, 'n'));
+    }
   if (((DynamicStrings_Length (a)) > 0) && (! (isWhite (DynamicStrings_char (a, -1)))))
-    a = x (a, DynamicStrings_ConCatChar (a, ' '));
+    {
+      a = x (a, DynamicStrings_ConCatChar (a, ' '));
+    }
   return x (a, DynamicStrings_ConCat (a, b));
 }
 
@@ -769,57 +825,126 @@ static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings
 static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
 {
   if (decl_isLiteral (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "literal", 7)));
+    {
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "literal", 7)));
+    }
   else if (decl_isConstSet (n))
-    /* 
+    {
+      /* avoid dangling else.  */
+      /* 
    ELSIF IsConstructor(n)
    THEN
       RETURN( ConCatWord (o, Mark (InitString ('constructor'))) )
   */
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant set", 12)));
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant set", 12)));
+    }
   else if (decl_isConst (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant", 8)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant", 8)));
+    }
   else if (decl_isArray (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "array", 5)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "array", 5)));
+    }
   else if (decl_isVar (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "variable", 8)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "variable", 8)));
+    }
   else if (decl_isEnumeration (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration type", 16)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration type", 16)));
+    }
   else if (decl_isEnumerationField (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration field", 17)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration field", 17)));
+    }
   else if (decl_isUnbounded (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "unbounded parameter", 19)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "unbounded parameter", 19)));
+    }
   else if (decl_isProcType (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure type", 14)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure type", 14)));
+    }
   else if (decl_isProcedure (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure", 9)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure", 9)));
+    }
   else if (decl_isPointer (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "pointer", 7)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "pointer", 7)));
+    }
   else if (decl_isParameter (n))
-    if (decl_isVarParam (n))
-      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "var parameter", 13)));
-    else
-      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "parameter", 9)));
+    {
+      /* avoid dangling else.  */
+      if (decl_isVarParam (n))
+        {
+          return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "var parameter", 13)));
+        }
+      else
+        {
+          return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "parameter", 9)));
+        }
+    }
   else if (decl_isType (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "type", 4)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "type", 4)));
+    }
   else if (decl_isRecord (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record", 6)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record", 6)));
+    }
   else if (decl_isRecordField (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record field", 12)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record field", 12)));
+    }
   else if (decl_isVarient (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "varient record", 14)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "varient record", 14)));
+    }
   else if (decl_isModule (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "module", 6)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "module", 6)));
+    }
   else if (decl_isDef (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "definition module", 17)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "definition module", 17)));
+    }
   else if (decl_isImp (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "implementation module", 21)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "implementation module", 21)));
+    }
   else if (decl_isSet (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "set", 3)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "set", 3)));
+    }
   else if (decl_isSubrange (n))
-    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "subrange", 8)));
+    {
+      /* avoid dangling else.  */
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "subrange", 8)));
+    }
   else
-    return o;
+    {
+      /* avoid dangling else.  */
+      return o;
+    }
 }
 
 
@@ -837,7 +962,9 @@ static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, Dynam
       varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       o = symDesc (n, o);
       if ((DynamicStrings_Length (o)) > 0)
-        (*quotes) = FALSE;
+        {
+          (*quotes) = FALSE;
+        }
     }
   return o;
 }
@@ -852,12 +979,18 @@ static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_
   if ((DynamicStrings_Length (o)) > 0)
     {
       if (! (isWhite (DynamicStrings_char (r, -1))))
-        r = x (r, DynamicStrings_ConCatChar (r, ' '));
+        {
+          r = x (r, DynamicStrings_ConCatChar (r, ' '));
+        }
       if (quotes)
-        r = x (r, DynamicStrings_ConCatChar (r, '\''));
+        {
+          r = x (r, DynamicStrings_ConCatChar (r, '\''));
+        }
       r = x (r, DynamicStrings_ConCat (r, o));
       if (quotes)
-        r = x (r, DynamicStrings_ConCatChar (r, '\''));
+        {
+          r = x (r, DynamicStrings_ConCatChar (r, '\''));
+        }
     }
   return r;
 }
@@ -939,7 +1072,9 @@ static void op (mcError_error *e, errorType *t, DynamicStrings_String *r, Dynami
             o = DynamicStrings_KillString (o);
             o = DynamicStrings_InitString ((char *) "", 0);
             if (((*i) < l) && ((DynamicStrings_char (s, (*i))) != '}'))
-              internalFormat (s, (*i), (char *) "expecting to see }", 18);
+              {
+                internalFormat (s, (*i), (char *) "expecting to see }", 18);
+              }
             (*i) -= 1;
             break;
 
@@ -1002,7 +1137,9 @@ static void percenttoken (mcError_error *e, errorType t, DynamicStrings_String *
             break;
         }
       if (((*i) < l) && ((DynamicStrings_char (s, (*i))) != '}'))
-        internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        {
+          internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        }
     }
 }
 
@@ -1044,10 +1181,14 @@ static void lbra (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
           (*i) += 1;
         }
       if ((DynamicStrings_char (s, (*i))) != '%')
-        internalFormat (s, (*i), (char *) "expecting to see %", 18);
+        {
+          internalFormat (s, (*i), (char *) "expecting to see %", 18);
+        }
       percenttoken (e, (*t), r, s, sym, i, l, positive);
       if (((*i) < l) && ((DynamicStrings_char (s, (*i))) != '}'))
-        internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        {
+          internalFormat (s, (*i), (char *) "expecting to see }", 18);
+        }
     }
 }
 
@@ -1082,7 +1223,9 @@ static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
           case '{':
             lbra (e, t, r, s, sym, i, l);
             if (((*i) < l) && ((DynamicStrings_char (s, (*i))) != '}'))
-              internalFormat (s, (*i), (char *) "expecting to see }", 18);
+              {
+                internalFormat (s, (*i), (char *) "expecting to see }", 18);
+              }
             break;
 
           case '}':
@@ -1092,7 +1235,9 @@ static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
 
           default:
             if ((((isWhite (DynamicStrings_char (s, (*i)))) && ((DynamicStrings_Length ((*r))) > 0)) && (! (isWhite (DynamicStrings_char ((*r), -1))))) || (! (isWhite (DynamicStrings_char (s, (*i))))))
-              (*r) = x ((*r), DynamicStrings_ConCatChar ((*r), DynamicStrings_char (s, (*i))));
+              {
+                (*r) = x ((*r), DynamicStrings_ConCatChar ((*r), DynamicStrings_char (s, (*i))));
+              }
             break;
         }
       (*i) += 1;

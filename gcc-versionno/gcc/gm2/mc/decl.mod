@@ -70,6 +70,9 @@ CONST
    debugDecl       = FALSE ;
    caseException   = TRUE ;
    returnException = TRUE ;
+   (* this is a work around to avoid ever having to handle dangling else.  *)
+   forceCompoundStatement = TRUE ;    (* TRUE will avoid dangling else, by always using {}.  *)
+
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -9079,7 +9082,7 @@ BEGIN
       setindent (p, getindent (p) + indentationC) ;
       outText (p, "{}  /* empty.  */\n") ;
       p := popPretty (p)
-   ELSIF isStatementSequence (s) AND isSingleStatement (s)
+   ELSIF isStatementSequence (s) AND isSingleStatement (s) AND (NOT forceCompoundStatement)
    THEN
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
@@ -9112,8 +9115,9 @@ BEGIN
    doExprC (p, s^.elsifF.expr) ;
    outText (p, ")\n") ;
    assert ((s^.elsifF.else = NIL) OR (s^.elsifF.elsif = NIL)) ;
-   IF hasIfAndNoElse (s^.elsifF.then) AND
-      ((s^.elsifF.else # NIL) OR (s^.elsifF.elsif # NIL))
+   IF forceCompoundStatement OR
+      (hasIfAndNoElse (s^.elsifF.then) AND
+       ((s^.elsifF.else # NIL) OR (s^.elsifF.elsif # NIL)))
    THEN
       (* avoid dangling else.  *)
       p := pushPretty (p) ;
@@ -9132,7 +9136,22 @@ BEGIN
    IF containsStatement (s^.elsifF.else)
    THEN
       outText (p, "else\n") ;
-      doCompoundStmt (p, s^.elsifF.else)
+      IF forceCompoundStatement
+      THEN
+         (* avoid dangling else.  *)
+         p := pushPretty (p) ;
+         setindent (p, getindent (p) + indentationC) ;
+         outText (p, "{\n") ;
+         p := pushPretty (p) ;
+         setindent (p, getindent (p) + indentationC) ;
+         outText (p, "/* avoid dangling else.  */\n") ;
+         doStatementSequenceC (p, s^.elsifF.else) ;
+         p := popPretty (p) ;
+         outText (p, "}\n") ;
+         p := popPretty (p)
+      ELSE
+         doCompoundStmt (p, s^.elsifF.else)
+      END
    ELSIF (s^.elsifF.elsif#NIL) AND isElsif (s^.elsifF.elsif)
    THEN
       doElsifC (p, s^.elsifF.elsif)

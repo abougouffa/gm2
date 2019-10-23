@@ -279,7 +279,9 @@ static void displayVersion (unsigned int mustExit)
   mcPrintf_printf0 ((char *) "This is free software: you are free to change and redistribute it.\\n", 68);
   mcPrintf_printf0 ((char *) "There is NO WARRANTY, to the extent permitted by law.\\n", 55);
   if (mustExit)
-    libc_exit (0);
+    {
+      libc_exit (0);
+    }
 }
 
 
@@ -329,9 +331,14 @@ static void displayHelp (void)
 static void commentBegin (FIO_File f)
 {
   if (langC || langCPP)
-    FIO_WriteString (f, (char *) "/* ", 3);
+    {
+      FIO_WriteString (f, (char *) "/* ", 3);
+    }
   else if (langM2)
-    FIO_WriteString (f, (char *) "(* ", 3);
+    {
+      /* avoid dangling else.  */
+      FIO_WriteString (f, (char *) "(* ", 3);
+    }
 }
 
 
@@ -348,6 +355,7 @@ static void commentEnd (FIO_File f)
     }
   else if (langM2)
     {
+      /* avoid dangling else.  */
       FIO_WriteString (f, (char *) " *)", 3);
       FIO_WriteLine (f);
     }
@@ -488,9 +496,13 @@ static void issueGPL (FIO_File f)
           FIO_WriteLine (f);
         }
       if (gplHeader)
-        gplBody (f);
+        {
+          gplBody (f);
+        }
       if (glplHeader)
-        glplBody (f);
+        {
+          glplBody (f);
+        }
       commentEnd (f);
       FIO_WriteLine (f);
     }
@@ -591,14 +603,20 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
   memcpy (left, left_, _left_high+1);
 
   if ((DynamicStrings_Length (right)) == (StrLib_StrLen ((char *) left, _left_high)))
-    return DynamicStrings_EqualArray (right, (char *) left, _left_high);
+    {
+      return DynamicStrings_EqualArray (right, (char *) left, _left_high);
+    }
   else if ((DynamicStrings_Length (right)) > (StrLib_StrLen ((char *) left, _left_high)))
     {
+      /* avoid dangling else.  */
       s = DynamicStrings_Mark (DynamicStrings_Slice (right, 0, (int) StrLib_StrLen ((char *) left, _left_high)));
       return DynamicStrings_EqualArray (s, (char *) left, _left_high);
     }
   else
-    return FALSE;
+    {
+      /* avoid dangling else.  */
+      return FALSE;
+    }
 }
 
 
@@ -616,16 +634,21 @@ static void setLang (DynamicStrings_String arg)
     }
   else if (optionIs ((char *) "c", 1, arg))
     {
+      /* avoid dangling else.  */
       decl_setLangC ();
       langC = TRUE;
     }
   else if (optionIs ((char *) "m2", 2, arg))
     {
+      /* avoid dangling else.  */
       decl_setLangM2 ();
       langM2 = TRUE;
     }
   else
-    displayHelp ();
+    {
+      /* avoid dangling else.  */
+      displayHelp ();
+    }
 }
 
 
@@ -636,45 +659,91 @@ static void setLang (DynamicStrings_String arg)
 static void handleOption (DynamicStrings_String arg)
 {
   if ((optionIs ((char *) "--quiet", 7, arg)) || (optionIs ((char *) "-q", 2, arg)))
-    setQuiet (TRUE);
+    {
+      setQuiet (TRUE);
+    }
   else if ((optionIs ((char *) "--verbose", 9, arg)) || (optionIs ((char *) "-v", 2, arg)))
-    setVerbose (TRUE);
+    {
+      /* avoid dangling else.  */
+      setVerbose (TRUE);
+    }
   else if (optionIs ((char *) "--version", 9, arg))
-    displayVersion (TRUE);
+    {
+      /* avoid dangling else.  */
+      displayVersion (TRUE);
+    }
   else if (optionIs ((char *) "--olang=", 8, arg))
-    setLang (DynamicStrings_Slice (arg, 8, 0));
+    {
+      /* avoid dangling else.  */
+      setLang (DynamicStrings_Slice (arg, 8, 0));
+    }
   else if (optionIs ((char *) "-I", 2, arg))
-    setSearchPath (DynamicStrings_Slice (arg, 2, 0));
+    {
+      /* avoid dangling else.  */
+      setSearchPath (DynamicStrings_Slice (arg, 2, 0));
+    }
   else if ((optionIs ((char *) "--help", 6, arg)) || (optionIs ((char *) "-h", 2, arg)))
-    displayHelp ();
+    {
+      /* avoid dangling else.  */
+      displayHelp ();
+    }
   else if (optionIs ((char *) "--cpp", 5, arg))
-    cppProgram = DynamicStrings_InitString ((char *) "cpp", 3);
+    {
+      /* avoid dangling else.  */
+      cppProgram = DynamicStrings_InitString ((char *) "cpp", 3);
+    }
   else if (optionIs ((char *) "-o=", 3, arg))
-    setOutputFile (DynamicStrings_Slice (arg, 3, 0));
+    {
+      /* avoid dangling else.  */
+      setOutputFile (DynamicStrings_Slice (arg, 3, 0));
+    }
   else if (optionIs ((char *) "--extended-opaque", 17, arg))
-    setExtendedOpaque (TRUE);
+    {
+      /* avoid dangling else.  */
+      setExtendedOpaque (TRUE);
+    }
   else if (optionIs ((char *) "--debug-top", 11, arg))
-    mcOptions_setDebugTopological (TRUE);
+    {
+      /* avoid dangling else.  */
+      mcOptions_setDebugTopological (TRUE);
+    }
   else if (optionIs ((char *) "--h-file-prefix=", 16, arg))
-    setHPrefix (DynamicStrings_Slice (arg, 16, 0));
+    {
+      /* avoid dangling else.  */
+      setHPrefix (DynamicStrings_Slice (arg, 16, 0));
+    }
   else if (optionIs ((char *) "--ignore-fq", 11, arg))
-    setIgnoreFQ (TRUE);
+    {
+      /* avoid dangling else.  */
+      setIgnoreFQ (TRUE);
+    }
   else if (optionIs ((char *) "--gpl-header", 12, arg))
-    gplHeader = TRUE;
+    {
+      /* avoid dangling else.  */
+      gplHeader = TRUE;
+    }
   else if (optionIs ((char *) "--glpl-header", 13, arg))
-    glplHeader = TRUE;
+    {
+      /* avoid dangling else.  */
+      glplHeader = TRUE;
+    }
   else if (optionIs ((char *) "--summary=\"", 11, arg))
     {
+      /* avoid dangling else.  */
       summary = TRUE;
       summaryContents = DynamicStrings_Slice (arg, 11, -1);
     }
   else if (optionIs ((char *) "--contributed=\"", 15, arg))
     {
+      /* avoid dangling else.  */
       contributed = TRUE;
       contributedContents = DynamicStrings_Slice (arg, 13, -1);
     }
   else if (optionIs ((char *) "--project=\"", 11, arg))
-    projectContents = DynamicStrings_Slice (arg, 10, -1);
+    {
+      /* avoid dangling else.  */
+      projectContents = DynamicStrings_Slice (arg, 10, -1);
+    }
 }
 
 
@@ -696,7 +765,9 @@ DynamicStrings_String mcOptions_handleOptions (void)
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           if ((DynamicStrings_char (arg, 0)) == '-')
-            handleOption (arg);
+            {
+              handleOption (arg);
+            }
           else
             {
               if (! summary)
@@ -752,13 +823,17 @@ DynamicStrings_String mcOptions_getCppCommandLine (void)
   DynamicStrings_String s;
 
   if (DynamicStrings_EqualArray (cppProgram, (char *) "", 0))
-    return NULL;
+    {
+      return NULL;
+    }
   else
     {
       s = DynamicStrings_Dup (cppProgram);
       s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (s, ' '), cppArgs);
       if (mcOptions_getQuiet ())
-        s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (s, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "-quiet", 6)));
+        {
+          s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (s, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "-quiet", 6)));
+        }
       return s;
     }
 }

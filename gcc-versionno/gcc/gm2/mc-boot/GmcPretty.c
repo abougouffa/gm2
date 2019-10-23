@@ -312,9 +312,13 @@ void mcPretty_setindent (mcPretty_pretty p, unsigned int n)
 unsigned int mcPretty_getcurpos (mcPretty_pretty s)
 {
   if (s->needsSpace)
-    return s->curPos+1;
+    {
+      return s->curPos+1;
+    }
   else
-    return s->curPos;
+    {
+      return s->curPos;
+    }
 }
 
 

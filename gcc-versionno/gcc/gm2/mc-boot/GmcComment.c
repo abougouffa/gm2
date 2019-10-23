@@ -165,9 +165,13 @@ static void dumpComment (mcComment_commentDesc cd);
 static unsigned int Min (unsigned int a, unsigned int b)
 {
   if (a < b)
-    return a;
+    {
+      return a;
+    }
   else
-    return b;
+    {
+      return b;
+    }
 }
 
 
@@ -178,10 +182,16 @@ static unsigned int Min (unsigned int a, unsigned int b)
 static DynamicStrings_String RemoveNewlines (DynamicStrings_String s)
 {
   while ((DynamicStrings_Length (s)) > 0)
-    if ((DynamicStrings_char (s, 0)) == ASCII_nl)
-      s = DynamicStrings_RemoveWhitePrefix (DynamicStrings_Slice (s, 1, 0));
-    else
-      return DynamicStrings_RemoveWhitePrefix (s);
+    {
+      if ((DynamicStrings_char (s, 0)) == ASCII_nl)
+        {
+          s = DynamicStrings_RemoveWhitePrefix (DynamicStrings_Slice (s, 1, 0));
+        }
+      else
+        {
+          return DynamicStrings_RemoveWhitePrefix (s);
+        }
+    }
   return s;
 }
 
@@ -238,9 +248,13 @@ static void dumpComment (mcComment_commentDesc cd)
         CaseException ("../../gcc-versionno/gcc/gm2/mc/mcComment.def", 20, 1);
     }
   if (cd->used)
-    libc_printf ((char *) " used", 5);
+    {
+      libc_printf ((char *) " used", 5);
+    }
   else
-    libc_printf ((char *) " unused", 7);
+    {
+      libc_printf ((char *) " unused", 7);
+    }
   libc_printf ((char *) " contents = %s\\n", 16, DynamicStrings_string (cd->content));
 }
 
@@ -259,9 +273,13 @@ mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces)
   Storage_ALLOCATE ((void **) &cd, sizeof (_T1));
   mcDebug_assert (cd != NULL);
   if (onlySpaces)
-    cd->type = inBody;
+    {
+      cd->type = inBody;
+    }
   else
-    cd->type = afterStatement;
+    {
+      cd->type = afterStatement;
+    }
   cd->content = DynamicStrings_InitString ((char *) "", 0);
   cd->procName = nameKey_NulName;
   cd->used = FALSE;
@@ -277,7 +295,9 @@ mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces)
 void mcComment_addText (mcComment_commentDesc cd, void * cs)
 {
   if (cd != NULL)
-    cd->content = DynamicStrings_ConCat (cd->content, DynamicStrings_InitStringCharStar (cs));
+    {
+      cd->content = DynamicStrings_ConCat (cd->content, DynamicStrings_InitStringCharStar (cs));
+    }
 }
 
 
@@ -288,7 +308,9 @@ void mcComment_addText (mcComment_commentDesc cd, void * cs)
 DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd)
 {
   if (cd != NULL)
-    return cd->content;
+    {
+      return cd->content;
+    }
   return NULL;
 }
 
@@ -303,9 +325,13 @@ void * mcComment_getCommentCharStar (mcComment_commentDesc cd)
 
   s = mcComment_getContent (cd);
   if (s == NULL)
-    return NULL;
+    {
+      return NULL;
+    }
   else
-    return DynamicStrings_string (s);
+    {
+      return DynamicStrings_string (s);
+    }
 }
 
 
@@ -318,11 +344,13 @@ void * mcComment_getCommentCharStar (mcComment_commentDesc cd)
 void mcComment_setProcedureComment (mcComment_commentDesc cd, nameKey_Name procname)
 {
   if (cd != NULL)
-    if (seenProcedure (cd, procname))
-      {
-        cd->type = procedureHeading;
-        cd->procName = procname;
-      }
+    {
+      if (seenProcedure (cd, procname))
+        {
+          cd->type = procedureHeading;
+          cd->procName = procname;
+        }
+    }
 }
 
 

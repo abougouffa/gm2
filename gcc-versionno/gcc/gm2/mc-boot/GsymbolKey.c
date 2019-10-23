@@ -135,21 +135,26 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
   /* remember to skip the sentinal value and assign father and child  */
   (*father) = t;
   if (t == NULL)
-    Debug_Halt ((char *) "parameter t should never be NIL", 31, 203, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    {
+      Debug_Halt ((char *) "parameter t should never be NIL", 31, 203, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    }
   (*child) = t->left;
   if ((*child) != NULL)
-    do {
-      if (n < (*child)->name)
-        {
-          (*father) = (*child);
-          (*child) = (*child)->left;
-        }
-      else if (n > (*child)->name)
-        {
-          (*father) = (*child);
-          (*child) = (*child)->right;
-        }
-    } while (! (((*child) == NULL) || (n == (*child)->name)));
+    {
+      do {
+        if (n < (*child)->name)
+          {
+            (*father) = (*child);
+            (*child) = (*child)->left;
+          }
+        else if (n > (*child)->name)
+          {
+            /* avoid dangling else.  */
+            (*father) = (*child);
+            (*child) = (*child)->right;
+          }
+      } while (! (((*child) == NULL) || (n == (*child)->name)));
+    }
 }
 
 
@@ -162,9 +167,13 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
 static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
 {
   if (t == NULL)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
-    return (((*p.proc) (t->key)) || (searchForAny (t->left, p))) || (searchForAny (t->right, p));
+    {
+      return (((*p.proc) (t->key)) || (searchForAny (t->left, p))) || (searchForAny (t->right, p));
+    }
 }
 
 
@@ -211,14 +220,20 @@ void * symbolKey_getSymKey (symbolKey_symbolTree t, nameKey_Name name)
   symbolKey_symbolTree child;
 
   if (t == NULL)
-    return symbolKey_NulKey;
+    {
+      return symbolKey_NulKey;
+    }
   else
     {
       findNodeAndParentInTree (t, name, &child, &father);
       if (child == NULL)
-        return symbolKey_NulKey;
+        {
+          return symbolKey_NulKey;
+        }
       else
-        return child->key;
+        {
+          return child->key;
+        }
     }
 }
 
@@ -238,23 +253,28 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
           father->left = child;
         }
       else
-        if (name < father->name)
-          {
-            Storage_ALLOCATE ((void **) &child, sizeof (_T1));
-            father->left = child;
-          }
-        else if (name > father->name)
-          {
-            Storage_ALLOCATE ((void **) &child, sizeof (_T1));
-            father->right = child;
-          }
+        {
+          if (name < father->name)
+            {
+              Storage_ALLOCATE ((void **) &child, sizeof (_T1));
+              father->left = child;
+            }
+          else if (name > father->name)
+            {
+              /* avoid dangling else.  */
+              Storage_ALLOCATE ((void **) &child, sizeof (_T1));
+              father->right = child;
+            }
+        }
       child->right = NULL;
       child->left = NULL;
       child->key = key;
       child->name = name;
     }
   else
-    Debug_Halt ((char *) "symbol already stored", 21, 119, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    {
+      Debug_Halt ((char *) "symbol already stored", 21, 119, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    }
 }
 
 
@@ -273,43 +293,55 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
 
   findNodeAndParentInTree (t, name, &child, &father);  /* find father and child of the node  */
   if ((child != NULL) && (child->name == name))
-    /* Have found the node to be deleted  */
-    if (father->right == child)
-      {
-        /* most branch of child^.left.  */
-        if (child->left != NULL)
-          {
-            /* Scan for right most node of child^.left  */
-            i = child->left;
-            while (i->right != NULL)
-              i = i->right;
-            i->right = child->right;
-            father->right = child->left;
-          }
-        else
-          /* (as in a single linked list) to child^.right  */
-          father->right = child->right;
-        Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
-      }
-    else
-      {
-        /* branch of child^.right  */
-        if (child->right != NULL)
-          {
-            /* Scan for left most node of child^.right  */
-            i = child->right;
-            while (i->left != NULL)
-              i = i->left;
-            i->left = child->left;
-            father->left = child->right;
-          }
-        else
-          /* (as in a single linked list) to child^.left.  */
-          father->left = child->left;
-        Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
-      }
+    {
+      /* Have found the node to be deleted  */
+      if (father->right == child)
+        {
+          /* most branch of child^.left.  */
+          if (child->left != NULL)
+            {
+              /* Scan for right most node of child^.left  */
+              i = child->left;
+              while (i->right != NULL)
+                {
+                  i = i->right;
+                }
+              i->right = child->right;
+              father->right = child->left;
+            }
+          else
+            {
+              /* (as in a single linked list) to child^.right  */
+              father->right = child->right;
+            }
+          Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
+        }
+      else
+        {
+          /* branch of child^.right  */
+          if (child->right != NULL)
+            {
+              /* Scan for left most node of child^.right  */
+              i = child->right;
+              while (i->left != NULL)
+                {
+                  i = i->left;
+                }
+              i->left = child->left;
+              father->left = child->right;
+            }
+          else
+            {
+              /* (as in a single linked list) to child^.left.  */
+              father->left = child->left;
+            }
+          Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
+        }
+    }
   else
-    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 186, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    {
+      Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 186, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    }
 }
 
 

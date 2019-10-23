@@ -157,10 +157,16 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   memcpy (b, b_, _b_high+1);
 
   if (_a_high == _b_high)
-    for (i=0; i<=_a_high; i++)
-      a[i] = b[i];
+    {
+      for (i=0; i<=_a_high; i++)
+        {
+          a[i] = b[i];
+        }
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -190,8 +196,10 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
             }
           argno += 1;
           if (argno > n)
-            /* all done  */
-            return FALSE;
+            {
+              /* all done  */
+              return FALSE;
+            }
         }
       i += 1;
     }

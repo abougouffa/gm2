@@ -485,7 +485,9 @@ static void init (void);
 static void checkCtype (mcPretty_pretty p)
 {
   if (seenCtype)
-    mcPretty_print (p, (char *) "#include <ctype.h>\\n", 20);
+    {
+      mcPretty_print (p, (char *) "#include <ctype.h>\\n", 20);
+    }
 }
 
 
@@ -496,7 +498,9 @@ static void checkCtype (mcPretty_pretty p)
 static void checkAbs (mcPretty_pretty p)
 {
   if (((((seenLabs || seenAbs) || seenFabs) || seenFabsl) || seenSize_t) || seenSSize_t)
-    mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
+    {
+      mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
+    }
 }
 
 
@@ -507,7 +511,9 @@ static void checkAbs (mcPretty_pretty p)
 static void checkLimits (mcPretty_pretty p)
 {
   if ((((((((((((((seenMemcpy || seenIntMin) || seenUIntMin) || seenLongMin) || seenULongMin) || seenCharMin) || seenUCharMin) || seenUIntMin) || seenIntMax) || seenUIntMax) || seenLongMax) || seenULongMax) || seenCharMax) || seenUCharMax) || seenUIntMax)
-    mcPretty_print (p, (char *) "#include <limits.h>\\n", 21);
+    {
+      mcPretty_print (p, (char *) "#include <limits.h>\\n", 21);
+    }
 }
 
 
@@ -518,7 +524,9 @@ static void checkLimits (mcPretty_pretty p)
 static void checkFreeMalloc (mcPretty_pretty p)
 {
   if (seenFree || seenMalloc)
-    mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
+    {
+      mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
+    }
 }
 
 
@@ -591,7 +599,9 @@ static void checkFalse (mcPretty_pretty p)
 static void checkNull (mcPretty_pretty p)
 {
   if (seenNull)
-    mcPretty_print (p, (char *) "#include <stddef.h>\\n", 21);
+    {
+      mcPretty_print (p, (char *) "#include <stddef.h>\\n", 21);
+    }
 }
 
 
@@ -602,7 +612,9 @@ static void checkNull (mcPretty_pretty p)
 static void checkMemcpy (mcPretty_pretty p)
 {
   if (seenMemcpy || seenStrlen)
-    mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
+    {
+      mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
+    }
 }
 
 
@@ -628,7 +640,9 @@ static void checkM2RTS (mcPretty_pretty p)
 static void checkException (mcPretty_pretty p)
 {
   if (seenException)
-    mcPretty_print (p, (char *) "#   include \"Gmcrts.h\"\\n", 24);
+    {
+      mcPretty_print (p, (char *) "#   include \"Gmcrts.h\"\\n", 24);
+    }
 }
 
 
@@ -639,7 +653,9 @@ static void checkException (mcPretty_pretty p)
 static void checkComplex (mcPretty_pretty p)
 {
   if (seenComplex)
-    mcPretty_print (p, (char *) "#   include <complex.h>\\n", 25);
+    {
+      mcPretty_print (p, (char *) "#   include <complex.h>\\n", 25);
+    }
 }
 
 
@@ -652,7 +668,9 @@ static scope new (decl_node n)
   scope s;
 
   if (freeList == NULL)
-    Storage_ALLOCATE ((void **) &s, sizeof (_T1));
+    {
+      Storage_ALLOCATE ((void **) &s, sizeof (_T1));
+    }
   else
     {
       s = freeList;
@@ -703,7 +721,9 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
   {
     (*m) = DynamicStrings_ConCatChar ((*m), '_');
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
-      return TRUE;
+      {
+        return TRUE;
+      }
   }
   ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 20, 1);
 }
@@ -717,7 +737,9 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
 static unsigned int clash (nameKey_Name n, unsigned int scopes)
 {
   if (((symbolKey_getSymKey (macros, n)) != NULL) || ((symbolKey_getSymKey (keywords, n)) != NULL))
-    return TRUE;
+    {
+      return TRUE;
+    }
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
 }
 
@@ -1241,7 +1263,9 @@ void keyc_leaveScope (decl_node n)
       s->next = NULL;
     }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -1261,22 +1285,29 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
 
   m = NULL;
   if (clash (n, scopes))
-    if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
-      {
-        /* avoid dangling else.  */
-        if (scopes)
-          {
-            /* no longer a clash with, m, so add it to the current scope.  */
-            n = nameKey_makekey (DynamicStrings_string (m));
-            symbolKey_putSymKey (stack->symbols, n, (void *) m);
-          }
-      }
-    else
-      /* mangleN must always succeed.  */
-      M2RTS_HALT (-1);
+    {
+      if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
+        {
+          /* avoid dangling else.  */
+          if (scopes)
+            {
+              /* no longer a clash with, m, so add it to the current scope.  */
+              n = nameKey_makekey (DynamicStrings_string (m));
+              symbolKey_putSymKey (stack->symbols, n, (void *) m);
+            }
+        }
+      else
+        {
+          /* mangleN must always succeed.  */
+          M2RTS_HALT (-1);
+        }
+    }
   else if (scopes)
-    /* no clash, add it to the current scope.  */
-    symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
+    {
+      /* avoid dangling else.  */
+      /* no clash, add it to the current scope.  */
+      symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
+    }
   return m;
 }
 
@@ -1297,20 +1328,29 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
 
   m = NULL;
   if (clash (n, scopes))
-    if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
-      {
-        /* avoid dangling else.  */
-        n = nameKey_makekey (DynamicStrings_string (m));
-        if (scopes)
-          /* no longer a clash with, m, so add it to the current scope.  */
-          symbolKey_putSymKey (stack->symbols, n, (void *) m);
-      }
-    else
-      /* mangleN must always succeed.  */
-      M2RTS_HALT (-1);
+    {
+      if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
+        {
+          /* avoid dangling else.  */
+          n = nameKey_makekey (DynamicStrings_string (m));
+          if (scopes)
+            {
+              /* no longer a clash with, m, so add it to the current scope.  */
+              symbolKey_putSymKey (stack->symbols, n, (void *) m);
+            }
+        }
+      else
+        {
+          /* mangleN must always succeed.  */
+          M2RTS_HALT (-1);
+        }
+    }
   else if (scopes)
-    /* no clash, add it to the current scope.  */
-    symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
+    {
+      /* avoid dangling else.  */
+      /* no clash, add it to the current scope.  */
+      symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
+    }
   m = DynamicStrings_KillString (m);
   return n;
 }

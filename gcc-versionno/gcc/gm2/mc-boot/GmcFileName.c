@@ -72,9 +72,13 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename);
 DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module, DynamicStrings_String extension)
 {
   if (MaxFileName == 0)
-    return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, MaxFileName), '.'), extension);
+    {
+      return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, MaxFileName), '.'), extension);
+    }
   else
-    return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, (MaxFileName-(DynamicStrings_Length (extension)))-1), '.'), extension);
+    {
+      return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, (MaxFileName-(DynamicStrings_Length (extension)))-1), '.'), extension);
+    }
 }
 
 
@@ -98,9 +102,13 @@ DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module
 DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext)
 {
   if (DynamicStrings_Equal (ext, DynamicStrings_Mark (DynamicStrings_Slice (filename, (int) -(DynamicStrings_Length (ext)), 0))))
-    return DynamicStrings_Slice (filename, 0, (int) -(DynamicStrings_Length (ext)));
+    {
+      return DynamicStrings_Slice (filename, 0, (int) -(DynamicStrings_Length (ext)));
+    }
   else
-    return filename;
+    {
+      return filename;
+    }
 }
 
 
@@ -115,9 +123,13 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
 
   i = DynamicStrings_Index (filename, Directory, 0);
   if (i == -1)
-    return DynamicStrings_Dup (filename);
+    {
+      return DynamicStrings_Dup (filename);
+    }
   else
-    return DynamicStrings_Slice (filename, i+1, 0);
+    {
+      return DynamicStrings_Slice (filename, i+1, 0);
+    }
 }
 
 void _M2_mcFileName_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

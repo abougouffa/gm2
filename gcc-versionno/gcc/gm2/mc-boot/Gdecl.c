@@ -140,6 +140,7 @@ typedef struct StdIO_ProcRead_p StdIO_ProcRead;
 #   define debugDecl FALSE
 #   define caseException TRUE
 #   define returnException TRUE
+#   define forceCompoundStatement TRUE
 typedef struct intrinsicT_r intrinsicT;
 
 typedef struct fixupInfo_r fixupInfo;
@@ -6489,7 +6490,9 @@ static decl_node newNode (nodeT k)
 
   Storage_ALLOCATE ((void **) &d, sizeof (_T1));
   if (d == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
     {
       d->kind = k;
@@ -6522,7 +6525,9 @@ static unsigned int isLocal (decl_node n)
 
   s = decl_getScope (n);
   if (s != NULL)
-    return decl_isProcedure (s);
+    {
+      return decl_isProcedure (s);
+    }
   return FALSE;
 }
 
@@ -6549,7 +6554,9 @@ static void importEnumFields (decl_node m, decl_node n)
           e = Indexing_GetIndice (n->enumerationF.listOfSons, i);
           r = decl_import (m, e);
           if (e != r)
-            mcMetaError_metaError2 ((char *) "enumeration field {%1ad} cannot be imported implicitly into {%2d} due to a name clash", 85, (unsigned char *) &e, (sizeof (e)-1), (unsigned char *) &m, (sizeof (m)-1));
+            {
+              mcMetaError_metaError2 ((char *) "enumeration field {%1ad} cannot be imported implicitly into {%2d} due to a name clash", 85, (unsigned char *) &e, (sizeof (e)-1), (unsigned char *) &m, (sizeof (m)-1));
+            }
           i += 1;
         }
     }
@@ -6726,7 +6733,9 @@ static decl_node addTo (scopeT *decls, decl_node d)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if ((symbolKey_getSymKey ((*decls).symbols, n)) == NULL)
-        symbolKey_putSymKey ((*decls).symbols, n, (void *) d);
+        {
+          symbolKey_putSymKey ((*decls).symbols, n, (void *) d);
+        }
       else
         {
           mcMetaError_metaError1 ((char *) "{%1DMad} was declared", 21, (unsigned char *) &d, (sizeof (d)-1));
@@ -6734,16 +6743,27 @@ static decl_node addTo (scopeT *decls, decl_node d)
         }
     }
   if (decl_isConst (d))
-    Indexing_IncludeIndiceIntoIndex ((*decls).constants, (void *) d);
+    {
+      Indexing_IncludeIndiceIntoIndex ((*decls).constants, (void *) d);
+    }
   else if (decl_isVar (d))
-    Indexing_IncludeIndiceIntoIndex ((*decls).variables, (void *) d);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex ((*decls).variables, (void *) d);
+    }
   else if (decl_isType (d))
-    Indexing_IncludeIndiceIntoIndex ((*decls).types, (void *) d);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex ((*decls).types, (void *) d);
+    }
   else if (decl_isProcedure (d))
     {
+      /* avoid dangling else.  */
       Indexing_IncludeIndiceIntoIndex ((*decls).procedures, (void *) d);
       if (debugDecl)
-        libc_printf ((char *) "%d procedures on the dynamic array\\n", 36, Indexing_HighIndice ((*decls).procedures));
+        {
+          libc_printf ((char *) "%d procedures on the dynamic array\\n", 36, Indexing_HighIndice ((*decls).procedures));
+        }
     }
   return d;
 }
@@ -6783,6 +6803,7 @@ static decl_node addToScope (decl_node n)
     }
   else if (decl_isModule (s))
     {
+      /* avoid dangling else.  */
       if (debugDecl)
         {
           outText (doP, (char *) "adding ", 7);
@@ -6793,6 +6814,7 @@ static decl_node addToScope (decl_node n)
     }
   else if (decl_isDef (s))
     {
+      /* avoid dangling else.  */
       if (debugDecl)
         {
           outText (doP, (char *) "adding ", 7);
@@ -6804,6 +6826,7 @@ static decl_node addToScope (decl_node n)
     }
   else if (decl_isImp (s))
     {
+      /* avoid dangling else.  */
       if (debugDecl)
         {
           outText (doP, (char *) "adding ", 7);
@@ -6824,7 +6847,9 @@ static void addModuleToScope (decl_node m, decl_node i)
 {
   mcDebug_assert ((decl_getDeclScope ()) == m);
   if ((decl_lookupSym (decl_getSymName (i))) == NULL)
-    i = addToScope (i);
+    {
+      i = addToScope (i);
+    }
 }
 
 
@@ -6836,11 +6861,19 @@ static void completedEnum (decl_node n)
 {
   mcDebug_assert (((decl_isDef (n)) || (decl_isImp (n))) || (decl_isModule (n)));
   if (decl_isDef (n))
-    n->defF.enumsComplete = TRUE;
+    {
+      n->defF.enumsComplete = TRUE;
+    }
   else if (decl_isImp (n))
-    n->impF.enumsComplete = TRUE;
+    {
+      /* avoid dangling else.  */
+      n->impF.enumsComplete = TRUE;
+    }
   else if (decl_isModule (n))
-    n->moduleF.enumsComplete = TRUE;
+    {
+      /* avoid dangling else.  */
+      n->moduleF.enumsComplete = TRUE;
+    }
 }
 
 
@@ -6907,14 +6940,16 @@ static decl_node checkPtr (decl_node n)
   decl_node p;
 
   if (lang == ansiCP)
-    if (decl_isPointer (n))
-      {
-        s = tempName ();
-        p = decl_makeType (nameKey_makekey (DynamicStrings_string (s)));
-        decl_putType (p, n);
-        s = DynamicStrings_KillString (s);
-        return p;
-      }
+    {
+      if (decl_isPointer (n))
+        {
+          s = tempName ();
+          p = decl_makeType (nameKey_makekey (DynamicStrings_string (s)));
+          decl_putType (p, n);
+          s = DynamicStrings_KillString (s);
+          return p;
+        }
+    }
   return n;
 }
 
@@ -7063,7 +7098,9 @@ static unsigned int isIdentList (decl_node n)
 static unsigned int identListLen (decl_node n)
 {
   if (n == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       mcDebug_assert (isIdentList (n));
@@ -7090,7 +7127,9 @@ static void checkParameters (decl_node p, decl_node i, decl_node type, unsigned 
 static void checkMakeVariables (decl_node n, decl_node i, decl_node type, unsigned int isvar)
 {
   if (((decl_isImp (currentModule)) || (decl_isModule (currentModule))) && ! n->procedureF.built)
-    makeVariablesFromParameters (n, i, type, isvar);
+    {
+      makeVariablesFromParameters (n, i, type, isvar);
+    }
 }
 
 
@@ -7167,7 +7206,9 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
           {
             /* avoid gcc warning by using compound statement even if not strictly necessary.  */
             if ((symbolKey_getSymKey (r->recordF.localSymbols, tag)) == nameKey_NulName)
-              symbolKey_putSymKey (r->recordF.localSymbols, tag, (void *) n);
+              {
+                symbolKey_putSymKey (r->recordF.localSymbols, tag, (void *) n);
+              }
             else
               {
                 f = symbolKey_getSymKey (r->recordF.localSymbols, tag);
@@ -7181,7 +7222,9 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
         p = getParent (r);
         mcDebug_assert (p->kind == record);
         if (tag != nameKey_NulName)
-          symbolKey_putSymKey (p->recordF.localSymbols, tag, (void *) n);
+          {
+            symbolKey_putSymKey (p->recordF.localSymbols, tag, (void *) n);
+          }
         break;
 
 
@@ -7316,11 +7359,19 @@ static void addEnumToModule (decl_node m, decl_node e)
   mcDebug_assert ((decl_isEnumeration (e)) || (decl_isEnumerationField (e)));
   mcDebug_assert (((decl_isModule (m)) || (decl_isDef (m))) || (decl_isImp (m)));
   if (decl_isModule (m))
-    Indexing_IncludeIndiceIntoIndex (m->moduleF.enumFixup.info, (void *) e);
+    {
+      Indexing_IncludeIndiceIntoIndex (m->moduleF.enumFixup.info, (void *) e);
+    }
   else if (decl_isDef (m))
-    Indexing_IncludeIndiceIntoIndex (m->defF.enumFixup.info, (void *) e);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->defF.enumFixup.info, (void *) e);
+    }
   else if (decl_isImp (m))
-    Indexing_IncludeIndiceIntoIndex (m->impF.enumFixup.info, (void *) e);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->impF.enumFixup.info, (void *) e);
+    }
 }
 
 
@@ -7379,12 +7430,16 @@ static decl_node doMakeEnumField (decl_node e, nameKey_Name n)
       mcDebug_assert ((Indexing_GetIndice (e->enumerationF.listOfSons, e->enumerationF.noOfElements)) == f);
       addEnumToModule (currentModule, f);
       if (e->enumerationF.low == NULL)
-        e->enumerationF.low = f;
+        {
+          e->enumerationF.low = f;
+        }
       e->enumerationF.high = f;
       return addToScope (f);
     }
   else
-    mcMetaError_metaErrors2 ((char *) "cannot create enumeration field {%1k} as the name is already in use", 67, (char *) "{%2DMad} was declared elsewhere", 31, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &f, (sizeof (f)-1));
+    {
+      mcMetaError_metaErrors2 ((char *) "cannot create enumeration field {%1k} as the name is already in use", 67, (char *) "{%2DMad} was declared elsewhere", 31, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &f, (sizeof (f)-1));
+    }
   ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
 }
 
@@ -7409,7 +7464,9 @@ static decl_node getExpList (decl_node p, unsigned int n)
 static unsigned int expListLen (decl_node p)
 {
   if (p == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       mcDebug_assert (decl_isExpList (p));
@@ -7454,11 +7511,19 @@ static void addConstToModule (decl_node m, decl_node e)
 {
   mcDebug_assert (((decl_isModule (m)) || (decl_isDef (m))) || (decl_isImp (m)));
   if (decl_isModule (m))
-    Indexing_IncludeIndiceIntoIndex (m->moduleF.constFixup.info, (void *) e);
+    {
+      Indexing_IncludeIndiceIntoIndex (m->moduleF.constFixup.info, (void *) e);
+    }
   else if (decl_isDef (m))
-    Indexing_IncludeIndiceIntoIndex (m->defF.constFixup.info, (void *) e);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->defF.constFixup.info, (void *) e);
+    }
   else if (decl_isImp (m))
-    Indexing_IncludeIndiceIntoIndex (m->impF.constFixup.info, (void *) e);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->impF.constFixup.info, (void *) e);
+    }
 }
 
 
@@ -7522,9 +7587,13 @@ static decl_node makeVal (decl_node params)
 {
   mcDebug_assert (decl_isExpList (params));
   if ((expListLen (params)) == 2)
-    return makeBinary ((nodeT) val, getExpList (params, 1), getExpList (params, 2), getExpList (params, 1));
+    {
+      return makeBinary ((nodeT) val, getExpList (params, 1), getExpList (params, 2), getExpList (params, 1));
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -7536,9 +7605,13 @@ static decl_node makeCast (decl_node c, decl_node p)
 {
   mcDebug_assert (decl_isExpList (p));
   if ((expListLen (p)) == 1)
-    return makeBinary ((nodeT) cast, c, getExpList (p, 1), c);
+    {
+      return makeBinary ((nodeT) cast, c, getExpList (p, 1), c);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
@@ -7587,57 +7660,134 @@ static decl_node makeIntrinsicBinaryType (nodeT k, decl_node paramList, decl_nod
 static decl_node checkIntrinsic (decl_node c, decl_node n)
 {
   if (isAnyType (c))
-    return makeCast (c, n);
+    {
+      return makeCast (c, n);
+    }
   else if (c == maxN)
-    return makeIntrinsicUnaryType ((nodeT) max, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) max, n, (decl_node) NULL);
+    }
   else if (c == minN)
-    return makeIntrinsicUnaryType ((nodeT) min, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) min, n, (decl_node) NULL);
+    }
   else if (c == haltN)
-    return makeIntrinsicProc ((nodeT) halt, expListLen (n), n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) halt, expListLen (n), n);
+    }
   else if (c == valN)
-    return makeVal (n);
+    {
+      /* avoid dangling else.  */
+      return makeVal (n);
+    }
   else if (c == adrN)
-    return makeIntrinsicUnaryType ((nodeT) adr, n, addressN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) adr, n, addressN);
+    }
   else if (c == sizeN)
-    return makeIntrinsicUnaryType ((nodeT) size, n, cardinalN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) size, n, cardinalN);
+    }
   else if (c == tsizeN)
-    return makeIntrinsicUnaryType ((nodeT) tsize, n, cardinalN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) tsize, n, cardinalN);
+    }
   else if (c == floatN)
-    return makeIntrinsicUnaryType ((nodeT) float_, n, realN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) float_, n, realN);
+    }
   else if (c == truncN)
-    return makeIntrinsicUnaryType ((nodeT) trunc, n, integerN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) trunc, n, integerN);
+    }
   else if (c == ordN)
-    return makeIntrinsicUnaryType ((nodeT) ord, n, cardinalN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) ord, n, cardinalN);
+    }
   else if (c == chrN)
-    return makeIntrinsicUnaryType ((nodeT) chr, n, charN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) chr, n, charN);
+    }
   else if (c == capN)
-    return makeIntrinsicUnaryType ((nodeT) cap, n, charN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) cap, n, charN);
+    }
   else if (c == absN)
-    return makeIntrinsicUnaryType ((nodeT) abs_, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) abs_, n, (decl_node) NULL);
+    }
   else if (c == imN)
-    return makeIntrinsicUnaryType ((nodeT) im, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) im, n, (decl_node) NULL);
+    }
   else if (c == reN)
-    return makeIntrinsicUnaryType ((nodeT) re, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) re, n, (decl_node) NULL);
+    }
   else if (c == cmplxN)
-    return makeIntrinsicBinaryType ((nodeT) cmplx, n, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicBinaryType ((nodeT) cmplx, n, (decl_node) NULL);
+    }
   else if (c == highN)
-    return makeIntrinsicUnaryType ((nodeT) high, n, cardinalN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) high, n, cardinalN);
+    }
   else if (c == incN)
-    return makeIntrinsicProc ((nodeT) inc, expListLen (n), n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) inc, expListLen (n), n);
+    }
   else if (c == decN)
-    return makeIntrinsicProc ((nodeT) dec, expListLen (n), n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) dec, expListLen (n), n);
+    }
   else if (c == inclN)
-    return makeIntrinsicProc ((nodeT) incl, expListLen (n), n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) incl, expListLen (n), n);
+    }
   else if (c == exclN)
-    return makeIntrinsicProc ((nodeT) excl, expListLen (n), n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) excl, expListLen (n), n);
+    }
   else if (c == newN)
-    return makeIntrinsicProc ((nodeT) new, 1, n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) new, 1, n);
+    }
   else if (c == disposeN)
-    return makeIntrinsicProc ((nodeT) dispose, 1, n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) dispose, 1, n);
+    }
   else if (c == lengthN)
-    return makeIntrinsicUnaryType ((nodeT) length, n, cardinalN);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicUnaryType ((nodeT) length, n, cardinalN);
+    }
   else if (c == throwN)
-    return makeIntrinsicProc ((nodeT) throw, 1, n);
+    {
+      /* avoid dangling else.  */
+      return makeIntrinsicProc ((nodeT) throw, 1, n);
+    }
   return NULL;
 }
 
@@ -7687,9 +7837,14 @@ static decl_node lookupBase (nameKey_Name n)
 
   m = symbolKey_getSymKey (baseSymbols, n);
   if (m == procN)
-    keyc_useProc ();
+    {
+      keyc_useProc ();
+    }
   else if (((m == complexN) || (m == longcomplexN)) || (m == shortcomplexN))
-    keyc_useComplex ();
+    {
+      /* avoid dangling else.  */
+      keyc_useComplex ();
+    }
   return m;
 }
 
@@ -7885,7 +8040,9 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
   decl_node n;
 
   if (k == plus)
-    return e;
+    {
+      return e;
+    }
   else
     {
       Storage_ALLOCATE ((void **) &n, sizeof (_T1));
@@ -7941,16 +8098,25 @@ static unsigned int isLeafString (decl_node n)
 static DynamicStrings_String getStringContents (decl_node n)
 {
   if (decl_isConst (n))
-    return getStringContents (n->constF.value);
+    {
+      return getStringContents (n->constF.value);
+    }
   else if (decl_isLiteral (n))
     {
+      /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* --fixme--  finish this.  */
       return NULL;  /* --fixme--  finish this.  */
     }
   else if (isString (n))
-    return getString (n);
+    {
+      /* avoid dangling else.  */
+      return getString (n);
+    }
   else if (isConstExp (n))
-    return getStringContents (n->unaryF.arg);
+    {
+      /* avoid dangling else.  */
+      return getStringContents (n->unaryF.arg);
+    }
   M2RTS_HALT (-1);
 }
 
@@ -7982,12 +8148,20 @@ static nameKey_Name addNames (decl_node a, decl_node b)
 static decl_node resolveString (decl_node n)
 {
   while ((decl_isConst (n)) || (isConstExp (n)))
-    if (decl_isConst (n))
-      n = n->constF.value;
-    else
-      n = n->unaryF.arg;
+    {
+      if (decl_isConst (n))
+        {
+          n = n->constF.value;
+        }
+      else
+        {
+          n = n->unaryF.arg;
+        }
+    }
   if (n->kind == plus)
-    n = decl_makeString (addNames (resolveString (n->binaryF.left), resolveString (n->binaryF.right)));
+    {
+      n = decl_makeString (addNames (resolveString (n->binaryF.left), resolveString (n->binaryF.right)));
+    }
   return n;
 }
 
@@ -8026,7 +8200,9 @@ static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node result
 
   n = foldBinary (k, l, r, resultType);
   if (n == NULL)
-    n = doMakeBinary (k, l, r, resultType);
+    {
+      n = doMakeBinary (k, l, r, resultType);
+    }
   return n;
 }
 
@@ -8240,7 +8416,9 @@ static unsigned int isOrdinal (decl_node n)
 static decl_node mixTypes (decl_node a, decl_node b)
 {
   if ((a == addressN) || (b == addressN))
-    return addressN;
+    {
+      return addressN;
+    }
   return a;
 }
 
@@ -8252,7 +8430,9 @@ static decl_node mixTypes (decl_node a, decl_node b)
 static decl_node doSetExprType (decl_node *t, decl_node n)
 {
   if ((*t) == NULL)
-    (*t) = n;
+    {
+      (*t) = n;
+    }
   return (*t);
 }
 
@@ -8264,17 +8444,27 @@ static decl_node doSetExprType (decl_node *t, decl_node n)
 static decl_node getMaxMinType (decl_node n)
 {
   if ((decl_isVar (n)) || (decl_isConst (n)))
-    return decl_getType (n);
+    {
+      return decl_getType (n);
+    }
   else if (isConstExp (n))
     {
+      /* avoid dangling else.  */
       n = getExprType (n->unaryF.arg);
       if (n == bitsetN)
-        return ztypeN;
+        {
+          return ztypeN;
+        }
       else
-        return n;
+        {
+          return n;
+        }
     }
   else
-    return n;
+    {
+      /* avoid dangling else.  */
+      return n;
+    }
 }
 
 
@@ -8642,10 +8832,14 @@ static decl_node getExprType (decl_node n)
   decl_node t;
 
   if (((isFuncCall (n)) && ((decl_getType (n)) != NULL)) && (decl_isProcType (decl_skipType (decl_getType (n)))))
-    return decl_getType (decl_skipType (decl_getType (n)));
+    {
+      return decl_getType (decl_skipType (decl_getType (n)));
+    }
   t = decl_getType (n);
   if (t == NULL)
-    t = doGetExprType (n);
+    {
+      t = doGetExprType (n);
+    }
   return t;
 }
 
@@ -8660,9 +8854,13 @@ static void openOutput (void)
 
   s = mcOptions_getOutputFile ();
   if (DynamicStrings_EqualArray (s, (char *) "-", 1))
-    outputFile = FIO_StdOut;
+    {
+      outputFile = FIO_StdOut;
+    }
   else
-    outputFile = SFIO_OpenToWrite (s);
+    {
+      outputFile = SFIO_OpenToWrite (s);
+    }
   mcStream_setDest (outputFile);
 }
 
@@ -8678,7 +8876,9 @@ static void closeOutput (void)
   s = mcOptions_getOutputFile ();
   outputFile = mcStream_combine ();
   if (! (DynamicStrings_EqualArray (s, (char *) "-", 1)))
-    FIO_Close (outputFile);
+    {
+      FIO_Close (outputFile);
+    }
 }
 
 
@@ -8722,9 +8922,12 @@ static void doIncludeC (decl_node n)
     }
   /* no include in this case.  */
   else if (mcOptions_getExtendedOpaque ())
-    {}  /* empty.  */
+    {
+      /* avoid dangling else.  */
+    }
   else if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       mcPretty_print (doP, (char *) "#   include \"", 13);
       mcPretty_prints (doP, mcOptions_getHPrefix ());
       mcPretty_prints (doP, s);
@@ -8777,7 +8980,9 @@ static DynamicStrings_String getFQstring (decl_node n)
   DynamicStrings_String s;
 
   if (((! (decl_isExported (n))) || (mcOptions_getIgnoreFQ ())) || (isDefForC (decl_getScope (n))))
-    return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
+    {
+      return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
+    }
   else
     {
       i = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
@@ -8797,7 +9002,9 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
   DynamicStrings_String s;
 
   if ((! (decl_isExported (n))) || (mcOptions_getIgnoreFQ ()))
-    return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (getDName (n, scopes)));
+    {
+      return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (getDName (n, scopes)));
+    }
   else
     {
       /* we assume a qualified name will never conflict.  */
@@ -8815,9 +9022,13 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
 static DynamicStrings_String getString (decl_node n)
 {
   if ((decl_getSymName (n)) == nameKey_NulName)
-    return DynamicStrings_InitString ((char *) "", 0);
+    {
+      return DynamicStrings_InitString ((char *) "", 0);
+    }
   else
-    return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
+    {
+      return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
+    }
 }
 
 
@@ -9031,10 +9242,14 @@ static void doUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_n
   memcpy (op, op_, _op_high+1);
 
   if (l)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   mcPretty_print (p, (char *) op, _op_high);
   if (r)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   if (needsParen (expr))
     {
       outText (p, (char *) "(", 1);
@@ -9042,7 +9257,9 @@ static void doUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_n
       outText (p, (char *) ")", 1);
     }
   else
-    doExprC (p, expr);
+    {
+      doExprC (p, expr);
+    }
 }
 
 
@@ -9059,7 +9276,9 @@ static void doSetSub (mcPretty_pretty p, decl_node left, decl_node right)
       outText (p, (char *) ")", 1);
     }
   else
-    doExprC (p, left);
+    {
+      doExprC (p, left);
+    }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "&", 1);
   mcPretty_setNeedSpace (p);
@@ -9090,51 +9309,55 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
   lt = decl_skipType (getExprType (left));
   rt = decl_skipType (getExprType (right));
   if (((lt != NULL) && ((decl_isSet (lt)) || (isBitset (lt)))) || ((rt != NULL) && ((decl_isSet (rt)) || (isBitset (rt)))))
-    switch (op)
-      {
-        case plus:
-          doBinary (p, (char *) "|", 1, left, right, l, r, FALSE);
-          break;
+    {
+      switch (op)
+        {
+          case plus:
+            doBinary (p, (char *) "|", 1, left, right, l, r, FALSE);
+            break;
 
-        case sub:
-          doSetSub (p, left, right);
-          break;
+          case sub:
+            doSetSub (p, left, right);
+            break;
 
-        case mult:
-          doBinary (p, (char *) "&", 1, left, right, l, r, FALSE);
-          break;
+          case mult:
+            doBinary (p, (char *) "&", 1, left, right, l, r, FALSE);
+            break;
 
-        case divide:
-          doBinary (p, (char *) "^", 1, left, right, l, r, FALSE);
-          break;
+          case divide:
+            doBinary (p, (char *) "^", 1, left, right, l, r, FALSE);
+            break;
 
 
-        default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
-      }
+          default:
+            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
+        }
+    }
   else
-    switch (op)
-      {
-        case plus:
-          doBinary (p, (char *) "+", 1, left, right, l, r, FALSE);
-          break;
+    {
+      switch (op)
+        {
+          case plus:
+            doBinary (p, (char *) "+", 1, left, right, l, r, FALSE);
+            break;
 
-        case sub:
-          doBinary (p, (char *) "-", 1, left, right, l, r, FALSE);
-          break;
+          case sub:
+            doBinary (p, (char *) "-", 1, left, right, l, r, FALSE);
+            break;
 
-        case mult:
-          doBinary (p, (char *) "*", 1, left, right, l, r, FALSE);
-          break;
+          case mult:
+            doBinary (p, (char *) "*", 1, left, right, l, r, FALSE);
+            break;
 
-        case divide:
-          doBinary (p, (char *) "/", 1, left, right, l, r, FALSE);
-          break;
+          case divide:
+            doBinary (p, (char *) "/", 1, left, right, l, r, FALSE);
+            break;
 
 
-        default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
-      }
+          default:
+            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
+        }
+    }
 }
 
 
@@ -9156,12 +9379,18 @@ static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_
       outText (p, (char *) ")", 1);
     }
   else
-    doExprCup (p, left, unpackProc);
+    {
+      doExprCup (p, left, unpackProc);
+    }
   if (l)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   outText (p, (char *) op, _op_high);
   if (r)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   if (needsParen (right))
     {
       outText (p, (char *) "(", 1);
@@ -9169,7 +9398,9 @@ static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_
       outText (p, (char *) ")", 1);
     }
   else
-    doExprCup (p, right, unpackProc);
+    {
+      doExprCup (p, right, unpackProc);
+    }
 }
 
 
@@ -9442,10 +9673,14 @@ static void doPreBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, de
   memcpy (op, op_, _op_high+1);
 
   if (l)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   outText (p, (char *) op, _op_high);
   if (r)
-    mcPretty_setNeedSpace (p);
+    {
+      mcPretty_setNeedSpace (p);
+    }
   outText (p, (char *) "(", 1);
   doExprC (p, left);
   outText (p, (char *) ",", 1);
@@ -9482,7 +9717,9 @@ static void doEnumerationField (mcPretty_pretty p, decl_node n)
 static unsigned int isZero (decl_node n)
 {
   if (isConstExp (n))
-    return isZero (n->unaryF.arg);
+    {
+      return isZero (n->unaryF.arg);
+    }
   return (decl_getSymName (n)) == (nameKey_makeKey ((char *) "0", 1));
 }
 
@@ -9501,7 +9738,9 @@ static void doArrayRef (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isArrayRef (n));
   t = decl_skipType (decl_getType (n->arrayrefF.array));
   if (decl_isUnbounded (t))
-    outTextN (p, decl_getSymName (n->arrayrefF.array));
+    {
+      outTextN (p, decl_getSymName (n->arrayrefF.array));
+    }
   else
     {
       doExprC (p, n->arrayrefF.array);
@@ -9515,7 +9754,9 @@ static void doArrayRef (mcPretty_pretty p, decl_node n)
     {
       doExprC (p, getExpList (n->arrayrefF.index, i));
       if (decl_isUnbounded (t))
-        mcDebug_assert (c == 1);
+        {
+          mcDebug_assert (c == 1);
+        }
       else
         {
           doSubtractC (p, getMin (t->arrayF.subr));
@@ -9605,7 +9846,9 @@ static void doSetValueC (mcPretty_pretty p, decl_node n)
       mcPretty_setNeedSpace (p);
     }
   if ((Indexing_HighIndice (n->setvalueF.values)) == 0)
-    outText (p, (char *) "0", 1);
+    {
+      outText (p, (char *) "0", 1);
+    }
   else
     {
       i = Indexing_LowIndice (n->setvalueF.values);
@@ -9645,14 +9888,20 @@ static decl_node getSetLow (decl_node n)
   decl_node type;
 
   if ((decl_getType (n)) == NULL)
-    return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
+    {
+      return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
+    }
   else
     {
       type = decl_skipType (decl_getType (n));
       if (decl_isSet (type))
-        return getMin (decl_skipType (decl_getType (type)));
+        {
+          return getMin (decl_skipType (decl_getType (type)));
+        }
       else
-        return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
+        {
+          return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
+        }
     }
 }
 
@@ -9698,7 +9947,9 @@ static void doThrowC (mcPretty_pretty p, decl_node n)
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   if ((expListLen (n->intrinsicF.args)) == 1)
-    doExprC (p, getExpList (n->intrinsicF.args, 1));
+    {
+      doExprC (p, getExpList (n->intrinsicF.args, 1));
+    }
   outText (p, (char *) ")", 1);
 }
 
@@ -10013,7 +10264,9 @@ static void doExprCup (mcPretty_pretty p, decl_node n, unsigned int unpackProc)
     {
       t = decl_skipType (getExprType (n));
       if ((t != NULL) && (isAProcType (t)))
-        outText (p, (char *) ".proc", 5);
+        {
+          outText (p, (char *) ".proc", 5);
+        }
     }
 }
 
@@ -10216,7 +10469,9 @@ static void doVar (mcPretty_pretty p, decl_node n)
       outText (p, (char *) ")", 1);
     }
   else
-    doFQDNameC (p, n, TRUE);
+    {
+      doFQDNameC (p, n, TRUE);
+    }
 }
 
 
@@ -10236,18 +10491,22 @@ static void doLiteralC (mcPretty_pretty p, decl_node n)
         {
           s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
           if ((DynamicStrings_char (s, 0)) != '0')
-            s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0", 1), DynamicStrings_Mark (s));
+            {
+              s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0", 1), DynamicStrings_Mark (s));
+            }
         }
       outText (p, (char *) "(char)", 6);
       mcPretty_setNeedSpace (p);
     }
   else if ((DynamicStrings_char (s, -1)) == 'H')
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "0x", 2);
       s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
     }
   else if ((DynamicStrings_char (s, -1)) == 'B')
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "0", 1);
       s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
     }
@@ -10272,7 +10531,9 @@ static void doLiteral (mcPretty_pretty p, decl_node n)
         {
           s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
           if ((DynamicStrings_char (s, 0)) != '0')
-            s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0", 1), DynamicStrings_Mark (s));
+            {
+              s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0", 1), DynamicStrings_Mark (s));
+            }
         }
       outText (p, (char *) "(char)", 6);
       mcPretty_setNeedSpace (p);
@@ -10347,11 +10608,15 @@ static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char
       }
     else if (i > 0)
       {
+        /* avoid dangling else.  */
         s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, 0, i), DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high))), DynamicStrings_Slice (s, i+1, 0));
         i += StrLib_StrLen ((char *) a, _a_high);
       }
     else
-      return s;
+      {
+        /* avoid dangling else.  */
+        return s;
+      }
   }
   ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
 }
@@ -10404,7 +10669,9 @@ static unsigned int countChar (DynamicStrings_String s, char ch)
         c += 1;
       }
     else
-      return c;
+      {
+        return c;
+      }
   }
   ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
 }
@@ -10564,6 +10831,7 @@ static mcPretty_pretty outKm2 (mcPretty_pretty p, char *a_, unsigned int _a_high
     }
   else if (StrLib_StrEqual ((char *) a, _a_high, (char *) "END", 3))
     {
+      /* avoid dangling else.  */
       p = mcPretty_popPretty (p);
       outText (p, (char *) a, _a_high);
       p = mcPretty_popPretty (p);
@@ -10590,7 +10858,9 @@ static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
   s = DynamicStrings_InitString ((char *) a, _a_high);
   i = DynamicStrings_Index (s, '\\', 0);
   if (i == -1)
-    t = NULL;
+    {
+      t = NULL;
+    }
   else
     {
       t = DynamicStrings_Slice (s, i, 0);
@@ -10607,6 +10877,7 @@ static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
     }
   else if ((DynamicStrings_char (s, 0)) == '}')
     {
+      /* avoid dangling else.  */
       p = mcPretty_popPretty (p);
       outTextS (p, s);
       p = mcPretty_popPretty (p);
@@ -10625,7 +10896,9 @@ static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
 static void outTextS (mcPretty_pretty p, DynamicStrings_String s)
 {
   if (s != NULL)
-    mcPretty_prints (p, s);
+    {
+      mcPretty_prints (p, s);
+    }
 }
 
 
@@ -10666,11 +10939,17 @@ static void doTypeAliasC (mcPretty_pretty p, decl_node n, decl_node *m)
   mcPretty_print (p, (char *) "typedef", 7);
   mcPretty_setNeedSpace (p);
   if ((decl_isTypeHidden (n)) && ((decl_isDef (decl_getMainModule ())) || ((decl_getScope (n)) != (decl_getMainModule ()))))
-    outText (p, (char *) "void *", 6);
+    {
+      outText (p, (char *) "void *", 6);
+    }
   else
-    doTypeC (p, decl_getType (n), m);
+    {
+      doTypeC (p, decl_getType (n), m);
+    }
   if ((*m) != NULL)
-    doFQNameC (p, (*m));
+    {
+      doFQNameC (p, (*m));
+    }
   mcPretty_print (p, (char *) ";\\n\\n", 5);
 }
 
@@ -10725,7 +11004,9 @@ static void doNamesC (mcPretty_pretty p, nameKey_Name n)
 static void doNameC (mcPretty_pretty p, decl_node n)
 {
   if ((n != NULL) && ((decl_getSymName (n)) != nameKey_NulName))
-    doNamesC (p, decl_getSymName (n));
+    {
+      doNamesC (p, decl_getSymName (n));
+    }
 }
 
 
@@ -10748,13 +11029,17 @@ static nameKey_Name doCname (nameKey_Name n, cnameT *c, unsigned int scopes)
   DynamicStrings_String s;
 
   if ((*c).init)
-    return (*c).name;
+    {
+      return (*c).name;
+    }
   else
     {
       (*c).init = TRUE;
       s = keyc_cname (n, scopes);
       if (s == NULL)
-        (*c).name = n;
+        {
+          (*c).name = n;
+        }
       else
         {
           (*c).name = nameKey_makekey (DynamicStrings_string (s));
@@ -10807,7 +11092,9 @@ static nameKey_Name getDName (decl_node n, unsigned int scopes)
 static void doDNameC (mcPretty_pretty p, decl_node n, unsigned int scopes)
 {
   if ((n != NULL) && ((decl_getSymName (n)) != nameKey_NulName))
-    doNamesC (p, getDName (n, scopes));
+    {
+      doNamesC (p, getDName (n, scopes));
+    }
 }
 
 
@@ -10897,9 +11184,13 @@ static decl_node getParameterVariable (decl_node n, nameKey_Name m)
 
   mcDebug_assert ((decl_isParam (n)) || (decl_isVarParam (n)));
   if (decl_isParam (n))
-    p = n->paramF.scope;
+    {
+      p = n->paramF.scope;
+    }
   else
-    p = n->varparamF.scope;
+    {
+      p = n->varparamF.scope;
+    }
   mcDebug_assert (decl_isProcedure (p));
   return decl_lookupInScope (p, m);
 }
@@ -10958,16 +11249,26 @@ static void doParamC (mcPretty_pretty p, decl_node n)
               doTypeNameC (p, ptype);
               i = wlists_getItemFromList (l, c);
               if ((decl_isArray (ptype)) && (decl_isUnbounded (ptype)))
-                mcPretty_noSpace (p);
+                {
+                  mcPretty_noSpace (p);
+                }
               else
-                mcPretty_setNeedSpace (p);
+                {
+                  mcPretty_setNeedSpace (p);
+                }
               v = getParameterVariable (n, i);
               if (v == NULL)
-                doNamesC (p, keyc_cnamen (i, TRUE));
+                {
+                  doNamesC (p, keyc_cnamen (i, TRUE));
+                }
               else
-                doFQDNameC (p, v, TRUE);
+                {
+                  doFQDNameC (p, v, TRUE);
+                }
               if ((decl_isArray (ptype)) && (decl_isUnbounded (ptype)))
-                outText (p, (char *) "_", 1);
+                {
+                  outText (p, (char *) "_", 1);
+                }
               doHighC (p, ptype, i);
               if (c < t)
                 {
@@ -11018,7 +11319,9 @@ static void doVarParamC (mcPretty_pretty p, decl_node n)
       mcDebug_assert (isIdentList (n->varparamF.namelist));
       l = n->varparamF.namelist->identlistF.names;
       if (l == NULL)
-        doTypeNameC (p, ptype);
+        {
+          doTypeNameC (p, ptype);
+        }
       else
         {
           t = wlists_noOfItemsInList (l);
@@ -11034,9 +11337,13 @@ static void doVarParamC (mcPretty_pretty p, decl_node n)
               i = wlists_getItemFromList (l, c);
               v = getParameterVariable (n, i);
               if (v == NULL)
-                doNamesC (p, keyc_cnamen (i, TRUE));
+                {
+                  doNamesC (p, keyc_cnamen (i, TRUE));
+                }
               else
-                doFQDNameC (p, v, TRUE);
+                {
+                  doFQDNameC (p, v, TRUE);
+                }
               doHighC (p, ptype, i);
               if (c < t)
                 {
@@ -11083,13 +11390,24 @@ static void doOptargC (mcPretty_pretty p, decl_node n)
 static void doParameterC (mcPretty_pretty p, decl_node n)
 {
   if (decl_isParam (n))
-    doParamC (p, n);
+    {
+      doParamC (p, n);
+    }
   else if (decl_isVarParam (n))
-    doVarParamC (p, n);
+    {
+      /* avoid dangling else.  */
+      doVarParamC (p, n);
+    }
   else if (decl_isVarargs (n))
-    mcPretty_print (p, (char *) "...", 3);
+    {
+      /* avoid dangling else.  */
+      mcPretty_print (p, (char *) "...", 3);
+    }
   else if (decl_isOptarg (n))
-    doOptargC (p, n);
+    {
+      /* avoid dangling else.  */
+      doOptargC (p, n);
+    }
 }
 
 
@@ -11117,19 +11435,25 @@ static void doTypesC (decl_node n)
     {
       m = decl_getType (n);
       if (decl_isProcType (m))
-        doProcTypeC (doP, n, m);
+        {
+          doProcTypeC (doP, n, m);
+        }
       else if ((decl_isType (m)) || (decl_isPointer (m)))
         {
+          /* avoid dangling else.  */
           outText (doP, (char *) "typedef", 7);
           mcPretty_setNeedSpace (doP);
           doTypeC (doP, m, &m);
           if (decl_isType (m))
-            mcPretty_setNeedSpace (doP);
+            {
+              mcPretty_setNeedSpace (doP);
+            }
           doTypeNameC (doP, n);
           outText (doP, (char *) ";\\n\\n", 5);
         }
       else if (decl_isEnumeration (m))
         {
+          /* avoid dangling else.  */
           outText (doP, (char *) "typedef", 7);
           mcPretty_setNeedSpace (doP);
           doTypeC (doP, m, &m);
@@ -11139,11 +11463,14 @@ static void doTypesC (decl_node n)
         }
       else
         {
+          /* avoid dangling else.  */
           outText (doP, (char *) "typedef", 7);
           mcPretty_setNeedSpace (doP);
           doTypeC (doP, m, &m);
           if (decl_isType (m))
-            mcPretty_setNeedSpace (doP);
+            {
+              mcPretty_setNeedSpace (doP);
+            }
           doTypeNameC (doP, n);
           outText (doP, (char *) ";\\n\\n", 5);
         }
@@ -11163,11 +11490,19 @@ static void doCompletePartialC (decl_node n)
     {
       m = decl_getType (n);
       if (decl_isRecord (m))
-        doCompletePartialRecord (doP, n, m);
+        {
+          doCompletePartialRecord (doP, n, m);
+        }
       else if (decl_isArray (m))
-        doCompletePartialArray (doP, n, m);
+        {
+          /* avoid dangling else.  */
+          doCompletePartialArray (doP, n, m);
+        }
       else if (decl_isProcType (m))
-        doCompletePartialProcType (doP, n, m);
+        {
+          /* avoid dangling else.  */
+          doCompletePartialProcType (doP, n, m);
+        }
     }
 }
 
@@ -11207,11 +11542,15 @@ static void doCompletePartialRecord (mcPretty_pretty p, decl_node t, decl_node r
         }
       else if (decl_isVarient (f))
         {
+          /* avoid dangling else.  */
           doVarientC (p, f);
           outText (p, (char *) ";\\n", 3);
         }
       else if (decl_isVarientField (f))
-        doVarientFieldC (p, f);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldC (p, f);
+        }
       i += 1;
     }
   p = outKc (p, (char *) "};\\n\\n", 6);
@@ -11262,56 +11601,73 @@ static decl_node lookupConst (decl_node type, nameKey_Name n)
 static decl_node doMin (decl_node n)
 {
   if (n == booleanN)
-    return falseN;
+    {
+      return falseN;
+    }
   else if (n == integerN)
     {
+      /* avoid dangling else.  */
       keyc_useIntMin ();
       return lookupConst (integerN, nameKey_makeKey ((char *) "INT_MIN", 7));
     }
   else if (n == cardinalN)
     {
+      /* avoid dangling else.  */
       keyc_useUIntMin ();
       return lookupConst (cardinalN, nameKey_makeKey ((char *) "UINT_MIN", 8));
     }
   else if (n == longintN)
     {
+      /* avoid dangling else.  */
       keyc_useLongMin ();
       return lookupConst (longintN, nameKey_makeKey ((char *) "LONG_MIN", 8));
     }
   else if (n == longcardN)
     {
+      /* avoid dangling else.  */
       keyc_useULongMin ();
       return lookupConst (longcardN, nameKey_makeKey ((char *) "LONG_MIN", 8));
     }
   else if (n == charN)
     {
+      /* avoid dangling else.  */
       keyc_useCharMin ();
       return lookupConst (charN, nameKey_makeKey ((char *) "CHAR_MIN", 8));
     }
   else if (n == bitsetN)
     {
+      /* avoid dangling else.  */
       mcDebug_assert (decl_isSubrange (bitnumN));
       return bitnumN->subrangeF.low;
     }
   else if (n == locN)
     {
+      /* avoid dangling else.  */
       keyc_useUCharMin ();
       return lookupConst (locN, nameKey_makeKey ((char *) "UCHAR_MIN", 9));
     }
   else if (n == byteN)
     {
+      /* avoid dangling else.  */
       keyc_useUCharMin ();
       return lookupConst (byteN, nameKey_makeKey ((char *) "UCHAR_MIN", 9));
     }
   else if (n == wordN)
     {
+      /* avoid dangling else.  */
       keyc_useUIntMin ();
       return lookupConst (wordN, nameKey_makeKey ((char *) "UCHAR_MIN", 9));
     }
   else if (n == addressN)
-    return lookupConst (addressN, nameKey_makeKey ((char *) "((void *) 0)", 12));
+    {
+      /* avoid dangling else.  */
+      return lookupConst (addressN, nameKey_makeKey ((char *) "((void *) 0)", 12));
+    }
   else
-    M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+    }
 }
 
 
@@ -11322,59 +11678,74 @@ static decl_node doMin (decl_node n)
 static decl_node doMax (decl_node n)
 {
   if (n == booleanN)
-    return trueN;
+    {
+      return trueN;
+    }
   else if (n == integerN)
     {
+      /* avoid dangling else.  */
       keyc_useIntMax ();
       return lookupConst (integerN, nameKey_makeKey ((char *) "INT_MAX", 7));
     }
   else if (n == cardinalN)
     {
+      /* avoid dangling else.  */
       keyc_useUIntMax ();
       return lookupConst (cardinalN, nameKey_makeKey ((char *) "UINT_MAX", 8));
     }
   else if (n == longintN)
     {
+      /* avoid dangling else.  */
       keyc_useLongMax ();
       return lookupConst (longintN, nameKey_makeKey ((char *) "LONG_MAX", 8));
     }
   else if (n == longcardN)
     {
+      /* avoid dangling else.  */
       keyc_useULongMax ();
       return lookupConst (longcardN, nameKey_makeKey ((char *) "ULONG_MAX", 9));
     }
   else if (n == charN)
     {
+      /* avoid dangling else.  */
       keyc_useCharMax ();
       return lookupConst (charN, nameKey_makeKey ((char *) "CHAR_MAX", 8));
     }
   else if (n == bitsetN)
     {
+      /* avoid dangling else.  */
       mcDebug_assert (decl_isSubrange (bitnumN));
       return bitnumN->subrangeF.high;
     }
   else if (n == locN)
     {
+      /* avoid dangling else.  */
       keyc_useUCharMax ();
       return lookupConst (locN, nameKey_makeKey ((char *) "UCHAR_MAX", 9));
     }
   else if (n == byteN)
     {
+      /* avoid dangling else.  */
       keyc_useUCharMax ();
       return lookupConst (byteN, nameKey_makeKey ((char *) "UCHAR_MAX", 9));
     }
   else if (n == wordN)
     {
+      /* avoid dangling else.  */
       keyc_useUIntMax ();
       return lookupConst (wordN, nameKey_makeKey ((char *) "UINT_MAX", 8));
     }
   else if (n == addressN)
     {
+      /* avoid dangling else.  */
       mcMetaError_metaError1 ((char *) "trying to obtain MAX ({%1ad}) is illegal", 40, (unsigned char *) &n, (sizeof (n)-1));
       return NULL;
     }
   else
-    M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+    }
 }
 
 
@@ -11386,11 +11757,17 @@ static decl_node getMax (decl_node n)
 {
   n = decl_skipType (n);
   if (decl_isSubrange (n))
-    return n->subrangeF.high;
+    {
+      return n->subrangeF.high;
+    }
   else if (decl_isEnumeration (n))
-    return n->enumerationF.high;
+    {
+      /* avoid dangling else.  */
+      return n->enumerationF.high;
+    }
   else
     {
+      /* avoid dangling else.  */
       mcDebug_assert (isOrdinal (n));
       return doMax (n);
     }
@@ -11405,11 +11782,17 @@ static decl_node getMin (decl_node n)
 {
   n = decl_skipType (n);
   if (decl_isSubrange (n))
-    return n->subrangeF.low;
+    {
+      return n->subrangeF.low;
+    }
   else if (decl_isEnumeration (n))
-    return n->enumerationF.low;
+    {
+      /* avoid dangling else.  */
+      return n->enumerationF.low;
+    }
   else
     {
+      /* avoid dangling else.  */
       mcDebug_assert (isOrdinal (n));
       return doMin (n);
     }
@@ -11450,6 +11833,7 @@ static void doSubrC (mcPretty_pretty p, decl_node s)
     }
   else if (decl_isEnumeration (s))
     {
+      /* avoid dangling else.  */
       low = getMin (s);
       high = getMax (s);
       doExprC (p, high);
@@ -11458,9 +11842,12 @@ static void doSubrC (mcPretty_pretty p, decl_node s)
     }
   else
     {
+      /* avoid dangling else.  */
       mcDebug_assert (decl_isSubrange (s));
       if ((s->subrangeF.high == NULL) || (s->subrangeF.low == NULL))
-        doSubrC (p, decl_getType (s));
+        {
+          doSubrC (p, decl_getType (s));
+        }
       else
         {
           doExprC (p, s->subrangeF.high);
@@ -11506,7 +11893,9 @@ static void doCompletePartialProcType (mcPretty_pretty p, decl_node t, decl_node
       i += 1;
     }
   if (h == 0)
-    outText (p, (char *) "void", 4);
+    {
+      outText (p, (char *) "void", 4);
+    }
   outText (p, (char *) ");\\n", 4);
   outText (p, (char *) "struct", 6);
   mcPretty_setNeedSpace (p);
@@ -11749,7 +12138,9 @@ static void doArrayC (mcPretty_pretty p, decl_node n)
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "array[", 6);
       if (isZero (getMin (s)))
-        doExprC (p, getMax (s));
+        {
+          doExprC (p, getMax (s));
+        }
       else
         {
           doExprC (p, getMax (s));
@@ -11828,15 +12219,21 @@ static void doVarientFieldC (mcPretty_pretty p, decl_node n)
         }
       else if (decl_isVarient (q))
         {
+          /* avoid dangling else.  */
           doVarientC (p, q);
           outText (p, (char *) ";\\n", 3);
         }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       i += 1;
     }
   if (! n->varientfieldF.simple)
-    p = outKc (p, (char *) "};\\n", 4);
+    {
+      p = outKc (p, (char *) "};\\n", 4);
+    }
 }
 
 
@@ -11860,10 +12257,16 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ";  /* case tag */\\n", 19);
         }
       else if (decl_isVarientField (n->varientF.tag))
-        /* doVarientFieldC (p, n^.varientF.tag)  */
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          /* doVarientFieldC (p, n^.varientF.tag)  */
+          M2RTS_HALT (-1);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
     }
   outText (p, (char *) "union", 5);
   mcPretty_setNeedSpace (p);
@@ -11883,9 +12286,15 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
             }
         }
       else if (decl_isVarientField (q))
-        doVarientFieldC (p, q);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldC (p, q);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       i += 1;
     }
   p = outKc (p, (char *) "}", 1);
@@ -11924,11 +12333,15 @@ static void doRecordC (mcPretty_pretty p, decl_node n, decl_node *m)
         }
       else if (decl_isVarient (f))
         {
+          /* avoid dangling else.  */
           doVarientC (p, f);
           outText (p, (char *) ";\\n", 3);
         }
       else if (decl_isVarientField (f))
-        doVarientFieldC (p, f);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldC (p, f);
+        }
       i += 1;
     }
   p = outKc (p, (char *) "}", 1);
@@ -11997,15 +12410,27 @@ static void doSetC (mcPretty_pretty p, decl_node n)
 static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
 {
   if (n == NULL)
-    outText (p, (char *) "void", 4);
+    {
+      outText (p, (char *) "void", 4);
+    }
   else if (isBase (n))
-    doBaseC (p, n);
+    {
+      /* avoid dangling else.  */
+      doBaseC (p, n);
+    }
   else if (isSystem (n))
-    doSystemC (p, n);
+    {
+      /* avoid dangling else.  */
+      doSystemC (p, n);
+    }
   else if (decl_isEnumeration (n))
-    doEnumerationC (p, n);
+    {
+      /* avoid dangling else.  */
+      doEnumerationC (p, n);
+    }
   else if (decl_isType (n))
     {
+      /* avoid dangling else.  */
       doFQNameC (p, n);
       /* 
    ELSIF isProcType (n) OR isArray (n) OR isRecord (n)
@@ -12015,19 +12440,38 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
       mcPretty_setNeedSpace (p);
     }
   else if (decl_isProcType (n))
-    doProcTypeC (p, n, (*m));
+    {
+      /* avoid dangling else.  */
+      doProcTypeC (p, n, (*m));
+    }
   else if (decl_isArray (n))
-    doArrayC (p, n);
+    {
+      /* avoid dangling else.  */
+      doArrayC (p, n);
+    }
   else if (decl_isRecord (n))
-    doRecordC (p, n, m);
+    {
+      /* avoid dangling else.  */
+      doRecordC (p, n, m);
+    }
   else if (decl_isPointer (n))
-    doPointerC (p, n, m);
+    {
+      /* avoid dangling else.  */
+      doPointerC (p, n, m);
+    }
   else if (decl_isSubrange (n))
-    doSubrangeC (p, n);
+    {
+      /* avoid dangling else.  */
+      doSubrangeC (p, n);
+    }
   else if (decl_isSet (n))
-    doSetC (p, n);
+    {
+      /* avoid dangling else.  */
+      doSetC (p, n);
+    }
   else
     {
+      /* avoid dangling else.  */
       /* --fixme--  */
       mcPretty_print (p, (char *) "to do ...  typedef etc etc ", 27);
       doFQNameC (p, n);
@@ -12090,28 +12534,54 @@ static void doTypeNameC (mcPretty_pretty p, decl_node n)
       mcPretty_setNeedSpace (p);
     }
   else if (isBase (n))
-    doBaseC (p, n);
+    {
+      /* avoid dangling else.  */
+      doBaseC (p, n);
+    }
   else if (isSystem (n))
-    doSystemC (p, n);
+    {
+      /* avoid dangling else.  */
+      doSystemC (p, n);
+    }
   else if (decl_isEnumeration (n))
-    mcPretty_print (p, (char *) "is enumeration type name required\\n", 35);
+    {
+      /* avoid dangling else.  */
+      mcPretty_print (p, (char *) "is enumeration type name required\\n", 35);
+    }
   else if (decl_isType (n))
-    doFQNameC (p, n);
+    {
+      /* avoid dangling else.  */
+      doFQNameC (p, n);
+    }
   else if (decl_isProcType (n))
     {
+      /* avoid dangling else.  */
       mcPretty_print (p, (char *) "is proc type name required\\n", 28);
       stop ();
     }
   else if (decl_isArray (n))
-    doArrayNameC (p, n);
+    {
+      /* avoid dangling else.  */
+      doArrayNameC (p, n);
+    }
   else if (decl_isRecord (n))
-    doRecordNameC (p, n);
+    {
+      /* avoid dangling else.  */
+      doRecordNameC (p, n);
+    }
   else if (decl_isPointer (n))
-    doPointerNameC (p, n);
+    {
+      /* avoid dangling else.  */
+      doPointerNameC (p, n);
+    }
   else if (decl_isSubrange (n))
-    doSubrangeC (p, n);
+    {
+      /* avoid dangling else.  */
+      doSubrangeC (p, n);
+    }
   else
     {
+      /* avoid dangling else.  */
       mcPretty_print (p, (char *) "is type unknown required\\n", 26);
       stop ();
     }
@@ -12146,16 +12616,20 @@ static void doVarC (decl_node n)
     }
   else if ((! (decl_isExported (n))) && (! (isLocal (n))))
     {
+      /* avoid dangling else.  */
       mcPretty_print (doP, (char *) "static", 6);
       mcPretty_setNeedSpace (doP);
     }
   else if (mcOptions_getExtendedOpaque ())
-    if (isExternal (n))
-      {
-        /* different module declared this variable, therefore it is extern.  */
-        mcPretty_print (doP, (char *) "extern", 6);
-        mcPretty_setNeedSpace (doP);
-      }
+    {
+      /* avoid dangling else.  */
+      if (isExternal (n))
+        {
+          /* different module declared this variable, therefore it is extern.  */
+          mcPretty_print (doP, (char *) "extern", 6);
+          mcPretty_setNeedSpace (doP);
+        }
+    }
   s = NULL;
   doTypeC (doP, decl_getType (n), &s);
   mcPretty_setNeedSpace (doP);
@@ -12187,7 +12661,9 @@ static void doProcedureCommentText (mcPretty_pretty p, DynamicStrings_String s)
   /* remove 
    from the start of the comment.  */
   while (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, 0)) == ASCII_lf))
-    s = DynamicStrings_Slice (s, 1, 0);
+    {
+      s = DynamicStrings_Slice (s, 1, 0);
+    }
   outTextS (p, s);
 }
 
@@ -12228,11 +12704,13 @@ static void doProcedureHeadingC (decl_node n)
     }
   else if (decl_isExported (n))
     {
+      /* avoid dangling else.  */
       doProcedureComment (doP, mcComment_getContent (n->procedureF.modComment));
       doExternCP (doP);
     }
   else
     {
+      /* avoid dangling else.  */
       doProcedureComment (doP, mcComment_getContent (n->procedureF.modComment));
       outText (doP, (char *) "static", 6);
       mcPretty_setNeedSpace (doP);
@@ -12258,7 +12736,9 @@ static void doProcedureHeadingC (decl_node n)
       i += 1;
     }
   if (h == 0)
-    outText (doP, (char *) "void", 4);
+    {
+      outText (doP, (char *) "void", 4);
+    }
   mcPretty_print (doP, (char *) ")", 1);
 }
 
@@ -12368,7 +12848,9 @@ static void doUnboundedParamCopyC (mcPretty_pretty p, decl_node n)
     {
       q = Indexing_GetIndice (n->procedureF.parameters, i);
       if (decl_isParam (q))
-        seen = (checkDeclareUnboundedParamCopyC (p, q)) || seen;
+        {
+          seen = (checkDeclareUnboundedParamCopyC (p, q)) || seen;
+        }
       i += 1;
     }
   if (seen)
@@ -12380,7 +12862,9 @@ static void doUnboundedParamCopyC (mcPretty_pretty p, decl_node n)
         {
           q = Indexing_GetIndice (n->procedureF.parameters, i);
           if (decl_isParam (q))
-            checkUnboundedParamCopyC (p, q);
+            {
+              checkUnboundedParamCopyC (p, q);
+            }
           i += 1;
         }
     }
@@ -12394,13 +12878,15 @@ static void doUnboundedParamCopyC (mcPretty_pretty p, decl_node n)
 static void doPrototypeC (decl_node n)
 {
   if (! (decl_isExported (n)))
-    if (! ((mcOptions_getExtendedOpaque ()) && (isDefForC (decl_getScope (n)))))
-      {
-        keyc_enterScope (n);
-        doProcedureHeadingC (n);
-        mcPretty_print (doP, (char *) ";\\n", 3);
-        keyc_leaveScope (n);
-      }
+    {
+      if (! ((mcOptions_getExtendedOpaque ()) && (isDefForC (decl_getScope (n)))))
+        {
+          keyc_enterScope (n);
+          doProcedureHeadingC (n);
+          mcPretty_print (doP, (char *) ";\\n", 3);
+          keyc_leaveScope (n);
+        }
+    }
 }
 
 
@@ -12435,7 +12921,9 @@ static void addVariablesTodo (decl_node n)
           addTodo (decl_getType (n));
         }
       else
-        addTodo (n);
+        {
+          addTodo (n);
+        }
     }
 }
 
@@ -12447,9 +12935,13 @@ static void addVariablesTodo (decl_node n)
 static void addTypesTodo (decl_node n)
 {
   if (decl_isUnbounded (n))
-    addDone (n);
+    {
+      addDone (n);
+    }
   else
-    addTodo (n);
+    {
+      addTodo (n);
+    }
 }
 
 
@@ -12610,22 +13102,46 @@ static void doSimplifyNode (alists_alist l, decl_node n)
   if (n == NULL)
     {}  /* empty.  */
   else if (decl_isType (n))
-    /* no need to simplify a type.  */
-    simplifyNode (l, decl_getType (n));
+    {
+      /* avoid dangling else.  */
+      /* no need to simplify a type.  */
+      simplifyNode (l, decl_getType (n));
+    }
   else if (decl_isVar (n))
-    simplifyVar (l, n);
+    {
+      /* avoid dangling else.  */
+      simplifyVar (l, n);
+    }
   else if (decl_isRecord (n))
-    simplifyRecord (l, n);
+    {
+      /* avoid dangling else.  */
+      simplifyRecord (l, n);
+    }
   else if (decl_isRecordField (n))
-    simplifyType (l, &n->recordfieldF.type);
+    {
+      /* avoid dangling else.  */
+      simplifyType (l, &n->recordfieldF.type);
+    }
   else if (decl_isArray (n))
-    simplifyType (l, &n->arrayF.type);
+    {
+      /* avoid dangling else.  */
+      simplifyType (l, &n->arrayF.type);
+    }
   else if (decl_isVarient (n))
-    simplifyVarient (l, n);
+    {
+      /* avoid dangling else.  */
+      simplifyVarient (l, n);
+    }
   else if (decl_isVarientField (n))
-    simplifyVarientField (l, n);
+    {
+      /* avoid dangling else.  */
+      simplifyVarientField (l, n);
+    }
   else if (decl_isPointer (n))
-    simplifyType (l, &n->pointerF.type);
+    {
+      /* avoid dangling else.  */
+      simplifyType (l, &n->pointerF.type);
+    }
 }
 
 
@@ -12756,8 +13272,12 @@ static void addExported (decl_node n)
 
   s = decl_getScope (n);
   if (((s != NULL) && (decl_isDef (s))) && (s != defModule))
-    if (((decl_isType (n)) || (decl_isVar (n))) || (decl_isConst (n)))
-      addTodo (n);
+    {
+      if (((decl_isType (n)) || (decl_isVar (n))) || (decl_isConst (n)))
+        {
+          addTodo (n);
+        }
+    }
 }
 
 
@@ -12772,7 +13292,10 @@ static void addExternal (decl_node n)
     {}  /* empty.  */
   /* do nothing.  */
   else if (! (decl_isDef (n)))
-    addTodo (n);
+    {
+      /* avoid dangling else.  */
+      addTodo (n);
+    }
 }
 
 
@@ -12849,14 +13372,17 @@ static void includeDefVarProcedure (decl_node n)
       /* avoid dangling else.  */
       defModule = decl_lookupDef (decl_getSymName (n));
       if (defModule != NULL)
-        /* 
+        {
+          /* 
          includeVar (defModule^.defF.decls) ;
          simplifyTypes (defModule^.defF.decls) ;
   */
-        joinProcedures (n, defModule);
+          joinProcedures (n, defModule);
+        }
     }
   else if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       includeVar (n->defF.decls);
       simplifyTypes (n->defF.decls);
     }
@@ -12933,7 +13459,9 @@ static unsigned int isSingleStatement (decl_node s)
   mcDebug_assert (decl_isStatementSequence (s));
   h = Indexing_HighIndice (s->stmtF.statements);
   if ((h == 0) || (h > 1))
-    return FALSE;
+    {
+      return FALSE;
+    }
   s = Indexing_GetIndice (s->stmtF.statements, 1);
   return (! (decl_isStatementSequence (s))) || (isSingleStatement (s));
 }
@@ -12958,7 +13486,9 @@ static void doCommentC (mcPretty_pretty p, decl_node s)
               outText (p, (char *) " /* ", 4);
             }
           else
-            outText (p, (char *) "/* ", 3);
+            {
+              outText (p, (char *) "/* ", 3);
+            }
           c = mcComment_getContent (s->commentF.content);
           c = DynamicStrings_RemoveWhitePrefix (DynamicStrings_RemoveWhitePostfix (c));
           outTextS (p, c);
@@ -12975,9 +13505,13 @@ static void doCommentC (mcPretty_pretty p, decl_node s)
 static void doAfterCommentC (mcPretty_pretty p, decl_node c)
 {
   if (c == NULL)
-    outText (p, (char *) "\\n", 2);
+    {
+      outText (p, (char *) "\\n", 2);
+    }
   else
-    doCommentC (p, c);
+    {
+      doCommentC (p, c);
+    }
 }
 
 
@@ -13007,31 +13541,33 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
 static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
 {
   if ((decl_skipType (type)) != (decl_skipType (decl_getType (e))))
-    if (lang == ansiCP)
-      {
-        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        /* potentially a cast is required.  */
-        if ((decl_isPointer (type)) || (type == addressN))
-          {
-            outText (p, (char *) "reinterpret_cast<", 17);
-            doTypeNameC (p, type);
-            mcPretty_noSpace (p);
-            outText (p, (char *) "> (", 3);
-            doExprC (p, e);
-            outText (p, (char *) ")", 1);
-            return;
-          }
-        else
-          {
-            outText (p, (char *) "static_cast<", 12);
-            doTypeNameC (p, type);
-            mcPretty_noSpace (p);
-            outText (p, (char *) "> (", 3);
-            doExprC (p, e);
-            outText (p, (char *) ")", 1);
-            return;
-          }
-      }
+    {
+      if (lang == ansiCP)
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          /* potentially a cast is required.  */
+          if ((decl_isPointer (type)) || (type == addressN))
+            {
+              outText (p, (char *) "reinterpret_cast<", 17);
+              doTypeNameC (p, type);
+              mcPretty_noSpace (p);
+              outText (p, (char *) "> (", 3);
+              doExprC (p, e);
+              outText (p, (char *) ")", 1);
+              return;
+            }
+          else
+            {
+              outText (p, (char *) "static_cast<", 12);
+              doTypeNameC (p, type);
+              mcPretty_noSpace (p);
+              outText (p, (char *) "> (", 3);
+              doExprC (p, e);
+              outText (p, (char *) ")", 1);
+              return;
+            }
+        }
+    }
   doExprC (p, e);
 }
 
@@ -13088,8 +13624,9 @@ static void doCompoundStmt (mcPretty_pretty p, decl_node s)
       outText (p, (char *) "{}  /* empty.  */\\n", 19);
       p = mcPretty_popPretty (p);
     }
-  else if ((decl_isStatementSequence (s)) && (isSingleStatement (s)))
+  else if (((decl_isStatementSequence (s)) && (isSingleStatement (s))) && ! forceCompoundStatement)
     {
+      /* avoid dangling else.  */
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       doStatementSequenceC (p, s);
@@ -13097,6 +13634,7 @@ static void doCompoundStmt (mcPretty_pretty p, decl_node s)
     }
   else
     {
+      /* avoid dangling else.  */
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       outText (p, (char *) "{\\n", 3);
@@ -13123,7 +13661,7 @@ static void doElsifC (mcPretty_pretty p, decl_node s)
   doExprC (p, s->elsifF.expr);
   outText (p, (char *) ")\\n", 3);
   mcDebug_assert ((s->elsifF.else_ == NULL) || (s->elsifF.elsif == NULL));
-  if ((hasIfAndNoElse (s->elsifF.then)) && ((s->elsifF.else_ != NULL) || (s->elsifF.elsif != NULL)))
+  if (forceCompoundStatement || ((hasIfAndNoElse (s->elsifF.then)) && ((s->elsifF.else_ != NULL) || (s->elsifF.elsif != NULL))))
     {
       /* avoid dangling else.  */
       p = mcPretty_pushPretty (p);
@@ -13138,14 +13676,36 @@ static void doElsifC (mcPretty_pretty p, decl_node s)
       p = mcPretty_popPretty (p);
     }
   else
-    doCompoundStmt (p, s->elsifF.then);
+    {
+      doCompoundStmt (p, s->elsifF.then);
+    }
   if (containsStatement (s->elsifF.else_))
     {
       outText (p, (char *) "else\\n", 6);
-      doCompoundStmt (p, s->elsifF.else_);
+      if (forceCompoundStatement)
+        {
+          /* avoid dangling else.  */
+          p = mcPretty_pushPretty (p);
+          mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
+          outText (p, (char *) "{\\n", 3);
+          p = mcPretty_pushPretty (p);
+          mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
+          outText (p, (char *) "/* avoid dangling else.  */\\n", 29);
+          doStatementSequenceC (p, s->elsifF.else_);
+          p = mcPretty_popPretty (p);
+          outText (p, (char *) "}\\n", 3);
+          p = mcPretty_popPretty (p);
+        }
+      else
+        {
+          doCompoundStmt (p, s->elsifF.else_);
+        }
     }
   else if ((s->elsifF.elsif != NULL) && (decl_isElsif (s->elsifF.elsif)))
-    doElsifC (p, s->elsifF.elsif);
+    {
+      /* avoid dangling else.  */
+      doElsifC (p, s->elsifF.elsif);
+    }
 }
 
 
@@ -13174,33 +13734,50 @@ static unsigned int noIfElseChained (decl_node n)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (decl_isIf (n))
-        if (n->ifF.else_ != NULL)
-          /* we do have an else, continue to check this statement.  */
-          return hasIfAndNoElse (n->ifF.else_);
-        else if (n->ifF.elsif == NULL)
-          /* neither else or elsif.  */
-          return TRUE;
-        else
-          {
-            /* test elsif for lack of else.  */
-            e = n->ifF.elsif;
-            mcDebug_assert (decl_isElsif (e));
-            return noIfElseChained (e);
-          }
+        {
+          if (n->ifF.else_ != NULL)
+            {
+              /* we do have an else, continue to check this statement.  */
+              return hasIfAndNoElse (n->ifF.else_);
+            }
+          else if (n->ifF.elsif == NULL)
+            {
+              /* avoid dangling else.  */
+              /* neither else or elsif.  */
+              return TRUE;
+            }
+          else
+            {
+              /* avoid dangling else.  */
+              /* test elsif for lack of else.  */
+              e = n->ifF.elsif;
+              mcDebug_assert (decl_isElsif (e));
+              return noIfElseChained (e);
+            }
+        }
       else if (decl_isElsif (n))
-        if (n->elsifF.else_ != NULL)
-          /* we do have an else, continue to check this statement.  */
-          return hasIfAndNoElse (n->elsifF.else_);
-        else if (n->elsifF.elsif == NULL)
-          /* neither else or elsif.  */
-          return TRUE;
-        else
-          {
-            /* test elsif for lack of else.  */
-            e = n->elsifF.elsif;
-            mcDebug_assert (decl_isElsif (e));
-            return noIfElseChained (e);
-          }
+        {
+          /* avoid dangling else.  */
+          if (n->elsifF.else_ != NULL)
+            {
+              /* we do have an else, continue to check this statement.  */
+              return hasIfAndNoElse (n->elsifF.else_);
+            }
+          else if (n->elsifF.elsif == NULL)
+            {
+              /* avoid dangling else.  */
+              /* neither else or elsif.  */
+              return TRUE;
+            }
+          else
+            {
+              /* avoid dangling else.  */
+              /* test elsif for lack of else.  */
+              e = n->elsifF.elsif;
+              mcDebug_assert (decl_isElsif (e));
+              return noIfElseChained (e);
+            }
+        }
     }
   return FALSE;
 }
@@ -13213,17 +13790,22 @@ static unsigned int noIfElseChained (decl_node n)
 static unsigned int hasIfElse (decl_node n)
 {
   if (n != NULL)
-    if (decl_isStatementSequence (n))
-      {
-        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        if (isStatementSequenceEmpty (n))
-          return FALSE;
-        else if (isSingleStatement (n))
-          {
-            n = Indexing_GetIndice (n->stmtF.statements, 1);
-            return isIfElse (n);
-          }
-      }
+    {
+      if (decl_isStatementSequence (n))
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if (isStatementSequenceEmpty (n))
+            {
+              return FALSE;
+            }
+          else if (isSingleStatement (n))
+            {
+              /* avoid dangling else.  */
+              n = Indexing_GetIndice (n->stmtF.statements, 1);
+              return isIfElse (n);
+            }
+        }
+    }
   return FALSE;
 }
 
@@ -13249,20 +13831,29 @@ static unsigned int hasIfAndNoElse (decl_node n)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (decl_isStatementSequence (n))
-        if (isStatementSequenceEmpty (n))
-          return FALSE;
-        else if (isSingleStatement (n))
-          {
-            n = Indexing_GetIndice (n->stmtF.statements, 1);
-            return hasIfAndNoElse (n);
-          }
-        else
-          {
-            n = Indexing_GetIndice (n->stmtF.statements, Indexing_HighIndice (n->stmtF.statements));
-            return hasIfAndNoElse (n);
-          }
+        {
+          if (isStatementSequenceEmpty (n))
+            {
+              return FALSE;
+            }
+          else if (isSingleStatement (n))
+            {
+              /* avoid dangling else.  */
+              n = Indexing_GetIndice (n->stmtF.statements, 1);
+              return hasIfAndNoElse (n);
+            }
+          else
+            {
+              /* avoid dangling else.  */
+              n = Indexing_GetIndice (n->stmtF.statements, Indexing_HighIndice (n->stmtF.statements));
+              return hasIfAndNoElse (n);
+            }
+        }
       else if ((decl_isElsif (n)) || (decl_isIf (n)))
-        return noIfElseChained (n);
+        {
+          /* avoid dangling else.  */
+          return noIfElseChained (n);
+        }
     }
   return FALSE;
 }
@@ -13299,6 +13890,7 @@ static void doIfC (mcPretty_pretty p, decl_node s)
     }
   else if ((noIfElse (s)) && (hasIfElse (s->ifF.then)))
     {
+      /* avoid dangling else.  */
       /* gcc does not like legal non dangling else, as it is poor style.
          So we will avoid getting a warning.  */
       p = mcPretty_pushPretty (p);
@@ -13313,7 +13905,10 @@ static void doIfC (mcPretty_pretty p, decl_node s)
       p = mcPretty_popPretty (p);
     }
   else
-    doCompoundStmt (p, s->ifF.then);
+    {
+      /* avoid dangling else.  */
+      doCompoundStmt (p, s->ifF.then);
+    }
   mcDebug_assert ((s->ifF.else_ == NULL) || (s->ifF.elsif == NULL));
   if (containsStatement (s->ifF.else_))
     {
@@ -13324,6 +13919,7 @@ static void doIfC (mcPretty_pretty p, decl_node s)
     }
   else if ((s->ifF.elsif != NULL) && (decl_isElsif (s->ifF.elsif)))
     {
+      /* avoid dangling else.  */
       doCommentC (p, s->ifF.elseComment.body);
       doCommentC (p, s->ifF.elseComment.after);
       doElsifC (p, s->ifF.elsif);
@@ -13344,30 +13940,34 @@ static void doForIncCP (mcPretty_pretty p, decl_node s)
   mcDebug_assert (decl_isFor (s));
   t = decl_skipType (decl_getType (s->forF.des));
   if (decl_isEnumeration (t))
-    if (s->forF.increment == NULL)
-      {
-        doExprC (p, s->forF.des);
-        outText (p, (char *) "= static_cast<", 14);
-        doTypeNameC (p, decl_getType (s->forF.des));
-        mcPretty_noSpace (p);
-        outText (p, (char *) ">(static_cast<int>(", 19);
-        doExprC (p, s->forF.des);
-        outText (p, (char *) "+1))", 4);
-      }
-    else
-      {
-        doExprC (p, s->forF.des);
-        outText (p, (char *) "= static_cast<", 14);
-        doTypeNameC (p, decl_getType (s->forF.des));
-        mcPretty_noSpace (p);
-        outText (p, (char *) ">(static_cast<int>(", 19);
-        doExprC (p, s->forF.des);
-        outText (p, (char *) "+", 1);
-        doExprC (p, s->forF.increment);
-        outText (p, (char *) "))", 2);
-      }
+    {
+      if (s->forF.increment == NULL)
+        {
+          doExprC (p, s->forF.des);
+          outText (p, (char *) "= static_cast<", 14);
+          doTypeNameC (p, decl_getType (s->forF.des));
+          mcPretty_noSpace (p);
+          outText (p, (char *) ">(static_cast<int>(", 19);
+          doExprC (p, s->forF.des);
+          outText (p, (char *) "+1))", 4);
+        }
+      else
+        {
+          doExprC (p, s->forF.des);
+          outText (p, (char *) "= static_cast<", 14);
+          doTypeNameC (p, decl_getType (s->forF.des));
+          mcPretty_noSpace (p);
+          outText (p, (char *) ">(static_cast<int>(", 19);
+          doExprC (p, s->forF.des);
+          outText (p, (char *) "+", 1);
+          doExprC (p, s->forF.increment);
+          outText (p, (char *) "))", 2);
+        }
+    }
   else
-    doForIncC (p, s);
+    {
+      doForIncC (p, s);
+    }
 }
 
 
@@ -13400,9 +14000,13 @@ static void doForIncC (mcPretty_pretty p, decl_node s)
 static void doForInc (mcPretty_pretty p, decl_node s)
 {
   if (lang == ansiCP)
-    doForIncCP (p, s);
+    {
+      doForIncCP (p, s);
+    }
   else
-    doForIncC (p, s);
+    {
+      doForIncC (p, s);
+    }
 }
 
 
@@ -13480,23 +14084,35 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
   decl_node n;
 
   if ((decl_isLiteral (a)) && ((decl_getType (a)) == charN))
-    outCard (p, 0);
+    {
+      outCard (p, 0);
+    }
   else if (isString (a))
-    outCard (p, a->stringF.length-2);
+    {
+      /* avoid dangling else.  */
+      outCard (p, a->stringF.length-2);
+    }
   else if ((decl_isConst (a)) && (isString (a->constF.value)))
-    doFuncHighC (p, a->constF.value);
+    {
+      /* avoid dangling else.  */
+      doFuncHighC (p, a->constF.value);
+    }
   else if (decl_isUnbounded (decl_getType (a)))
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "_", 1);
       outTextN (p, decl_getSymName (a));
       outText (p, (char *) "_high", 5);
     }
   else if (decl_isArray (decl_skipType (decl_getType (a))))
     {
+      /* avoid dangling else.  */
       n = decl_skipType (decl_getType (a));
       s = n->arrayF.subr;
       if (isZero (getMin (s)))
-        doExprC (p, getMax (s));
+        {
+          doExprC (p, getMax (s));
+        }
       else
         {
           outText (p, (char *) "(", 1);
@@ -13507,6 +14123,7 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
     }
   else
     {
+      /* avoid dangling else.  */
       /* output sizeof (a) in bytes for the high.  */
       outText (p, (char *) "(sizeof", 7);
       mcPretty_setNeedSpace (p);
@@ -13541,15 +14158,21 @@ static void doMultiplyBySize (mcPretty_pretty p, decl_node a)
 static void doTotype (mcPretty_pretty p, decl_node a, decl_node t)
 {
   if ((! (isString (a))) && (! (decl_isLiteral (a))))
-    if (decl_isVar (a))
-      {
-        if (((a->varF.isParameter || a->varF.isVarParameter) && (decl_isUnbounded (decl_getType (a)))) && ((decl_skipType (decl_getType (decl_getType (a)))) == (decl_skipType (decl_getType (t)))))
-          /* do not multiply by size as the existing high value is correct.  */
-          return;
-        a = decl_getType (a);
-        if (decl_isArray (a))
-          doMultiplyBySize (p, decl_skipType (decl_getType (a)));
-      }
+    {
+      if (decl_isVar (a))
+        {
+          if (((a->varF.isParameter || a->varF.isVarParameter) && (decl_isUnbounded (decl_getType (a)))) && ((decl_skipType (decl_getType (decl_getType (a)))) == (decl_skipType (decl_getType (t)))))
+            {
+              /* do not multiply by size as the existing high value is correct.  */
+              return;
+            }
+          a = decl_getType (a);
+          if (decl_isArray (a))
+            {
+              doMultiplyBySize (p, decl_skipType (decl_getType (a)));
+            }
+        }
+    }
   if (t == wordN)
     {
       mcPretty_setNeedSpace (p);
@@ -13591,30 +14214,45 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
       s = DynamicStrings_KillString (s);
     }
   else if (isString (actual))
-    outCstring (p, actual, TRUE);
+    {
+      /* avoid dangling else.  */
+      outCstring (p, actual, TRUE);
+    }
   else if (decl_isConst (actual))
     {
+      /* avoid dangling else.  */
       actual = resolveString (actual);
       mcDebug_assert (isString (actual));
       outCstring (p, actual, TRUE);
     }
   else if (isFuncCall (actual))
-    if ((getExprType (actual)) == NULL)
-      mcMetaError_metaError3 ((char *) "there is no return type to the procedure function {%3ad} which is being passed as the parameter {%1ad} to {%2ad}", 112, (unsigned char *) &formal, (sizeof (formal)-1), (unsigned char *) &func, (sizeof (func)-1), (unsigned char *) &actual, (sizeof (actual)-1));
-    else
-      {
-        outText (p, (char *) "&", 1);
-        doExprC (p, actual);
-      }
+    {
+      /* avoid dangling else.  */
+      if ((getExprType (actual)) == NULL)
+        {
+          mcMetaError_metaError3 ((char *) "there is no return type to the procedure function {%3ad} which is being passed as the parameter {%1ad} to {%2ad}", 112, (unsigned char *) &formal, (sizeof (formal)-1), (unsigned char *) &func, (sizeof (func)-1), (unsigned char *) &actual, (sizeof (actual)-1));
+        }
+      else
+        {
+          outText (p, (char *) "&", 1);
+          doExprC (p, actual);
+        }
+    }
   else if (decl_isUnbounded (decl_getType (actual)))
-    /* doExprC (p, actual).  */
-    doFQNameC (p, actual);
+    {
+      /* avoid dangling else.  */
+      /* doExprC (p, actual).  */
+      doFQNameC (p, actual);
+    }
   else
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "&", 1);
       doExprC (p, actual);
       if (decl_isArray (decl_skipType (decl_getType (actual))))
-        outText (p, (char *) ".array[0]", 9);
+        {
+          outText (p, (char *) ".array[0]", 9);
+        }
     }
   /* --fixme-- isDefForC is not implemented yet.
    IF NOT isDefForC (getScope (func))
@@ -13657,13 +14295,19 @@ static void doProcedureParamC (mcPretty_pretty p, decl_node actual, decl_node fo
 static void doAdrExprC (mcPretty_pretty p, decl_node n)
 {
   if (isDeref (n))
-    /* no point in issuing & ( * n )  */
-    doExprC (p, n->unaryF.arg);
+    {
+      /* no point in issuing & ( * n )  */
+      doExprC (p, n->unaryF.arg);
+    }
   else if ((decl_isVar (n)) && n->varF.isVarParameter)
-    /* no point in issuing & ( * n )  */
-    doFQNameC (p, n);
+    {
+      /* avoid dangling else.  */
+      /* no point in issuing & ( * n )  */
+      doFQNameC (p, n);
+    }
   else
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "&", 1);
       doExprC (p, n);
     }
@@ -13687,9 +14331,13 @@ static unsigned int typePair (decl_node a, decl_node b, decl_node x, decl_node y
 static unsigned int needsCast (decl_node at, decl_node ft)
 {
   if ((((((((((((at == nilN) || (at == ft)) || (typePair (at, ft, cardinalN, wordN))) || (typePair (at, ft, cardinalN, ztypeN))) || (typePair (at, ft, integerN, ztypeN))) || (typePair (at, ft, longcardN, ztypeN))) || (typePair (at, ft, shortcardN, ztypeN))) || (typePair (at, ft, longintN, ztypeN))) || (typePair (at, ft, shortintN, ztypeN))) || (typePair (at, ft, realN, rtypeN))) || (typePair (at, ft, longrealN, rtypeN))) || (typePair (at, ft, shortrealN, rtypeN)))
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
-    return TRUE;
+    {
+      return TRUE;
+    }
 }
 
 
@@ -13718,19 +14366,25 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
             }
           else if ((decl_isPointer (decl_skipType (ft))) || ((decl_skipType (ft)) == addressN))
             {
+              /* avoid dangling else.  */
               outText (p, (char *) "reinterpret_cast<", 17);
               doTypeNameC (p, ft);
               if (decl_isVarParam (formal))
-                outText (p, (char *) "*", 1);
+                {
+                  outText (p, (char *) "*", 1);
+                }
               mcPretty_noSpace (p);
               outText (p, (char *) "> (", 3);
             }
           else
             {
+              /* avoid dangling else.  */
               outText (p, (char *) "static_cast<", 12);
               doTypeNameC (p, ft);
               if (decl_isVarParam (formal))
-                outText (p, (char *) "*", 1);
+                {
+                  outText (p, (char *) "*", 1);
+                }
               mcPretty_noSpace (p);
               outText (p, (char *) "> (", 3);
             }
@@ -13741,7 +14395,9 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
           outText (p, (char *) "(", 1);
           doTypeNameC (p, ft);
           if (decl_isVarParam (formal))
-            outText (p, (char *) "*", 1);
+            {
+              outText (p, (char *) "*", 1);
+            }
           mcPretty_noSpace (p);
           outText (p, (char *) ")", 1);
           mcPretty_setNeedSpace (p);
@@ -13781,32 +14437,56 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
   unsigned int lbr;
 
   if (formal == NULL)
-    doExprC (p, actual);
+    {
+      doExprC (p, actual);
+    }
   else
     {
       ft = decl_skipType (decl_getType (formal));
       if (decl_isUnbounded (ft))
-        doFuncUnbounded (p, actual, formal, ft, func);
+        {
+          doFuncUnbounded (p, actual, formal, ft, func);
+        }
       else
-        if ((isAProcType (ft)) && (decl_isProcedure (actual)))
-          if (decl_isVarParam (formal))
-            mcMetaError_metaError1 ((char *) "{%1MDad} cannot be passed as a VAR parameter", 44, (unsigned char *) &actual, (sizeof (actual)-1));
+        {
+          if ((isAProcType (ft)) && (decl_isProcedure (actual)))
+            {
+              if (decl_isVarParam (formal))
+                {
+                  mcMetaError_metaError1 ((char *) "{%1MDad} cannot be passed as a VAR parameter", 44, (unsigned char *) &actual, (sizeof (actual)-1));
+                }
+              else
+                {
+                  doProcedureParamC (p, actual, formal);
+                }
+            }
+          else if ((((decl_getType (actual)) != NULL) && (decl_isProcType (decl_skipType (decl_getType (actual))))) && ((decl_getType (actual)) != (decl_getType (formal))))
+            {
+              /* avoid dangling else.  */
+              if (decl_isVarParam (formal))
+                {
+                  mcMetaError_metaError2 ((char *) "{%1MDad} cannot be passed as a VAR parameter as the parameter requires a cast to the formal type {%2MDtad}", 106, (unsigned char *) &actual, (sizeof (actual)-1), (unsigned char *) &formal, (sizeof (formal)-1));
+                }
+              else
+                {
+                  doCastC (p, decl_getType (formal), actual);
+                }
+            }
           else
-            doProcedureParamC (p, actual, formal);
-        else if ((((decl_getType (actual)) != NULL) && (decl_isProcType (decl_skipType (decl_getType (actual))))) && ((decl_getType (actual)) != (decl_getType (formal))))
-          if (decl_isVarParam (formal))
-            mcMetaError_metaError2 ((char *) "{%1MDad} cannot be passed as a VAR parameter as the parameter requires a cast to the formal type {%2MDtad}", 106, (unsigned char *) &actual, (sizeof (actual)-1), (unsigned char *) &formal, (sizeof (formal)-1));
-          else
-            doCastC (p, decl_getType (formal), actual);
-        else
-          {
-            lbr = checkSystemCast (p, actual, formal);
-            if (decl_isVarParam (formal))
-              doAdrExprC (p, actual);
-            else
-              doExprC (p, actual);
-            emitN (p, (char *) ")", 1, lbr);
-          }
+            {
+              /* avoid dangling else.  */
+              lbr = checkSystemCast (p, actual, formal);
+              if (decl_isVarParam (formal))
+                {
+                  doAdrExprC (p, actual);
+                }
+              else
+                {
+                  doExprC (p, actual);
+                }
+              emitN (p, (char *) ")", 1, lbr);
+            }
+        }
     }
 }
 
@@ -13822,7 +14502,9 @@ static decl_node getNthParamType (Indexing_Index l, unsigned int i)
 
   p = getNthParam (l, i);
   if (p != NULL)
-    return decl_getType (p);
+    {
+      return decl_getType (p);
+    }
   return NULL;
 }
 
@@ -13847,16 +14529,24 @@ static decl_node getNthParam (Indexing_Index l, unsigned int i)
         {
           p = Indexing_GetIndice (l, j);
           if (decl_isParam (p))
-            k = identListLen (p->paramF.namelist);
+            {
+              k = identListLen (p->paramF.namelist);
+            }
           else if (decl_isVarParam (p))
-            k = identListLen (p->varparamF.namelist);
+            {
+              /* avoid dangling else.  */
+              k = identListLen (p->varparamF.namelist);
+            }
           else
             {
+              /* avoid dangling else.  */
               mcDebug_assert (decl_isVarargs (p));
               return NULL;
             }
           if (i <= k)
-            return p;
+            {
+              return p;
+            }
           else
             {
               i -= k;
@@ -13880,7 +14570,9 @@ static void doFuncArgsC (mcPretty_pretty p, decl_node s, Indexing_Index l, unsig
   unsigned int n;
 
   if (needParen)
-    outText (p, (char *) "(", 1);
+    {
+      outText (p, (char *) "(", 1);
+    }
   if (s->funccallF.args != NULL)
     {
       i = 1;
@@ -13918,7 +14610,9 @@ static void doProcTypeArgsC (mcPretty_pretty p, decl_node s, Indexing_Index args
   unsigned int n;
 
   if (needParen)
-    outText (p, (char *) "(", 1);
+    {
+      outText (p, (char *) "(", 1);
+    }
   if (s->funccallF.args != NULL)
     {
       i = 1;
@@ -13951,26 +14645,38 @@ static void doProcTypeArgsC (mcPretty_pretty p, decl_node s, Indexing_Index args
 static void doAdrArgC (mcPretty_pretty p, decl_node n)
 {
   if (isDeref (n))
-    /* & and * cancel each other out.  */
-    doExprC (p, n->unaryF.arg);
+    {
+      /* & and * cancel each other out.  */
+      doExprC (p, n->unaryF.arg);
+    }
   else if ((decl_isVar (n)) && n->varF.isVarParameter)
-    outTextN (p, decl_getSymName (n));  /* --fixme-- does the caller need to cast it?  */
+    {
+      /* avoid dangling else.  */
+      outTextN (p, decl_getSymName (n));  /* --fixme-- does the caller need to cast it?  */
+    }
   else
-    if (isString (n))
-      if (lang == ansiCP)
+    {
+      /* avoid dangling else.  */
+      if (isString (n))
         {
-          outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*>", 48);
-          outText (p, (char *) "(", 1);
-          doExprC (p, n);
-          outText (p, (char *) "))", 2);
+          if (lang == ansiCP)
+            {
+              outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*>", 48);
+              outText (p, (char *) "(", 1);
+              doExprC (p, n);
+              outText (p, (char *) "))", 2);
+            }
+          else
+            {
+              doExprC (p, n);
+            }
         }
       else
-        doExprC (p, n);
-    else
-      {
-        outText (p, (char *) "&", 1);
-        doExprC (p, n);
-      }
+        {
+          outText (p, (char *) "&", 1);
+          doExprC (p, n);
+        }
+    }
 }
 
 
@@ -13993,9 +14699,13 @@ static void doInc (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isIntrinsic (n));
   if (lang == ansiCP)
-    doIncDecCP (p, n, (char *) "+", 1);
+    {
+      doIncDecCP (p, n, (char *) "+", 1);
+    }
   else
-    doIncDecC (p, n, (char *) "+=", 2);
+    {
+      doIncDecC (p, n, (char *) "+=", 2);
+    }
 }
 
 
@@ -14007,9 +14717,13 @@ static void doDec (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isIntrinsic (n));
   if (lang == ansiCP)
-    doIncDecCP (p, n, (char *) "-", 1);
+    {
+      doIncDecCP (p, n, (char *) "-", 1);
+    }
   else
-    doIncDecC (p, n, (char *) "-=", 2);
+    {
+      doIncDecC (p, n, (char *) "-=", 2);
+    }
 }
 
 
@@ -14032,9 +14746,13 @@ static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _
       outText (p, (char *) op, _op_high);
       mcPretty_setNeedSpace (p);
       if ((expListLen (n->intrinsicF.args)) == 1)
-        outText (p, (char *) "1", 1);
+        {
+          outText (p, (char *) "1", 1);
+        }
       else
-        doExprC (p, getExpList (n->intrinsicF.args, 2));
+        {
+          doExprC (p, getExpList (n->intrinsicF.args, 2));
+        }
     }
 }
 
@@ -14073,13 +14791,18 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           outText (p, (char *) ")", 1);
           outText (p, (char *) op, _op_high);
           if ((expListLen (n->intrinsicF.args)) == 1)
-            outText (p, (char *) "1", 1);
+            {
+              outText (p, (char *) "1", 1);
+            }
           else
-            doExprC (p, getExpList (n->intrinsicF.args, 2));
+            {
+              doExprC (p, getExpList (n->intrinsicF.args, 2));
+            }
           outText (p, (char *) ")", 1);
         }
       else if (decl_isEnumeration (decl_skipType (type)))
         {
+          /* avoid dangling else.  */
           outText (p, (char *) "= static_cast<", 14);
           doTypeNameC (p, type);
           mcPretty_noSpace (p);
@@ -14088,20 +14811,29 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           outText (p, (char *) ")", 1);
           outText (p, (char *) op, _op_high);
           if ((expListLen (n->intrinsicF.args)) == 1)
-            outText (p, (char *) "1", 1);
+            {
+              outText (p, (char *) "1", 1);
+            }
           else
-            doExprC (p, getExpList (n->intrinsicF.args, 2));
+            {
+              doExprC (p, getExpList (n->intrinsicF.args, 2));
+            }
           outText (p, (char *) ")", 1);
         }
       else
         {
+          /* avoid dangling else.  */
           outText (p, (char *) op, _op_high);
           outText (p, (char *) "=", 1);
           mcPretty_setNeedSpace (p);
           if ((expListLen (n->intrinsicF.args)) == 1)
-            outText (p, (char *) "1", 1);
+            {
+              outText (p, (char *) "1", 1);
+            }
           else
-            doExprC (p, getExpList (n->intrinsicF.args, 2));
+            {
+              doExprC (p, getExpList (n->intrinsicF.args, 2));
+            }
         }
     }
 }
@@ -14137,7 +14869,9 @@ static void doInclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "))", 2);
         }
       else
-        M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to INCL')  */
+        {
+          M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to INCL')  */
+        }
     }
 }
 
@@ -14172,7 +14906,9 @@ static void doExclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ")))", 3);
         }
       else
-        M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to EXCL')  */
+        {
+          M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to EXCL')  */
+        }
     }
 }
 
@@ -14187,33 +14923,39 @@ static void doNewC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isIntrinsic (n));
   if (n->intrinsicF.args == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    if ((expListLen (n->intrinsicF.args)) == 1)
-      {
-        keyc_useStorage ();
-        outText (p, (char *) "Storage_ALLOCATE", 16);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "((void **)", 10);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "&", 1);
-        doExprC (p, getExpList (n->intrinsicF.args, 1));
-        outText (p, (char *) ",", 1);
-        mcPretty_setNeedSpace (p);
-        t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
-        if (decl_isPointer (t))
-          {
-            t = decl_getType (t);
-            outText (p, (char *) "sizeof", 6);
-            mcPretty_setNeedSpace (p);
-            outText (p, (char *) "(", 1);
-            doTypeNameC (p, t);
-            mcPretty_noSpace (p);
-            outText (p, (char *) "))", 2);
-          }
-        else
-          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to NEW, rather than {%1ad}", 76, (unsigned char *) &t, (sizeof (t)-1));
-      }
+    {
+      if ((expListLen (n->intrinsicF.args)) == 1)
+        {
+          keyc_useStorage ();
+          outText (p, (char *) "Storage_ALLOCATE", 16);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "((void **)", 10);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "&", 1);
+          doExprC (p, getExpList (n->intrinsicF.args, 1));
+          outText (p, (char *) ",", 1);
+          mcPretty_setNeedSpace (p);
+          t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
+          if (decl_isPointer (t))
+            {
+              t = decl_getType (t);
+              outText (p, (char *) "sizeof", 6);
+              mcPretty_setNeedSpace (p);
+              outText (p, (char *) "(", 1);
+              doTypeNameC (p, t);
+              mcPretty_noSpace (p);
+              outText (p, (char *) "))", 2);
+            }
+          else
+            {
+              mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to NEW, rather than {%1ad}", 76, (unsigned char *) &t, (sizeof (t)-1));
+            }
+        }
+    }
 }
 
 
@@ -14227,35 +14969,43 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isIntrinsic (n));
   if (n->intrinsicF.args == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    if ((expListLen (n->intrinsicF.args)) == 1)
-      {
-        keyc_useStorage ();
-        outText (p, (char *) "Storage_DEALLOCATE", 18);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "((void **)", 10);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "&", 1);
-        doExprC (p, getExpList (n->intrinsicF.args, 1));
-        outText (p, (char *) ",", 1);
-        mcPretty_setNeedSpace (p);
-        t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
-        if (decl_isPointer (t))
-          {
-            t = decl_getType (t);
-            outText (p, (char *) "sizeof", 6);
-            mcPretty_setNeedSpace (p);
-            outText (p, (char *) "(", 1);
-            doTypeNameC (p, t);
-            mcPretty_noSpace (p);
-            outText (p, (char *) "))", 2);
-          }
-        else
-          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, (sizeof (t)-1));
-      }
-    else
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to DISPOSE')  */
+    {
+      if ((expListLen (n->intrinsicF.args)) == 1)
+        {
+          keyc_useStorage ();
+          outText (p, (char *) "Storage_DEALLOCATE", 18);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "((void **)", 10);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "&", 1);
+          doExprC (p, getExpList (n->intrinsicF.args, 1));
+          outText (p, (char *) ",", 1);
+          mcPretty_setNeedSpace (p);
+          t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
+          if (decl_isPointer (t))
+            {
+              t = decl_getType (t);
+              outText (p, (char *) "sizeof", 6);
+              mcPretty_setNeedSpace (p);
+              outText (p, (char *) "(", 1);
+              doTypeNameC (p, t);
+              mcPretty_noSpace (p);
+              outText (p, (char *) "))", 2);
+            }
+          else
+            {
+              mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, (sizeof (t)-1));
+            }
+        }
+      else
+        {
+          M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to DISPOSE')  */
+        }
+    }
 }
 
 
@@ -14267,7 +15017,9 @@ static void doCapC (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
-    M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
+    {
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
+    }
   else
     {
       keyc_useCtype ();
@@ -14288,7 +15040,9 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
-    M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
+    {
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
+    }
   else
     {
       keyc_useM2RTS ();
@@ -14314,9 +15068,13 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    t = getExprType (n);
+    {
+      t = getExprType (n);
+    }
   if (t == longintN)
     {
       keyc_useLabs ();
@@ -14324,24 +15082,32 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
     }
   else if (t == integerN)
     {
+      /* avoid dangling else.  */
       keyc_useAbs ();
       outText (p, (char *) "abs", 3);
     }
   else if (t == realN)
     {
+      /* avoid dangling else.  */
       keyc_useFabs ();
       outText (p, (char *) "fabs", 4);
     }
   else if (t == longrealN)
     {
+      /* avoid dangling else.  */
       keyc_useFabsl ();
       outText (p, (char *) "fabsl", 5);
     }
   else if (t == cardinalN)
-    {}  /* empty.  */
+    {
+      /* avoid dangling else.  */
+    }
   else
-    /* do nothing.  */
-    M2RTS_HALT (-1);
+    {
+      /* avoid dangling else.  */
+      /* do nothing.  */
+      M2RTS_HALT (-1);
+    }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   doExprC (p, n->unaryF.arg);
@@ -14437,6 +15203,7 @@ static void doHalt (mcPretty_pretty p, decl_node n)
     }
   else if ((expListLen (n->intrinsicF.args)) == 1)
     {
+      /* avoid dangling else.  */
       outText (p, (char *) "M2RTS_HALT", 10);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "(", 1);
@@ -14456,16 +15223,22 @@ static void doReC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (n->kind == re);
   if (n->unaryF.arg != NULL)
-    t = getExprType (n->unaryF.arg);
+    {
+      t = getExprType (n->unaryF.arg);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   if (t == realN)
     {
       keyc_useComplex ();
       outText (p, (char *) "creal", 5);
     }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   doExprC (p, n->unaryF.arg);
@@ -14483,16 +15256,22 @@ static void doImC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (n->kind == im);
   if (n->unaryF.arg != NULL)
-    t = getExprType (n->unaryF.arg);
+    {
+      t = getExprType (n->unaryF.arg);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   if (t == realN)
     {
       keyc_useComplex ();
       outText (p, (char *) "cimag", 5);
     }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   doExprC (p, n->unaryF.arg);
@@ -14656,7 +15435,9 @@ static decl_node getFuncFromExpr (decl_node n)
 {
   n = decl_skipType (decl_getType (n));
   while ((n != procN) && (! (decl_isProcType (n))))
-    n = decl_skipType (decl_getType (n));
+    {
+      n = decl_skipType (decl_getType (n));
+    }
   return n;
 }
 
@@ -14684,7 +15465,9 @@ static void doFuncExprC (mcPretty_pretty p, decl_node n)
       mcPretty_setNeedSpace (p);
       t = getFuncFromExpr (n->funccallF.function);
       if (t == procN)
-        doProcTypeArgsC (p, n, (Indexing_Index) NULL, TRUE);
+        {
+          doProcTypeArgsC (p, n, (Indexing_Index) NULL, TRUE);
+        }
       else
         {
           mcDebug_assert (decl_isProcType (t));
@@ -14717,7 +15500,9 @@ static void doCaseStatementC (mcPretty_pretty p, decl_node n, unsigned int needB
   mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
   doStatementSequenceC (p, n);
   if (needBreak)
-    outText (p, (char *) "break;\\n", 8);
+    {
+      outText (p, (char *) "break;\\n", 8);
+    }
   p = mcPretty_popPretty (p);
 }
 
@@ -14789,9 +15574,13 @@ static void doException (mcPretty_pretty p, char *a_, unsigned int _a_high, decl
 
   keyc_useException ();
   if (lang == ansiCP)
-    doExceptionCP (p, (char *) a, _a_high, n);
+    {
+      doExceptionCP (p, (char *) a, _a_high, n);
+    }
   else
-    doExceptionC (p, (char *) a, _a_high, n);
+    {
+      doExceptionC (p, (char *) a, _a_high, n);
+    }
 }
 
 
@@ -14893,7 +15682,9 @@ static void doCaseLabels (mcPretty_pretty p, decl_node n, unsigned int needBreak
   mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
   doStatementSequenceC (p, n->caselabellistF.statements);
   if (needBreak)
-    outText (p, (char *) "break;\\n\\n", 10);
+    {
+      outText (p, (char *) "break;\\n\\n", 10);
+    }
   p = mcPretty_popPretty (p);
 }
 
@@ -14938,7 +15729,9 @@ static void doCaseIfLabels (mcPretty_pretty p, decl_node e, decl_node n, unsigne
   doRangeIfListC (p, e, n->caselabellistF.caseList);
   outText (p, (char *) ")\\n", 3);
   if (h == 1)
-    doCompoundStmt (p, n->caselabellistF.statements);
+    {
+      doCompoundStmt (p, n->caselabellistF.statements);
+    }
   else
     {
       outText (p, (char *) "{\\n", 3);
@@ -15048,7 +15841,9 @@ static unsigned int canUseSwitchCaseLabels (decl_node n)
     {
       r = Indexing_GetIndice (l->caselistF.rangePairs, i);
       if ((r->rangeF.hi != NULL) && (r->rangeF.lo != r->rangeF.hi))
-        return FALSE;
+        {
+          return FALSE;
+        }
       i += 1;
     }
   return TRUE;
@@ -15074,7 +15869,9 @@ static unsigned int canUseSwitch (decl_node n)
     {
       c = Indexing_GetIndice (n->caseF.caseLabelList, i);
       if (! (canUseSwitchCaseLabels (c)))
-        return FALSE;
+        {
+          return FALSE;
+        }
       i += 1;
     }
   return TRUE;
@@ -15154,35 +15951,80 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   if (s == NULL)
     {}  /* empty.  */
   else if (decl_isStatementSequence (s))
-    doStatementSequenceC (p, s);
+    {
+      /* avoid dangling else.  */
+      doStatementSequenceC (p, s);
+    }
   else if (isComment (s))
-    doCommentC (p, s);
+    {
+      /* avoid dangling else.  */
+      doCommentC (p, s);
+    }
   else if (decl_isExit (s))
-    doExitC (p, s);
+    {
+      /* avoid dangling else.  */
+      doExitC (p, s);
+    }
   else if (decl_isReturn (s))
-    doReturnC (p, s);
+    {
+      /* avoid dangling else.  */
+      doReturnC (p, s);
+    }
   else if (isAssignment (s))
-    doAssignmentC (p, s);
+    {
+      /* avoid dangling else.  */
+      doAssignmentC (p, s);
+    }
   else if (decl_isIf (s))
-    doIfC (p, s);
+    {
+      /* avoid dangling else.  */
+      doIfC (p, s);
+    }
   else if (decl_isFor (s))
-    doForC (p, s);
+    {
+      /* avoid dangling else.  */
+      doForC (p, s);
+    }
   else if (decl_isRepeat (s))
-    doRepeatC (p, s);
+    {
+      /* avoid dangling else.  */
+      doRepeatC (p, s);
+    }
   else if (decl_isWhile (s))
-    doWhileC (p, s);
+    {
+      /* avoid dangling else.  */
+      doWhileC (p, s);
+    }
   else if (isIntrinsic (s))
-    doIntrinsicC (p, s);
+    {
+      /* avoid dangling else.  */
+      doIntrinsicC (p, s);
+    }
   else if (isFuncCall (s))
-    doFuncCallC (p, s);
+    {
+      /* avoid dangling else.  */
+      doFuncCallC (p, s);
+    }
   else if (decl_isCase (s))
-    doCaseC (p, s);
+    {
+      /* avoid dangling else.  */
+      doCaseC (p, s);
+    }
   else if (decl_isLoop (s))
-    doLoopC (p, s);
+    {
+      /* avoid dangling else.  */
+      doLoopC (p, s);
+    }
   else if (decl_isExit (s))
-    doExitC (p, s);
+    {
+      /* avoid dangling else.  */
+      doExitC (p, s);
+    }
   else
-    M2RTS_HALT (-1);  /* need to handle another s^.kind.  */
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);  /* need to handle another s^.kind.  */
+    }
 }
 
 static void stop (void)
@@ -15281,7 +16123,9 @@ static unsigned int isLastStatementSequence (decl_node n, decl_isNodeF q)
   mcDebug_assert (decl_isStatementSequence (n));
   h = Indexing_HighIndice (n->stmtF.statements);
   if (h > 0)
-    return isLastStatement ((decl_node) Indexing_GetIndice (n->stmtF.statements, h), q);
+    {
+      return isLastStatement ((decl_node) Indexing_GetIndice (n->stmtF.statements, h), q);
+    }
   return FALSE;
 }
 
@@ -15297,11 +16141,17 @@ static unsigned int isLastStatementIf (decl_node n, decl_isNodeF q)
   mcDebug_assert (decl_isIf (n));
   ret = TRUE;
   if ((n->ifF.elsif != NULL) && ret)
-    ret = isLastStatement (n->ifF.elsif, q);
+    {
+      ret = isLastStatement (n->ifF.elsif, q);
+    }
   if ((n->ifF.then != NULL) && ret)
-    ret = isLastStatement (n->ifF.then, q);
+    {
+      ret = isLastStatement (n->ifF.then, q);
+    }
   if ((n->ifF.else_ != NULL) && ret)
-    ret = isLastStatement (n->ifF.else_, q);
+    {
+      ret = isLastStatement (n->ifF.else_, q);
+    }
   return ret;
 }
 
@@ -15317,11 +16167,17 @@ static unsigned int isLastStatementElsif (decl_node n, decl_isNodeF q)
   mcDebug_assert (decl_isElsif (n));
   ret = TRUE;
   if ((n->elsifF.elsif != NULL) && ret)
-    ret = isLastStatement (n->elsifF.elsif, q);
+    {
+      ret = isLastStatement (n->elsifF.elsif, q);
+    }
   if ((n->elsifF.then != NULL) && ret)
-    ret = isLastStatement (n->elsifF.then, q);
+    {
+      ret = isLastStatement (n->elsifF.then, q);
+    }
   if ((n->elsifF.else_ != NULL) && ret)
-    ret = isLastStatement (n->elsifF.else_, q);
+    {
+      ret = isLastStatement (n->elsifF.else_, q);
+    }
   return ret;
 }
 
@@ -15349,7 +16205,9 @@ static unsigned int isLastStatementCase (decl_node n, decl_isNodeF q)
       i += 1;
     }
   if (n->caseF.else_ != NULL)
-    ret = ret && (isLastStatement (n->caseF.else_, q));
+    {
+      ret = ret && (isLastStatement (n->caseF.else_, q));
+    }
   return ret;
 }
 
@@ -15363,20 +16221,35 @@ static unsigned int isLastStatement (decl_node n, decl_isNodeF q)
   unsigned int ret;
 
   if (decl_isStatementSequence (n))
-    return isLastStatementSequence (n, q);
+    {
+      return isLastStatementSequence (n, q);
+    }
   else if (decl_isProcedure (n))
     {
+      /* avoid dangling else.  */
       mcDebug_assert (decl_isProcedure (n));
       return isLastStatement (n->procedureF.beginStatements, q);
     }
   else if (decl_isIf (n))
-    return isLastStatementIf (n, q);
+    {
+      /* avoid dangling else.  */
+      return isLastStatementIf (n, q);
+    }
   else if (decl_isElsif (n))
-    return isLastStatementElsif (n, q);
+    {
+      /* avoid dangling else.  */
+      return isLastStatementElsif (n, q);
+    }
   else if (decl_isCase (n))
-    return isLastStatementCase (n, q);
+    {
+      /* avoid dangling else.  */
+      return isLastStatementCase (n, q);
+    }
   else if ((*q.proc) (n))
-    return TRUE;
+    {
+      /* avoid dangling else.  */
+      return TRUE;
+    }
   return FALSE;
 }
 
@@ -15400,11 +16273,17 @@ static void doProcedureC (decl_node n)
   doLocalVarC (doP, n->procedureF.decls);
   doUnboundedParamCopyC (doP, n);
   if (s != (mcPretty_getcurline (doP)))
-    outText (doP, (char *) "\\n", 2);
+    {
+      outText (doP, (char *) "\\n", 2);
+    }
   doStatementsC (doP, n->procedureF.beginStatements);
   if (n->procedureF.returnType != NULL)
-    if (returnException && (! (isLastStatementReturn (n))))
-      doException (doP, (char *) "ReturnException", 15, n);
+    {
+      if (returnException && (! (isLastStatementReturn (n))))
+        {
+          doException (doP, (char *) "ReturnException", 15, n);
+        }
+    }
   doP = outKc (doP, (char *) "}\\n", 3);
   keyc_leaveScope (n);
 }
@@ -15418,7 +16297,9 @@ static void outProceduresC (mcPretty_pretty p, scopeT s)
 {
   doP = p;
   if (debugDecl)
-    libc_printf ((char *) "seen %d procedures\\n", 20, Indexing_HighIndice (s.procedures));
+    {
+      libc_printf ((char *) "seen %d procedures\\n", 20, Indexing_HighIndice (s.procedures));
+    }
   Indexing_ForeachIndiceInIndexDo (s.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doProcedureC});
 }
 
@@ -15430,11 +16311,19 @@ static void outProceduresC (mcPretty_pretty p, scopeT s)
 static void output (decl_node n, nodeProcedure c, nodeProcedure t, nodeProcedure v)
 {
   if (decl_isConst (n))
-    (*c.proc) (n);
+    {
+      (*c.proc) (n);
+    }
   else if (decl_isVar (n))
-    (*v.proc) (n);
+    {
+      /* avoid dangling else.  */
+      (*v.proc) (n);
+    }
   else
-    (*t.proc) (n);
+    {
+      /* avoid dangling else.  */
+      (*t.proc) (n);
+    }
 }
 
 
@@ -15461,11 +16350,17 @@ static dependentState allDependants (decl_node n)
 static dependentState walkDependants (alists_alist l, decl_node n)
 {
   if ((n == NULL) || (alists_isItemInList (doneQ, (void *) n)))
-    return completed;
+    {
+      return completed;
+    }
   else if (alists_isItemInList (l, (void *) n))
-    return recursive;
+    {
+      /* avoid dangling else.  */
+      return recursive;
+    }
   else
     {
+      /* avoid dangling else.  */
       alists_includeItemIntoList (l, (void *) n);
       return doDependants (l, n);
     }
@@ -15482,11 +16377,17 @@ static dependentState walkType (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (doneQ, (void *) t))
-    return completed;
+    {
+      return completed;
+    }
   else if (alists_isItemInList (partialQ, (void *) t))
-    return blocked;
+    {
+      /* avoid dangling else.  */
+      return blocked;
+    }
   else
     {
+      /* avoid dangling else.  */
       queueBlocked (t);
       return blocked;
     }
@@ -15508,7 +16409,9 @@ static void db (char *a_, unsigned int _a_high, decl_node n)
     {
       outText (doP, (char *) a, _a_high);
       if (n != NULL)
-        outTextS (doP, gen (n));
+        {
+          outTextS (doP, gen (n));
+        }
     }
 }
 
@@ -15525,7 +16428,9 @@ static void dbt (char *a_, unsigned int _a_high)
   memcpy (a, a_, _a_high+1);
 
   if (mcOptions_getDebugTopological ())
-    outText (doP, (char *) a, _a_high);
+    {
+      outText (doP, (char *) a, _a_high);
+    }
 }
 
 
@@ -15560,7 +16465,9 @@ static void dbs (dependentState s, decl_node n)
             CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
         }
       if (n != NULL)
-        outTextS (doP, gen (n));
+        {
+          outTextS (doP, gen (n));
+        }
       outText (doP, (char *) "}\\n", 3);
     }
 }
@@ -15582,11 +16489,13 @@ static void dbq (decl_node n)
         }
       else if (alists_isItemInList (partialQ, (void *) n))
         {
+          /* avoid dangling else.  */
           db ((char *) "{P", 2, n);
           outText (doP, (char *) "}", 1);
         }
       else if (alists_isItemInList (doneQ, (void *) n))
         {
+          /* avoid dangling else.  */
           db ((char *) "{D", 2, n);
           outText (doP, (char *) "}", 1);
         }
@@ -15689,7 +16598,9 @@ static dependentState walkVarient (alists_alist l, decl_node n)
 static void queueBlocked (decl_node n)
 {
   if (! ((alists_isItemInList (doneQ, (void *) n)) || (alists_isItemInList (partialQ, (void *) n))))
-    addTodo (n);
+    {
+      addTodo (n);
+    }
 }
 
 
@@ -15703,7 +16614,9 @@ static dependentState walkVar (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (doneQ, (void *) t))
-    return completed;
+    {
+      return completed;
+    }
   else
     {
       queueBlocked (t);
@@ -15731,7 +16644,9 @@ static dependentState walkEnumeration (alists_alist l, decl_node n)
       q = Indexing_GetIndice (n->enumerationF.listOfSons, i);
       s = walkDependants (l, q);
       if (s != completed)
-        return s;
+        {
+          return s;
+        }
       i += 1;
     }
   return s;
@@ -15748,13 +16663,19 @@ static dependentState walkSubrange (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->subrangeF.low);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->subrangeF.high);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->subrangeF.type);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return completed;
 }
 
@@ -15769,10 +16690,14 @@ static dependentState walkSubscript (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->subscriptF.expr);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->subscriptF.type);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return completed;
 }
 
@@ -15788,8 +16713,10 @@ static dependentState walkPointer (alists_alist l, decl_node n)
   /* if the type of, n, is done or partial then we can output pointer.  */
   t = decl_getType (n);
   if ((alists_isItemInList (partialQ, (void *) t)) || (alists_isItemInList (doneQ, (void *) t)))
-    /* pointer to partial can always generate a complete type.  */
-    return completed;
+    {
+      /* pointer to partial can always generate a complete type.  */
+      return completed;
+    }
   return walkType (l, n);
 }
 
@@ -15808,10 +16735,14 @@ static dependentState walkArray (alists_alist l, decl_node n)
       s = walkDependants (l, n->arrayF.type);
       queueBlocked (n->arrayF.type);
       if (s == completed)
-        /* downgrade the completed to partial as it has not yet been written.  */
-        return partial;
+        {
+          /* downgrade the completed to partial as it has not yet been written.  */
+          return partial;
+        }
       else
-        return s;
+        {
+          return s;
+        }
     }
   return walkDependants (l, n->arrayF.subr);
 }
@@ -15827,10 +16758,14 @@ static dependentState walkConst (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->constF.type);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->constF.value);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return completed;
 }
 
@@ -15845,8 +16780,10 @@ static dependentState walkVarParam (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
-    /* parameter can be issued from a partial.  */
-    return completed;
+    {
+      /* parameter can be issued from a partial.  */
+      return completed;
+    }
   return walkDependants (l, t);
 }
 
@@ -15861,8 +16798,10 @@ static dependentState walkParam (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
-    /* parameter can be issued from a partial.  */
-    return completed;
+    {
+      /* parameter can be issued from a partial.  */
+      return completed;
+    }
   return walkDependants (l, t);
 }
 
@@ -15877,8 +16816,10 @@ static dependentState walkOptarg (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
-    /* parameter can be issued from a partial.  */
-    return completed;
+    {
+      /* parameter can be issued from a partial.  */
+      return completed;
+    }
   return walkDependants (l, t);
 }
 
@@ -15901,11 +16842,13 @@ static dependentState walkRecordField (alists_alist l, decl_node n)
     }
   else if (alists_isItemInList (doneQ, (void *) t))
     {
+      /* avoid dangling else.  */
       dbs ((dependentState) completed, n);
       return completed;
     }
   else
     {
+      /* avoid dangling else.  */
       addTodo (t);
       dbs ((dependentState) blocked, n);
       dbq (n);
@@ -15984,7 +16927,9 @@ static dependentState walkProcType (alists_alist l, decl_node n)
       /* proctype can be generated from partial types.  */
       s = walkDependants (l, t);
       if (s != completed)
-        return s;
+        {
+          return s;
+        }
     }
   return walkParameters (l, n->proctypeF.parameters);
 }
@@ -16000,7 +16945,9 @@ static dependentState walkProcedure (alists_alist l, decl_node n)
 
   s = walkDependants (l, decl_getType (n));
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return walkParameters (l, n->procedureF.parameters);
 }
 
@@ -16023,7 +16970,9 @@ static dependentState walkParameters (alists_alist l, Indexing_Index p)
       q = Indexing_GetIndice (p, i);
       s = walkDependants (l, q);
       if (s != completed)
-        return s;
+        {
+          return s;
+        }
       i += 1;
     }
   return completed;
@@ -16050,7 +16999,9 @@ static dependentState walkUnary (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->unaryF.arg);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return walkDependants (l, n->unaryF.resultType);
 }
 
@@ -16065,10 +17016,14 @@ static dependentState walkBinary (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->binaryF.left);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->binaryF.right);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return walkDependants (l, n->binaryF.resultType);
 }
 
@@ -16083,10 +17038,14 @@ static dependentState walkComponentRef (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->componentrefF.rec);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->componentrefF.field);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return walkDependants (l, n->componentrefF.resultType);
 }
 
@@ -16101,10 +17060,14 @@ static dependentState walkPointerRef (alists_alist l, decl_node n)
 
   s = walkDependants (l, n->pointerrefF.ptr);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   s = walkDependants (l, n->pointerrefF.field);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   return walkDependants (l, n->pointerrefF.resultType);
 }
 
@@ -16122,14 +17085,18 @@ static dependentState walkSetValue (alists_alist l, decl_node n)
   mcDebug_assert (decl_isSetValue (n));
   s = walkDependants (l, n->setvalueF.type);
   if (s != completed)
-    return s;
+    {
+      return s;
+    }
   i = Indexing_LowIndice (n->setvalueF.values);
   j = Indexing_HighIndice (n->setvalueF.values);
   while (i <= j)
     {
       s = walkDependants (l, (decl_node) Indexing_GetIndice (n->setvalueF.values, i));
       if (s != completed)
-        return s;
+        {
+          return s;
+        }
       i += 1;
     }
   return completed;
@@ -16355,12 +17322,14 @@ static unsigned int tryComplete (decl_node n, nodeProcedure c, nodeProcedure t, 
     }
   else if (((decl_isType (n)) && (decl_isTypeHidden (n))) && ((decl_getType (n)) == NULL))
     {
+      /* avoid dangling else.  */
       /* can always emit hidden types.  */
       outputHidden (n);
       return TRUE;
     }
   else if ((allDependants (n)) == completed)
     {
+      /* avoid dangling else.  */
       output (n, c, t, v);
       return TRUE;
     }
@@ -16382,6 +17351,7 @@ static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
     }
   else if ((allDependants (n)) == completed)
     {
+      /* avoid dangling else.  */
       (*t.proc) (n);
       return TRUE;
     }
@@ -16431,7 +17401,9 @@ static void visitBoolean (alists_alist v, decl_node n, nodeProcedure p)
 static void visitScope (alists_alist v, decl_node n, nodeProcedure p)
 {
   if (mustVisitScope)
-    visitNode (v, n, p);
+    {
+      visitNode (v, n, p);
+    }
 }
 
 
@@ -17859,7 +18831,9 @@ static unsigned int tryPartial (decl_node n, nodeProcedure pt)
     {
       q = decl_getType (n);
       while (decl_isPointer (q))
-        q = decl_getType (q);
+        {
+          q = decl_getType (q);
+        }
       if (q != NULL)
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
@@ -17871,6 +18845,7 @@ static unsigned int tryPartial (decl_node n, nodeProcedure pt)
             }
           else if (decl_isArray (q))
             {
+              /* avoid dangling else.  */
               (*pt.proc) (n);
               addTodo (q);
               return TRUE;
@@ -17902,11 +18877,19 @@ static void outputPartial (decl_node n)
   mcPretty_setNeedSpace (doP);
   s = getFQstring (n);
   if (decl_isRecord (q))
-    s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_r", 2)));
+    {
+      s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_r", 2)));
+    }
   else if (decl_isArray (q))
-    s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_a", 2)));
+    {
+      /* avoid dangling else.  */
+      s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_a", 2)));
+    }
   else if (decl_isProcType (q))
-    s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_p", 2)));
+    {
+      /* avoid dangling else.  */
+      s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "_p", 2)));
+    }
   outTextS (doP, s);
   mcPretty_setNeedSpace (doP);
   s = DynamicStrings_KillString (s);
@@ -17943,12 +18926,16 @@ static void tryOutputTodo (nodeProcedure c, nodeProcedure t, nodeProcedure v, no
         }
       else if (tryPartial (d, pt))
         {
+          /* avoid dangling else.  */
           alists_removeItemFromList (todoQ, (void *) d);
           alists_includeItemIntoList (partialQ, (void *) d);
           i = 1;
         }
       else
-        i += 1;
+        {
+          /* avoid dangling else.  */
+          i += 1;
+        }
       n = alists_noOfItemsInList (todoQ);
     }
 }
@@ -17977,7 +18964,9 @@ static void tryOutputPartial (nodeProcedure t)
           n -= 1;
         }
       else
-        i += 1;
+        {
+          i += 1;
+        }
     }
 }
 
@@ -18034,7 +19023,9 @@ static void addEnumConst (decl_node n)
   DynamicStrings_String s;
 
   if ((decl_isConst (n)) || (decl_isEnumeration (n)))
-    addTodo (n);
+    {
+      addTodo (n);
+    }
 }
 
 
@@ -18135,11 +19126,19 @@ static void outImpInitC (mcPretty_pretty p, decl_node n)
 static void runSimplifyTypes (decl_node n)
 {
   if (decl_isImp (n))
-    simplifyTypes (n->impF.decls);
+    {
+      simplifyTypes (n->impF.decls);
+    }
   else if (decl_isModule (n))
-    simplifyTypes (n->moduleF.decls);
+    {
+      /* avoid dangling else.  */
+      simplifyTypes (n->moduleF.decls);
+    }
   else if (decl_isDef (n))
-    simplifyTypes (n->defF.decls);
+    {
+      /* avoid dangling else.  */
+      simplifyTypes (n->defF.decls);
+    }
 }
 
 
@@ -18213,7 +19212,9 @@ static void runPrototypeExported (decl_node n)
 static void runPrototypeDefC (decl_node n)
 {
   if (decl_isDef (n))
-    Indexing_ForeachIndiceInIndexDo (n->defF.decls.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) runPrototypeExported});
+    {
+      Indexing_ForeachIndiceInIndexDo (n->defF.decls.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) runPrototypeExported});
+    }
 }
 
 
@@ -18263,7 +19264,9 @@ static void outImpC (mcPretty_pretty p, decl_node n)
       outDeclsImpC (p, n->impF.decls);
       defModule = decl_lookupDef (decl_getSymName (n));
       if (defModule != NULL)
-        runPrototypeDefC (defModule);
+        {
+          runPrototypeDefC (defModule);
+        }
     }
   Indexing_ForeachIndiceInIndexDo (n->impF.decls.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doPrototypeC});
   outProceduresC (p, n->impF.decls);
@@ -18370,13 +19373,24 @@ static void outC (mcPretty_pretty p, decl_node n)
 {
   keyc_enterScope (n);
   if (decl_isDef (n))
-    outDefC (p, n);
+    {
+      outDefC (p, n);
+    }
   else if (decl_isImp (n))
-    outImpC (p, n);
+    {
+      /* avoid dangling else.  */
+      outImpC (p, n);
+    }
   else if (decl_isModule (n))
-    outModuleC (p, n);
+    {
+      /* avoid dangling else.  */
+      outModuleC (p, n);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);
+    }
   keyc_leaveScope (n);
 }
 
@@ -18395,11 +19409,19 @@ static void doIncludeM2 (decl_node n)
   mcPretty_print (doP, (char *) " ;\\n", 4);
   s = DynamicStrings_KillString (s);
   if (decl_isDef (n))
-    symbolKey_foreachNodeDo (n->defF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    {
+      symbolKey_foreachNodeDo (n->defF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    }
   else if (decl_isImp (n))
-    symbolKey_foreachNodeDo (n->impF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    {
+      /* avoid dangling else.  */
+      symbolKey_foreachNodeDo (n->impF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    }
   else if (decl_isModule (n))
-    symbolKey_foreachNodeDo (n->moduleF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    {
+      /* avoid dangling else.  */
+      symbolKey_foreachNodeDo (n->moduleF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDone});
+    }
 }
 
 
@@ -18467,11 +19489,15 @@ static void doVarientFieldM2 (mcPretty_pretty p, decl_node n)
         }
       else if (decl_isVarient (q))
         {
+          /* avoid dangling else.  */
           doVarientM2 (p, q);
           outText (p, (char *) ";\\n", 3);
         }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       i += 1;
     }
 }
@@ -18494,11 +19520,19 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (decl_isRecordField (n->varientF.tag))
-        doRecordFieldM2 (p, n->varientF.tag);
+        {
+          doRecordFieldM2 (p, n->varientF.tag);
+        }
       else if (decl_isVarientField (n->varientF.tag))
-        doVarientFieldM2 (p, n->varientF.tag);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldM2 (p, n->varientF.tag);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "OF\\n", 4);
@@ -18517,9 +19551,15 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
             }
         }
       else if (decl_isVarientField (q))
-        doVarientFieldM2 (p, q);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldM2 (p, q);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       i += 1;
     }
   outText (p, (char *) "END", 3);
@@ -18556,11 +19596,15 @@ static void doRecordM2 (mcPretty_pretty p, decl_node n)
         }
       else if (decl_isVarient (f))
         {
+          /* avoid dangling else.  */
           doVarientM2 (p, f);
           outText (p, (char *) ";\\n", 3);
         }
       else if (decl_isVarientField (f))
-        doVarientFieldM2 (p, f);
+        {
+          /* avoid dangling else.  */
+          doVarientFieldM2 (p, f);
+        }
       i += 1;
     }
   p = outKm2 (p, (char *) "END", 3);
@@ -18693,19 +19737,39 @@ static void doSystemM2 (mcPretty_pretty p, decl_node n)
 static void doTypeM2 (mcPretty_pretty p, decl_node n)
 {
   if (isBase (n))
-    doBaseM2 (p, n);
+    {
+      doBaseM2 (p, n);
+    }
   else if (isSystem (n))
-    doSystemM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doSystemM2 (p, n);
+    }
   else if (decl_isType (n))
-    doTypeAliasM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doTypeAliasM2 (p, n);
+    }
   else if (decl_isProcType (n))
-    doProcTypeM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doProcTypeM2 (p, n);
+    }
   else if (decl_isPointer (n))
-    doPointerM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doPointerM2 (p, n);
+    }
   else if (decl_isEnumeration (n))
-    doEnumerationM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doEnumerationM2 (p, n);
+    }
   else if (decl_isRecord (n))
-    doRecordM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doRecordM2 (p, n);
+    }
 }
 
 
@@ -18776,13 +19840,17 @@ static void doParamM2 (mcPretty_pretty p, decl_node n)
   mcDebug_assert (decl_isParam (n));
   ptype = decl_getType (n);
   if (n->paramF.namelist == NULL)
-    doTypeNameM2 (p, ptype);
+    {
+      doTypeNameM2 (p, ptype);
+    }
   else
     {
       mcDebug_assert (isIdentList (n->paramF.namelist));
       l = n->paramF.namelist->identlistF.names;
       if (l == NULL)
-        doTypeNameM2 (p, ptype);
+        {
+          doTypeNameM2 (p, ptype);
+        }
       else
         {
           t = wlists_noOfItemsInList (l);
@@ -18824,13 +19892,17 @@ static void doVarParamM2 (mcPretty_pretty p, decl_node n)
   mcPretty_setNeedSpace (p);
   ptype = decl_getType (n);
   if (n->varparamF.namelist == NULL)
-    doTypeNameM2 (p, ptype);
+    {
+      doTypeNameM2 (p, ptype);
+    }
   else
     {
       mcDebug_assert (isIdentList (n->varparamF.namelist));
       l = n->varparamF.namelist->identlistF.names;
       if (l == NULL)
-        doTypeNameM2 (p, ptype);
+        {
+          doTypeNameM2 (p, ptype);
+        }
       else
         {
           t = wlists_noOfItemsInList (l);
@@ -18862,11 +19934,19 @@ static void doVarParamM2 (mcPretty_pretty p, decl_node n)
 static void doParameterM2 (mcPretty_pretty p, decl_node n)
 {
   if (decl_isParam (n))
-    doParamM2 (p, n);
+    {
+      doParamM2 (p, n);
+    }
   else if (decl_isVarParam (n))
-    doVarParamM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      doVarParamM2 (p, n);
+    }
   else if (decl_isVarargs (n))
-    mcPretty_print (p, (char *) "...", 3);
+    {
+      /* avoid dangling else.  */
+      mcPretty_print (p, (char *) "...", 3);
+    }
 }
 
 
@@ -18926,11 +20006,19 @@ static void outputPartialM2 (decl_node n)
 
   q = decl_getType (n);
   if (decl_isRecord (q))
-    doTypeM2 (doP, n);
+    {
+      doTypeM2 (doP, n);
+    }
   else if (decl_isArray (q))
-    doTypeM2 (doP, n);
+    {
+      /* avoid dangling else.  */
+      doTypeM2 (doP, n);
+    }
   else if (decl_isProcType (q))
-    doTypeM2 (doP, n);
+    {
+      /* avoid dangling else.  */
+      doTypeM2 (doP, n);
+    }
 }
 
 
@@ -19040,13 +20128,24 @@ static void outModuleM2 (mcPretty_pretty p, decl_node n)
 static void outM2 (mcPretty_pretty p, decl_node n)
 {
   if (decl_isDef (n))
-    outDefM2 (p, n);
+    {
+      outDefM2 (p, n);
+    }
   else if (decl_isImp (n))
-    outImpM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      outImpM2 (p, n);
+    }
   else if (decl_isModule (n))
-    outModuleM2 (p, n);
+    {
+      /* avoid dangling else.  */
+      outModuleM2 (p, n);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -19079,7 +20178,9 @@ static void addDoneDef (decl_node n)
       mcError_errorAbort0 ((char *) "terminating compilation", 23);
     }
   else
-    addDone (n);
+    {
+      addDone (n);
+    }
 }
 
 
@@ -19090,7 +20191,9 @@ static void addDoneDef (decl_node n)
 static decl_node dbgAdd (alists_alist l, decl_node n)
 {
   if (n != NULL)
-    alists_includeItemIntoList (l, (void *) n);
+    {
+      alists_includeItemIntoList (l, (void *) n);
+    }
   return n;
 }
 
@@ -19106,9 +20209,13 @@ static void dbgType (alists_alist l, decl_node n)
   t = dbgAdd (l, decl_getType (n));
   out1 ((char *) "<%s type", 8, n);
   if (t == NULL)
-    out0 ((char *) ", type = NIL\\n", 14);
+    {
+      out0 ((char *) ", type = NIL\\n", 14);
+    }
   else
-    out1 ((char *) ", type = %s>\\n", 14, t);
+    {
+      out1 ((char *) ", type = %s>\\n", 14, t);
+    }
 }
 
 
@@ -19143,13 +20250,24 @@ static void dbgRecord (alists_alist l, decl_node n)
     {
       q = Indexing_GetIndice (n->recordF.listOfSons, i);
       if (decl_isRecordField (q))
-        out1 ((char *) " <recordfield %s", 16, q);
+        {
+          out1 ((char *) " <recordfield %s", 16, q);
+        }
       else if (decl_isVarientField (q))
-        out1 ((char *) " <varientfield %s", 17, q);
+        {
+          /* avoid dangling else.  */
+          out1 ((char *) " <varientfield %s", 17, q);
+        }
       else if (decl_isVarient (q))
-        out1 ((char *) " <varient %s", 12, q);
+        {
+          /* avoid dangling else.  */
+          out1 ((char *) " <varient %s", 12, q);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
       i += 1;
@@ -19172,7 +20290,9 @@ static void dbgVarient (alists_alist l, decl_node n)
   out1 ((char *) "tag %s", 6, n->varientF.tag);
   q = decl_getType (n->varientF.tag);
   if (q == NULL)
-    outText (doP, (char *) "\\n", 2);
+    {
+      outText (doP, (char *) "\\n", 2);
+    }
   else
     {
       out1 ((char *) ": %s\\n", 6, q);
@@ -19184,13 +20304,24 @@ static void dbgVarient (alists_alist l, decl_node n)
     {
       q = Indexing_GetIndice (n->varientF.listOfSons, i);
       if (decl_isRecordField (q))
-        out1 ((char *) " <recordfield %s", 16, q);
+        {
+          out1 ((char *) " <recordfield %s", 16, q);
+        }
       else if (decl_isVarientField (q))
-        out1 ((char *) " <varientfield %s", 17, q);
+        {
+          /* avoid dangling else.  */
+          out1 ((char *) " <varientfield %s", 17, q);
+        }
       else if (decl_isVarient (q))
-        out1 ((char *) " <varient %s", 12, q);
+        {
+          /* avoid dangling else.  */
+          out1 ((char *) " <varient %s", 12, q);
+        }
       else
-        M2RTS_HALT (-1);
+        {
+          /* avoid dangling else.  */
+          M2RTS_HALT (-1);
+        }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
       i += 1;
@@ -19243,7 +20374,9 @@ static void dbgVar (alists_alist l, decl_node n)
 static void dbgSubrange (alists_alist l, decl_node n)
 {
   if (n->subrangeF.low == NULL)
-    out1 ((char *) "%s", 2, n->subrangeF.type);
+    {
+      out1 ((char *) "%s", 2, n->subrangeF.type);
+    }
   else
     {
       out1 ((char *) "[%s", 3, n->subrangeF.low);
@@ -19263,7 +20396,9 @@ static void dbgArray (alists_alist l, decl_node n)
   t = dbgAdd (l, decl_getType (n));
   out1 ((char *) "<%s array ", 10, n);
   if (n->arrayF.subr != NULL)
-    dbgSubrange (l, n->arrayF.subr);
+    {
+      dbgSubrange (l, n->arrayF.subr);
+    }
   out1 ((char *) " of %s>\\n", 9, t);
 }
 
@@ -19277,21 +20412,45 @@ static void doDbg (alists_alist l, decl_node n)
   if (n == NULL)
     {}  /* empty.  */
   else if (decl_isSubrange (n))
-    dbgSubrange (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgSubrange (l, n);
+    }
   else if (decl_isType (n))
-    dbgType (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgType (l, n);
+    }
   else if (decl_isRecord (n))
-    dbgRecord (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgRecord (l, n);
+    }
   else if (decl_isVarient (n))
-    dbgVarient (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgVarient (l, n);
+    }
   else if (decl_isEnumeration (n))
-    dbgEnumeration (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgEnumeration (l, n);
+    }
   else if (decl_isPointer (n))
-    dbgPointer (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgPointer (l, n);
+    }
   else if (decl_isArray (n))
-    dbgArray (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgArray (l, n);
+    }
   else if (decl_isVar (n))
-    dbgVar (l, n);
+    {
+      /* avoid dangling else.  */
+      dbgVar (l, n);
+    }
 }
 
 
@@ -20181,11 +21340,19 @@ void decl_resetEnumPos (decl_node n)
 {
   mcDebug_assert (((decl_isDef (n)) || (decl_isImp (n))) || (decl_isModule (n)));
   if (decl_isDef (n))
-    n->defF.enumFixup.count = 0;
+    {
+      n->defF.enumFixup.count = 0;
+    }
   else if (decl_isImp (n))
-    n->impF.enumFixup.count = 0;
+    {
+      /* avoid dangling else.  */
+      n->impF.enumFixup.count = 0;
+    }
   else if (decl_isModule (n))
-    n->moduleF.enumFixup.count = 0;
+    {
+      /* avoid dangling else.  */
+      n->moduleF.enumFixup.count = 0;
+    }
 }
 
 
@@ -20200,11 +21367,19 @@ decl_node decl_getNextEnum (void)
   n = NULL;
   mcDebug_assert (((decl_isDef (currentModule)) || (decl_isImp (currentModule))) || (decl_isModule (currentModule)));
   if (decl_isDef (currentModule))
-    n = getNextFixup (&currentModule->defF.enumFixup);
+    {
+      n = getNextFixup (&currentModule->defF.enumFixup);
+    }
   else if (decl_isImp (currentModule))
-    n = getNextFixup (&currentModule->impF.enumFixup);
+    {
+      /* avoid dangling else.  */
+      n = getNextFixup (&currentModule->impF.enumFixup);
+    }
   else if (decl_isModule (currentModule))
-    n = getNextFixup (&currentModule->moduleF.enumFixup);
+    {
+      /* avoid dangling else.  */
+      n = getNextFixup (&currentModule->moduleF.enumFixup);
+    }
   mcDebug_assert (n != NULL);
   mcDebug_assert ((decl_isEnumeration (n)) || (decl_isEnumerationField (n)));
   return n;
@@ -20735,8 +21910,10 @@ decl_node decl_skipType (decl_node n)
   while ((n != NULL) && (decl_isType (n)))
     {
       if ((decl_getType (n)) == NULL)
-        /* this will occur if, n, is an opaque type.  */
-        return n;
+        {
+          /* this will occur if, n, is an opaque type.  */
+          return n;
+        }
       n = decl_getType (n);
     }
   return n;
@@ -20816,17 +21993,19 @@ unsigned int decl_isExported (decl_node n)
 
   s = decl_getScope (n);
   if (s != NULL)
-    switch (s->kind)
-      {
-        case def:
-          return Indexing_IsIndiceInIndex (s->defF.exported, (void *) n);
-          break;
+    {
+      switch (s->kind)
+        {
+          case def:
+            return Indexing_IsIndiceInIndex (s->defF.exported, (void *) n);
+            break;
 
 
-        default:
-          return FALSE;
-          break;
-      }
+          default:
+            return FALSE;
+            break;
+        }
+    }
   return FALSE;
 }
 
@@ -21117,7 +22296,9 @@ unsigned int decl_isConstSet (decl_node n)
 {
   mcDebug_assert (n != NULL);
   if ((decl_isLiteral (n)) || (decl_isConst (n)))
-    return decl_isSet (decl_skipType (decl_getType (n)));
+    {
+      return decl_isSet (decl_skipType (decl_getType (n)));
+    }
   return FALSE;
 }
 
@@ -21505,9 +22686,13 @@ decl_node decl_makeVarDecl (decl_node i, decl_node type)
 decl_node decl_makeEnum (void)
 {
   if ((currentModule != NULL) && (decl_getEnumsComplete (currentModule)))
-    return decl_getNextEnum ();
+    {
+      return decl_getNextEnum ();
+    }
   else
-    return doMakeEnum ();
+    {
+      return doMakeEnum ();
+    }
 }
 
 
@@ -21518,9 +22703,13 @@ decl_node decl_makeEnum (void)
 decl_node decl_makeEnumField (decl_node e, nameKey_Name n)
 {
   if ((currentModule != NULL) && (decl_getEnumsComplete (currentModule)))
-    return decl_getNextEnum ();
+    {
+      return decl_getNextEnum ();
+    }
   else
-    return doMakeEnumField (e, n);
+    {
+      return doMakeEnumField (e, n);
+    }
 }
 
 
@@ -21642,9 +22831,13 @@ decl_node decl_makeVarient (decl_node r)
   n->varientF.listOfSons = Indexing_InitIndex (1);
   /* if so use this   n^.varientF.parent := r  */
   if (decl_isRecord (r))
-    n->varientF.varient = NULL;
+    {
+      n->varientF.varient = NULL;
+    }
   else
-    n->varientF.varient = r;
+    {
+      n->varientF.varient = r;
+    }
   n->varientF.tag = NULL;
   n->varientF.scope = decl_getDeclScope ();
   switch (r->kind)
@@ -21698,9 +22891,13 @@ decl_node decl_addFieldsToRecord (decl_node r, decl_node v, decl_node i, decl_no
       fn = wlists_getItemFromList (i->identlistF.names, j);
       fj = symbolKey_getSymKey (p->recordF.localSymbols, (nameKey_Name) n);
       if (fj == NULL)
-        fj = putFieldRecord (r, fn, t, v);
+        {
+          fj = putFieldRecord (r, fn, t, v);
+        }
       else
-        mcMetaError_metaErrors2 ((char *) "record field {%1ad} has already been declared inside a {%2Dd} {%2a}", 67, (char *) "attempting to declare a duplicate record field", 46, (unsigned char *) &fj, (sizeof (fj)-1), (unsigned char *) &p, (sizeof (p)-1));
+        {
+          mcMetaError_metaErrors2 ((char *) "record field {%1ad} has already been declared inside a {%2Dd} {%2a}", 67, (char *) "attempting to declare a duplicate record field", 46, (unsigned char *) &fj, (sizeof (fj)-1), (unsigned char *) &p, (sizeof (p)-1));
+        }
       j += 1;
     }
   return r;
@@ -21722,14 +22919,18 @@ void decl_buildVarientSelector (decl_node r, decl_node v, nameKey_Name tag, decl
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if ((type == NULL) && (tag == nameKey_NulName))
-        mcMetaError_metaError1 ((char *) "expecting a tag field in the declaration of a varient record {%1Ua}", 67, (unsigned char *) &r, (sizeof (r)-1));
+        {
+          mcMetaError_metaError1 ((char *) "expecting a tag field in the declaration of a varient record {%1Ua}", 67, (unsigned char *) &r, (sizeof (r)-1));
+        }
       else if (type == NULL)
         {
+          /* avoid dangling else.  */
           f = decl_lookupSym (tag);
           putVarientTag (v, f);
         }
       else
         {
+          /* avoid dangling else.  */
           f = putFieldRecord (r, tag, type, v);
           mcDebug_assert (decl_isRecordField (f));
           f->recordfieldF.tag = TRUE;
@@ -22165,7 +23366,9 @@ decl_node decl_lookupExported (decl_node n, nameKey_Name i)
   mcDebug_assert (decl_isDef (n));
   r = symbolKey_getSymKey (n->defF.decls.symbols, i);
   if ((r != NULL) && (decl_isExported (r)))
-    return r;
+    {
+      return r;
+    }
   return NULL;
 }
 
@@ -22188,11 +23391,15 @@ decl_node decl_lookupSym (nameKey_Name n)
       s = Indexing_GetIndice (scopeStack, h);
       m = decl_lookupInScope (s, n);
       if (debugScopes && (m == NULL))
-        out3 ((char *) " [%d] search for symbol name %s in scope %s\\n", 45, h, n, s);
+        {
+          out3 ((char *) " [%d] search for symbol name %s in scope %s\\n", 45, h, n, s);
+        }
       if (m != NULL)
         {
           if (debugScopes)
-            out3 ((char *) " [%d] search for symbol name %s in scope %s (found)\\n", 53, h, n, s);
+            {
+              out3 ((char *) " [%d] search for symbol name %s in scope %s (found)\\n", 53, h, n, s);
+            }
           return m;
         }
       h -= 1;
@@ -22211,15 +23418,28 @@ void decl_addImportedModule (decl_node m, decl_node i, unsigned int scoped)
 {
   mcDebug_assert ((decl_isDef (i)) || (decl_isModule (i)));
   if (decl_isDef (m))
-    Indexing_IncludeIndiceIntoIndex (m->defF.importedModules, (void *) i);
+    {
+      Indexing_IncludeIndiceIntoIndex (m->defF.importedModules, (void *) i);
+    }
   else if (decl_isImp (m))
-    Indexing_IncludeIndiceIntoIndex (m->impF.importedModules, (void *) i);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->impF.importedModules, (void *) i);
+    }
   else if (decl_isModule (m))
-    Indexing_IncludeIndiceIntoIndex (m->moduleF.importedModules, (void *) i);
+    {
+      /* avoid dangling else.  */
+      Indexing_IncludeIndiceIntoIndex (m->moduleF.importedModules, (void *) i);
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);
+    }
   if (scoped)
-    addModuleToScope (m, i);
+    {
+      addModuleToScope (m, i);
+    }
 }
 
 
@@ -22326,9 +23546,13 @@ void decl_foreachModModuleDo (symbolKey_performOperation p)
 void decl_enterScope (decl_node n)
 {
   if (Indexing_IsIndiceInIndex (scopeStack, (void *) n))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    Indexing_IncludeIndiceIntoIndex (scopeStack, (void *) n);
+    {
+      Indexing_IncludeIndiceIntoIndex (scopeStack, (void *) n);
+    }
   if (debugScopes)
     {
       libc_printf ((char *) "enter scope\\n", 13);
@@ -22399,7 +23623,9 @@ void decl_putCommentDefProcedure (decl_node n)
 {
   mcDebug_assert (decl_isProcedure (n));
   if (mcComment_isProcedureComment (mcLexBuf_lastcomment))
-    n->procedureF.defComment = mcLexBuf_lastcomment;
+    {
+      n->procedureF.defComment = mcLexBuf_lastcomment;
+    }
 }
 
 
@@ -22413,7 +23639,9 @@ void decl_putCommentModProcedure (decl_node n)
 {
   mcDebug_assert (decl_isProcedure (n));
   if (mcComment_isProcedureComment (mcLexBuf_lastcomment))
-    n->procedureF.modComment = mcLexBuf_lastcomment;
+    {
+      n->procedureF.modComment = mcLexBuf_lastcomment;
+    }
 }
 
 
@@ -22444,9 +23672,13 @@ void decl_putReturnType (decl_node proc, decl_node type)
 {
   mcDebug_assert ((decl_isProcedure (proc)) || (decl_isProcType (proc)));
   if (decl_isProcedure (proc))
-    proc->procedureF.returnType = type;
+    {
+      proc->procedureF.returnType = type;
+    }
   else
-    proc->proctypeF.returnType = type;
+    {
+      proc->proctypeF.returnType = type;
+    }
 }
 
 
@@ -22458,9 +23690,13 @@ void decl_putOptReturn (decl_node proc)
 {
   mcDebug_assert ((decl_isProcedure (proc)) || (decl_isProcType (proc)));
   if (decl_isProcedure (proc))
-    proc->procedureF.returnopt = TRUE;
+    {
+      proc->procedureF.returnopt = TRUE;
+    }
   else
-    proc->proctypeF.returnopt = TRUE;
+    {
+      proc->proctypeF.returnopt = TRUE;
+    }
 }
 
 
@@ -22520,7 +23756,9 @@ void decl_paramLeave (decl_node n)
   mcDebug_assert (decl_isProcedure (n));
   n->procedureF.checking = TRUE;
   if ((decl_isImp (currentModule)) || (decl_isModule (currentModule)))
-    n->procedureF.built = TRUE;
+    {
+      n->procedureF.built = TRUE;
+    }
 }
 
 
@@ -22548,7 +23786,9 @@ unsigned int decl_putIdent (decl_node n, nameKey_Name i)
 {
   mcDebug_assert (isIdentList (n));
   if (wlists_isItemInList (n->identlistF.names, (unsigned int) i))
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
     {
       wlists_putItemIntoList (n->identlistF.names, (unsigned int) i);
@@ -22570,7 +23810,9 @@ void decl_addVarParameters (decl_node n, decl_node i, decl_node type)
   mcDebug_assert (decl_isProcedure (n));
   checkMakeVariables (n, i, type, TRUE);
   if (n->procedureF.checking)
-    checkParameters (n, i, type, TRUE);  /* will destroy, i.  */
+    {
+      checkParameters (n, i, type, TRUE);  /* will destroy, i.  */
+    }
   else
     {
       p = decl_makeVarParameter (i, type, n);
@@ -22592,7 +23834,9 @@ void decl_addNonVarParameters (decl_node n, decl_node i, decl_node type)
   mcDebug_assert (decl_isProcedure (n));
   checkMakeVariables (n, i, type, FALSE);
   if (n->procedureF.checking)
-    checkParameters (n, i, type, FALSE);  /* will destroy, i.  */
+    {
+      checkParameters (n, i, type, FALSE);  /* will destroy, i.  */
+    }
   else
     {
       p = decl_makeNonVarParameter (i, type, n);
@@ -22637,17 +23881,25 @@ void decl_addParameter (decl_node proc, decl_node param)
       case procedure:
         Indexing_IncludeIndiceIntoIndex (proc->procedureF.parameters, (void *) param);
         if (decl_isVarargs (param))
-          proc->procedureF.vararg = TRUE;
+          {
+            proc->procedureF.vararg = TRUE;
+          }
         if (decl_isOptarg (param))
-          proc->procedureF.optarg_ = param;
+          {
+            proc->procedureF.optarg_ = param;
+          }
         break;
 
       case proctype:
         Indexing_IncludeIndiceIntoIndex (proc->proctypeF.parameters, (void *) param);
         if (decl_isVarargs (param))
-          proc->proctypeF.vararg = TRUE;
+          {
+            proc->proctypeF.vararg = TRUE;
+          }
         if (decl_isOptarg (param))
-          proc->proctypeF.optarg_ = param;
+          {
+            proc->proctypeF.optarg_ = param;
+          }
         break;
 
 
@@ -22665,37 +23917,84 @@ void decl_addParameter (decl_node proc, decl_node param)
 decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
 {
   if (op == mcReserved_equaltok)
-    return makeBinary ((nodeT) equal, l, r, booleanN);
+    {
+      return makeBinary ((nodeT) equal, l, r, booleanN);
+    }
   else if ((op == mcReserved_hashtok) || (op == mcReserved_lessgreatertok))
-    return makeBinary ((nodeT) notequal, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) notequal, l, r, booleanN);
+    }
   else if (op == mcReserved_lesstok)
-    return makeBinary ((nodeT) less, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) less, l, r, booleanN);
+    }
   else if (op == mcReserved_greatertok)
-    return makeBinary ((nodeT) greater, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) greater, l, r, booleanN);
+    }
   else if (op == mcReserved_greaterequaltok)
-    return makeBinary ((nodeT) greequal, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) greequal, l, r, booleanN);
+    }
   else if (op == mcReserved_lessequaltok)
-    return makeBinary ((nodeT) lessequal, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) lessequal, l, r, booleanN);
+    }
   else if (op == mcReserved_andtok)
-    return makeBinary ((nodeT) and, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) and, l, r, booleanN);
+    }
   else if (op == mcReserved_ortok)
-    return makeBinary ((nodeT) or, l, r, booleanN);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) or, l, r, booleanN);
+    }
   else if (op == mcReserved_plustok)
-    return makeBinary ((nodeT) plus, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) plus, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_minustok)
-    return makeBinary ((nodeT) sub, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) sub, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_divtok)
-    return makeBinary ((nodeT) div_, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) div_, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_timestok)
-    return makeBinary ((nodeT) mult, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) mult, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_modtok)
-    return makeBinary ((nodeT) mod, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) mod, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_intok)
-    return makeBinary ((nodeT) in, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) in, l, r, (decl_node) NULL);
+    }
   else if (op == mcReserved_dividetok)
-    return makeBinary ((nodeT) divide, l, r, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeBinary ((nodeT) divide, l, r, (decl_node) NULL);
+    }
   else
-    M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+    }
 }
 
 
@@ -22707,13 +24006,24 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
 decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
 {
   if (op == mcReserved_nottok)
-    return makeUnary ((nodeT) not, e, booleanN);
+    {
+      return makeUnary ((nodeT) not, e, booleanN);
+    }
   else if (op == mcReserved_plustok)
-    return makeUnary ((nodeT) plus, e, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeUnary ((nodeT) plus, e, (decl_node) NULL);
+    }
   else if (op == mcReserved_minustok)
-    return makeUnary ((nodeT) neg, e, (decl_node) NULL);
+    {
+      /* avoid dangling else.  */
+      return makeUnary ((nodeT) neg, e, (decl_node) NULL);
+    }
   else
-    M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+    {
+      /* avoid dangling else.  */
+      M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+    }
 }
 
 
@@ -22752,7 +24062,9 @@ decl_node decl_makeComponentRef (decl_node rec, decl_node field)
       return rec;
     }
   else
-    return doMakeComponentRef (rec, field);
+    {
+      return doMakeComponentRef (rec, field);
+    }
 }
 
 
@@ -22820,9 +24132,13 @@ decl_node decl_makeArrayRef (decl_node array, decl_node index)
   t = decl_skipType (decl_getType (t));
   do {
     if (decl_isArray (t))
-      t = decl_skipType (decl_getType (t));
+      {
+        t = decl_skipType (decl_getType (t));
+      }
     else
-      mcMetaError_metaError2 ((char *) "cannot access {%1N} dimension of array {%2a}", 44, (unsigned char *) &i, (sizeof (i)-1), (unsigned char *) &t, (sizeof (t)-1));
+      {
+        mcMetaError_metaError2 ((char *) "cannot access {%1N} dimension of array {%2a}", 44, (unsigned char *) &i, (sizeof (i)-1), (unsigned char *) &t, (sizeof (t)-1));
+      }
     i += 1;
   } while (! (i > j));
   n->arrayrefF.resultType = t;
@@ -22863,9 +24179,13 @@ decl_node decl_makeLiteralInt (nameKey_Name n)
   s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   m->literalF.name = n;
   if ((DynamicStrings_char (s, -1)) == 'C')
-    m->literalF.type = charN;
+    {
+      m->literalF.type = charN;
+    }
   else
-    m->literalF.type = ztypeN;
+    {
+      m->literalF.type = ztypeN;
+    }
   s = DynamicStrings_KillString (s);
   return m;
 }
@@ -22901,9 +24221,13 @@ decl_node decl_makeString (nameKey_Name n)
   m->stringF.cstring = toCstring (n);
   m->stringF.clength = lenCstring (m->stringF.cstring);
   if (m->stringF.isCharCompatible)
-    m->stringF.cchar = toCchar (n);
+    {
+      m->stringF.cchar = toCchar (n);
+    }
   else
-    m->stringF.cchar = NULL;
+    {
+      m->stringF.cchar = NULL;
+    }
   return m;
 }
 
@@ -22969,15 +24293,29 @@ decl_node decl_includeSetValue (decl_node n, decl_node l, decl_node h)
 decl_node decl_getBuiltinConst (nameKey_Name n)
 {
   if (n == (nameKey_makeKey ((char *) "BITS_PER_UNIT", 13)))
-    return bitsperunitN;
+    {
+      return bitsperunitN;
+    }
   else if (n == (nameKey_makeKey ((char *) "BITS_PER_WORD", 13)))
-    return bitsperwordN;
+    {
+      /* avoid dangling else.  */
+      return bitsperwordN;
+    }
   else if (n == (nameKey_makeKey ((char *) "BITS_PER_CHAR", 13)))
-    return bitspercharN;
+    {
+      /* avoid dangling else.  */
+      return bitspercharN;
+    }
   else if (n == (nameKey_makeKey ((char *) "UNITS_PER_WORD", 14)))
-    return unitsperwordN;
+    {
+      /* avoid dangling else.  */
+      return unitsperwordN;
+    }
   else
-    return NULL;
+    {
+      /* avoid dangling else.  */
+      return NULL;
+    }
 }
 
 
@@ -23025,9 +24363,13 @@ void decl_putExpList (decl_node n, decl_node e)
 decl_node decl_makeConstExp (void)
 {
   if ((currentModule != NULL) && (getConstExpComplete (currentModule)))
-    return decl_getNextConstExp ();
+    {
+      return decl_getNextConstExp ();
+    }
   else
-    return doMakeConstExp ();
+    {
+      return doMakeConstExp ();
+    }
 }
 
 
@@ -23041,11 +24383,19 @@ decl_node decl_getNextConstExp (void)
 
   mcDebug_assert (((decl_isDef (currentModule)) || (decl_isImp (currentModule))) || (decl_isModule (currentModule)));
   if (decl_isDef (currentModule))
-    return getNextFixup (&currentModule->defF.constFixup);
+    {
+      return getNextFixup (&currentModule->defF.constFixup);
+    }
   else if (decl_isImp (currentModule))
-    return getNextFixup (&currentModule->impF.constFixup);
+    {
+      /* avoid dangling else.  */
+      return getNextFixup (&currentModule->impF.constFixup);
+    }
   else if (decl_isModule (currentModule))
-    return getNextFixup (&currentModule->moduleF.constFixup);
+    {
+      /* avoid dangling else.  */
+      return getNextFixup (&currentModule->moduleF.constFixup);
+    }
   return n;
 }
 
@@ -23098,11 +24448,19 @@ void decl_resetConstExpPos (decl_node n)
 {
   mcDebug_assert (((decl_isDef (n)) || (decl_isImp (n))) || (decl_isModule (n)));
   if (decl_isDef (n))
-    n->defF.constFixup.count = 0;
+    {
+      n->defF.constFixup.count = 0;
+    }
   else if (decl_isImp (n))
-    n->impF.constFixup.count = 0;
+    {
+      /* avoid dangling else.  */
+      n->impF.constFixup.count = 0;
+    }
   else if (decl_isModule (n))
-    n->moduleF.constFixup.count = 0;
+    {
+      /* avoid dangling else.  */
+      n->moduleF.constFixup.count = 0;
+    }
 }
 
 
@@ -23116,7 +24474,9 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
 
   mcDebug_assert ((n == NULL) || (decl_isExpList (n)));
   if (((c == haltN) && ((decl_getMainModule ()) != (decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5))))) && ((decl_getMainModule ()) != (decl_lookupImp (nameKey_makeKey ((char *) "M2RTS", 5)))))
-    decl_addImportedModule (decl_getMainModule (), decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5)), FALSE);
+    {
+      decl_addImportedModule (decl_getMainModule (), decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5)), FALSE);
+    }
   f = checkIntrinsic (c, n);
   if (f == NULL)
     {
@@ -23180,7 +24540,9 @@ void decl_addCommentBody (decl_node n)
     {
       b = mcLexBuf_getBodyComment ();
       if (b != NULL)
-        addGenericBody (n, decl_makeCommentS (b));
+        {
+          addGenericBody (n, decl_makeCommentS (b));
+        }
     }
 }
 
@@ -23197,7 +24559,9 @@ void decl_addCommentAfter (decl_node n)
     {
       a = mcLexBuf_getAfterComment ();
       if (a != NULL)
-        addGenericAfter (n, decl_makeCommentS (a));
+        {
+          addGenericAfter (n, decl_makeCommentS (a));
+        }
     }
 }
 
@@ -23514,7 +24878,9 @@ decl_node decl_makeCommentS (mcComment_commentDesc c)
   decl_node n;
 
   if (c == NULL)
-    return NULL;
+    {
+      return NULL;
+    }
   else
     {
       n = newNode ((nodeT) comment);
@@ -23899,9 +25265,13 @@ unsigned int decl_isRange (decl_node n)
 decl_node decl_dupExpr (decl_node n)
 {
   if (n == NULL)
-    return NULL;
+    {
+      return NULL;
+    }
   else
-    return doDupExpr (n);
+    {
+      return doDupExpr (n);
+    }
 }
 
 

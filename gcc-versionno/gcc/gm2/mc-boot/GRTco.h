@@ -22,58 +22,55 @@ extern "C" {
 
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN int RTco_init (void);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
-EXTERN int RTco_initThread (PROC p);
+EXTERN int RTco_initThread (PROC p, unsigned int stackSize, unsigned int interruptLevel);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN int RTco_initSemaphore (unsigned int value);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN void RTco_wait (int semaphore);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN void RTco_signal (int semaphore);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN void RTco_transfer (int *p1, int p2);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN void RTco_waitThread (int tid);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN void RTco_signalThread (int tid);
 
 /*
-   init initializes the module and allows the application to lazily invoke threads.
-*/
+ init initializes the module and allows the application to lazily invoke threads.  */
 
 EXTERN int RTco_currentThread (void);
+
+/*
+ currentInterruptLevel returns the interrupt level of the current thread.  */
+
+EXTERN unsigned int RTco_currentInterruptLevel (void);
+EXTERN unsigned int RTco_turnInterrupts (unsigned int newLevel);
 
 /*
    select access to the select system call which will be thread safe.

@@ -181,7 +181,9 @@ void NumberIO_CardToStr (unsigned int x, unsigned int n, char *a, unsigned int _
       i -= 1;
     }
   if (j <= Higha)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
 }
 
 void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
@@ -199,13 +201,23 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
   i = 0;
   ok = TRUE;
   while (ok)
-    if (i < higha)
-      if ((a[i] < '0') || (a[i] > '9'))
-        i += 1;
+    {
+      if (i < higha)
+        {
+          if ((a[i] < '0') || (a[i] > '9'))
+            {
+              i += 1;
+            }
+          else
+            {
+              ok = FALSE;
+            }
+        }
       else
-        ok = FALSE;
-    else
-      ok = FALSE;
+        {
+          ok = FALSE;
+        }
+    }
   (*x) = 0;
   if (i < higha)
     {
@@ -217,10 +229,14 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
             /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
-              ok = FALSE;
+              {
+                ok = FALSE;
+              }
           }
         else
-          ok = FALSE;
+          {
+            ok = FALSE;
+          }
       } while (! (! ok));
     }
 }
@@ -258,14 +274,20 @@ void NumberIO_HexToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
   while ((i != 0) && (j <= Higha))
     {
       if (buf.array[i-1] < 10)
-        a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
+        {
+          a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
+        }
       else
-        a[j] = ((char) ((buf.array[i-1]+ ((unsigned int) ('A')))-10));
+        {
+          a[j] = ((char) ((buf.array[i-1]+ ((unsigned int) ('A')))-10));
+        }
       j += 1;
       i -= 1;
     }
   if (j <= Higha)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
 }
 
 void NumberIO_StrToHex (char *a_, unsigned int _a_high, unsigned int *x)
@@ -298,7 +320,9 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
       Negative = TRUE;
       c = ((unsigned int ) (abs (x+1)))+1;
       if (n > 0)
-        n -= 1;
+        {
+          n -= 1;
+        }
     }
   else
     {
@@ -337,7 +361,9 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
       i -= 1;
     }
   if (j <= Higha)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
 }
 
 void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
@@ -357,36 +383,56 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
   Negative = FALSE;
   ok = TRUE;
   while (ok)
-    if (i < higha)
-      if (a[i] == '-')
+    {
+      if (i < higha)
         {
-          i += 1;
-          Negative = ! Negative;
+          if (a[i] == '-')
+            {
+              i += 1;
+              Negative = ! Negative;
+            }
+          else if ((a[i] < '0') || (a[i] > '9'))
+            {
+              /* avoid dangling else.  */
+              i += 1;
+            }
+          else
+            {
+              /* avoid dangling else.  */
+              ok = FALSE;
+            }
         }
-      else if ((a[i] < '0') || (a[i] > '9'))
-        i += 1;
       else
-        ok = FALSE;
-    else
-      ok = FALSE;
+        {
+          ok = FALSE;
+        }
+    }
   (*x) = 0;
   if (i < higha)
     {
       ok = TRUE;
       do {
         if (Negative)
-          (*x) = (10*(*x))-((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          {
+            (*x) = (10*(*x))-((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          }
         else
-          (*x) = (10*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          {
+            (*x) = (10*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          }
         if (i < higha)
           {
             /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
-              ok = FALSE;
+              {
+                ok = FALSE;
+              }
           }
         else
-          ok = FALSE;
+          {
+            ok = FALSE;
+          }
       } while (! (! ok));
     }
 }
@@ -450,7 +496,9 @@ void NumberIO_OctToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
       i -= 1;
     }
   if (j <= Higha)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
 }
 
 void NumberIO_StrToOct (char *a_, unsigned int _a_high, unsigned int *x)
@@ -524,7 +572,9 @@ void NumberIO_BinToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
       i -= 1;
     }
   if (j <= Higha)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
 }
 
 void NumberIO_StrToBin (char *a_, unsigned int _a_high, unsigned int *x)
@@ -554,13 +604,23 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
   i = 0;
   ok = TRUE;
   while (ok)
-    if (i < higha)
-      if ((a[i] < '0') || (a[i] > '1'))
-        i += 1;
+    {
+      if (i < higha)
+        {
+          if ((a[i] < '0') || (a[i] > '1'))
+            {
+              i += 1;
+            }
+          else
+            {
+              ok = FALSE;
+            }
+        }
       else
-        ok = FALSE;
-    else
-      ok = FALSE;
+        {
+          ok = FALSE;
+        }
+    }
   (*x) = 0;
   if (i < higha)
     {
@@ -572,10 +632,14 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
             /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '1'))
-              ok = FALSE;
+              {
+                ok = FALSE;
+              }
           }
         else
-          ok = FALSE;
+          {
+            ok = FALSE;
+          }
       } while (! (! ok));
     }
 }
@@ -595,31 +659,50 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
   i = 0;
   ok = TRUE;
   while (ok)
-    if (i < higha)
-      if (((a[i] >= '0') && (a[i] <= '9')) || ((a[i] >= 'A') && (a[i] <= 'F')))
-        ok = FALSE;
+    {
+      if (i < higha)
+        {
+          if (((a[i] >= '0') && (a[i] <= '9')) || ((a[i] >= 'A') && (a[i] <= 'F')))
+            {
+              ok = FALSE;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
       else
-        i += 1;
-    else
-      ok = FALSE;
+        {
+          ok = FALSE;
+        }
+    }
   (*x) = 0;
   if (i < higha)
     {
       ok = TRUE;
       do {
         if ((a[i] >= '0') && (a[i] <= '9'))
-          (*x) = (0x010*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          {
+            (*x) = (0x010*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
+          }
         else if ((a[i] >= 'A') && (a[i] <= 'F'))
-          (*x) = (0x010*(*x))+((int ) (( ((unsigned int) (a[i]))- ((unsigned int) ('A')))+10));
+          {
+            /* avoid dangling else.  */
+            (*x) = (0x010*(*x))+((int ) (( ((unsigned int) (a[i]))- ((unsigned int) ('A')))+10));
+          }
         if (i < higha)
           {
             /* avoid dangling else.  */
             i += 1;
             if (((a[i] < '0') || (a[i] > '9')) && ((a[i] < 'A') || (a[i] > 'F')))
-              ok = FALSE;
+              {
+                ok = FALSE;
+              }
           }
         else
-          ok = FALSE;
+          {
+            ok = FALSE;
+          }
       } while (! (! ok));
     }
 }
@@ -639,13 +722,23 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
   i = 0;
   ok = TRUE;
   while (ok)
-    if (i < higha)
-      if ((a[i] < '0') || (a[i] > '7'))
-        i += 1;
+    {
+      if (i < higha)
+        {
+          if ((a[i] < '0') || (a[i] > '7'))
+            {
+              i += 1;
+            }
+          else
+            {
+              ok = FALSE;
+            }
+        }
       else
-        ok = FALSE;
-    else
-      ok = FALSE;
+        {
+          ok = FALSE;
+        }
+    }
   (*x) = 0;
   if (i < higha)
     {
@@ -657,10 +750,14 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
             /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '7'))
-              ok = FALSE;
+              {
+                ok = FALSE;
+              }
           }
         else
-          ok = FALSE;
+          {
+            ok = FALSE;
+          }
       } while (! (! ok));
     }
 }

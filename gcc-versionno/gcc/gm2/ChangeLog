@@ -1,3 +1,67 @@
+2019-10-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (BOOTGM2VERSION) to trunk for maintainer.
+	  (GM2PATH) include iso path.  (mc) link with RTcodummy.o
+	* gm2/gm2-libs-ch/RTcodummy.c:  (initThread) added extra
+          parameter.  (currentInterruptLevel) new dummy function.
+	  (turnInterrupts) new dummy function.
+	* gm2/mc-boot/GArgs.c:  regenerated.
+	* gm2/mc-boot/GCmdArgs.c:  regenerated.
+	* gm2/mc-boot/GDebug.c:  regenerated.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated.
+	* gm2/mc-boot/GEnvironment.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/GFormatStrings.c:  regenerated.
+	* gm2/mc-boot/GIO.c:  regenerated.
+	* gm2/mc-boot/GIndexing.c:  regenerated.
+	* gm2/mc-boot/GM2EXCEPTION.c:  regenerated.
+	* gm2/mc-boot/GM2RTS.c:  regenerated.
+	* gm2/mc-boot/GNumberIO.c:  regenerated.
+	* gm2/mc-boot/GPushBackInput.c:  regenerated.
+	* gm2/mc-boot/GRTExceptions.c:  regenerated.
+	* gm2/mc-boot/GRTco.h:  regenerated.
+	* gm2/mc-boot/GRTint.c:  regenerated.
+	* gm2/mc-boot/GSFIO.c:  regenerated.
+	* gm2/mc-boot/GStdIO.c:  regenerated.
+	* gm2/mc-boot/GStrCase.c:  regenerated.
+	* gm2/mc-boot/GStrIO.c:  regenerated.
+	* gm2/mc-boot/GStrLib.c:  regenerated.
+	* gm2/mc-boot/GStringConvert.c:  regenerated.
+	* gm2/mc-boot/GSysStorage.c:  regenerated.
+	* gm2/mc-boot/GTimeString.c:  regenerated.
+	* gm2/mc-boot/Galists.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/Gkeyc.c:  regenerated.
+	* gm2/mc-boot/Glists.c:  regenerated.
+	* gm2/mc-boot/GmcComment.c:  regenerated.
+	* gm2/mc-boot/GmcComp.c:  regenerated.
+	* gm2/mc-boot/GmcDebug.c:  regenerated.
+	* gm2/mc-boot/GmcError.c:  regenerated.
+	* gm2/mc-boot/GmcFileName.c:  regenerated.
+	* gm2/mc-boot/GmcLexBuf.c:  regenerated.
+	* gm2/mc-boot/GmcMetaError.c:  regenerated.
+	* gm2/mc-boot/GmcOptions.c:  regenerated.
+	* gm2/mc-boot/GmcPreprocess.c:  regenerated.
+	* gm2/mc-boot/GmcPretty.c:  regenerated.
+	* gm2/mc-boot/GmcPrintf.c:  regenerated.
+	* gm2/mc-boot/GmcQuiet.c:  regenerated.
+	* gm2/mc-boot/GmcSearch.c:  regenerated.
+	* gm2/mc-boot/GmcStack.c:  regenerated.
+	* gm2/mc-boot/GmcStream.c:  regenerated.
+	* gm2/mc-boot/Gmcp1.c:  regenerated.
+	* gm2/mc-boot/Gmcp2.c:  regenerated.
+	* gm2/mc-boot/Gmcp3.c:  regenerated.
+	* gm2/mc-boot/Gmcp4.c:  regenerated.
+	* gm2/mc-boot/Gmcp5.c:  regenerated.
+	* gm2/mc-boot/GnameKey.c:  regenerated.
+	* gm2/mc-boot/GsymbolKey.c:  regenerated.
+	* gm2/mc-boot/Gvarargs.c:  regenerated.
+	* gm2/mc-boot/Gwlists.c:  regenerated.
+	* gm2/mc/decl.mod:  (forceCompoundStatement) New boolean.
+          (doCompoundStmt) check whether a compound statement should be
+          forced.  (doElsifC) check whether a compound statement should
+          be forced.
+
 2019-10-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	large number of changes to introduce tokenno to the creation

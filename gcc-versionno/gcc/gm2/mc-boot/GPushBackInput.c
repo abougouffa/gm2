@@ -210,13 +210,17 @@ char PushBackInput_GetCh (FIO_File f)
     {
       StackPtr -= 1;
       if (Debugging)
-        StdIO_Write (CharStack.array[StackPtr]);
+        {
+          StdIO_Write (CharStack.array[StackPtr]);
+        }
       return CharStack.array[StackPtr];
     }
   else
     {
       if ((FIO_EOF (f)) || (! (FIO_IsNoError (f))))
-        ch = ASCII_nul;
+        {
+          ch = ASCII_nul;
+        }
       else
         {
           do {
@@ -228,10 +232,14 @@ char PushBackInput_GetCh (FIO_File f)
               LineNo += 1;
             }
           else
-            Column += 1;
+            {
+              Column += 1;
+            }
         }
       if (Debugging)
-        StdIO_Write (ch);
+        {
+          StdIO_Write (ch);
+        }
       return ch;
     }
 }
@@ -250,7 +258,9 @@ char PushBackInput_PutCh (FIO_File f, char ch)
       StackPtr += 1;
     }
   else
-    Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 130, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+    {
+      Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 130, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+    }
   return ch;
 }
 
@@ -272,7 +282,9 @@ void PushBackInput_PutString (FIO_File f, char *a_, unsigned int _a_high)
     {
       l -= 1;
       if ((PushBackInput_PutCh (f, a[l])) != a[l])
-        Debug_Halt ((char *) "assert failed", 13, 112, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+        {
+          Debug_Halt ((char *) "assert failed", 13, 112, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+        }
     }
 }
 
@@ -353,7 +365,9 @@ void PushBackInput_WarnString (DynamicStrings_String s)
             StdIO_Write (':');
           }
         else
-          StdIO_Write ((*p));
+          {
+            StdIO_Write ((*p));
+          }
         p += 1;
       }
   } while (! ((p == NULL) || ((*p) == ASCII_nul)));
@@ -398,9 +412,13 @@ void PushBackInput_SetDebug (unsigned int d)
 unsigned int PushBackInput_GetColumnPosition (void)
 {
   if (StackPtr > Column)
-    return 0;
+    {
+      return 0;
+    }
   else
-    return Column-StackPtr;
+    {
+      return Column-StackPtr;
+    }
 }
 
 

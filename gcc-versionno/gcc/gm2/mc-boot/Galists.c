@@ -181,7 +181,9 @@ void alists_killList (alists_alist *l)
   if ((*l) != NULL)
     {
       if ((*l)->next != NULL)
-        alists_killList (&(*l)->next);
+        {
+          alists_killList (&(*l)->next);
+        }
       Storage_DEALLOCATE ((void **) &(*l), sizeof (_T1));
     }
 }
@@ -199,9 +201,13 @@ void alists_putItemIntoList (alists_alist l, void * c)
       l->elements.array[l->noOfelements-1] = c;
     }
   else if (l->next != NULL)
-    alists_putItemIntoList (l->next, c);
+    {
+      /* avoid dangling else.  */
+      alists_putItemIntoList (l->next, c);
+    }
   else
     {
+      /* avoid dangling else.  */
       l->next = alists_initList ();
       alists_putItemIntoList (l->next, c);
     }
@@ -217,9 +223,13 @@ void * alists_getItemFromList (alists_alist l, unsigned int n)
   while (l != NULL)
     {
       if (n <= l->noOfelements)
-        return l->elements.array[n-1];
+        {
+          return l->elements.array[n-1];
+        }
       else
-        n -= l->noOfelements;
+        {
+          n -= l->noOfelements;
+        }
       l = l->next;
     }
   return 0;
@@ -237,15 +247,23 @@ unsigned int alists_getIndexOfList (alists_alist l, void * c)
   unsigned int i;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       i = 1;
       while (i <= l->noOfelements)
-        if (l->elements.array[i-1] == c)
-          return i;
-        else
-          i += 1;
+        {
+          if (l->elements.array[i-1] == c)
+            {
+              return i;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
       return l->noOfelements+(alists_getIndexOfList (l->next, c));
     }
 }
@@ -260,7 +278,9 @@ unsigned int alists_noOfItemsInList (alists_alist l)
   unsigned int t;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       t = 0;
@@ -281,7 +301,9 @@ unsigned int alists_noOfItemsInList (alists_alist l)
 void alists_includeItemIntoList (alists_alist l, void * c)
 {
   if (! (alists_isItemInList (l, c)))
-    alists_putItemIntoList (l, c);
+    {
+      alists_putItemIntoList (l, c);
+    }
 }
 
 
@@ -303,9 +325,13 @@ void alists_removeItemFromList (alists_alist l, void * c)
       do {
         i = 1;
         while ((i <= l->noOfelements) && (l->elements.array[i-1] != c))
-          i += 1;
+          {
+            i += 1;
+          }
         if ((i <= l->noOfelements) && (l->elements.array[i-1] == c))
-          found = TRUE;
+          {
+            found = TRUE;
+          }
         else
           {
             p = l;
@@ -313,7 +339,9 @@ void alists_removeItemFromList (alists_alist l, void * c)
           }
       } while (! ((l == NULL) || found));
       if (found)
-        removeItem (p, l, i);
+        {
+          removeItem (p, l, i);
+        }
     }
 }
 
@@ -329,10 +357,16 @@ unsigned int alists_isItemInList (alists_alist l, void * c)
   do {
     i = 1;
     while (i <= l->noOfelements)
-      if (l->elements.array[i-1] == c)
-        return TRUE;
-      else
-        i += 1;
+      {
+        if (l->elements.array[i-1] == c)
+          {
+            return TRUE;
+          }
+        else
+          {
+            i += 1;
+          }
+      }
     l = l->next;
   } while (! (l == NULL));
   return FALSE;

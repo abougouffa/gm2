@@ -156,7 +156,9 @@ DynamicStrings_String SFIO_WriteS (FIO_File file, DynamicStrings_String s)
   unsigned int nBytes;
 
   if (s != NULL)
-    nBytes = FIO_WriteNBytes (file, DynamicStrings_Length (s), DynamicStrings_string (s));
+    {
+      nBytes = FIO_WriteNBytes (file, DynamicStrings_Length (s), DynamicStrings_string (s));
+    }
   return s;
 }
 
@@ -175,11 +177,15 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
 
   s = DynamicStrings_InitString ((char *) "", 0);
   while (((! (FIO_EOLN (file))) && (! (FIO_EOF (file)))) && (FIO_IsNoError (file)))
-    s = DynamicStrings_ConCatChar (s, FIO_ReadChar (file));
+    {
+      s = DynamicStrings_ConCatChar (s, FIO_ReadChar (file));
+    }
   if (FIO_EOLN (file))
-    /* consume nl  */
-    if ((FIO_ReadChar (file)) == ASCII_nul)
-      {}  /* empty.  */
+    {
+      /* consume nl  */
+      if ((FIO_ReadChar (file)) == ASCII_nul)
+        {}  /* empty.  */
+    }
   return s;
 }
 

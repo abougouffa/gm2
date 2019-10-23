@@ -218,10 +218,16 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   memcpy (b, b_, _b_high+1);
 
   if (_a_high == _b_high)
-    for (i=0; i<=_a_high; i++)
-      a[i] = b[i];
+    {
+      for (i=0; i<=_a_high; i++)
+        {
+          a[i] = b[i];
+        }
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -241,9 +247,13 @@ static DynamicStrings_String FormatString (DynamicStrings_String fmt, int *start
 
   DSdbEnter ();
   if ((*startpos) >= 0)
-    s = PerformFormatString (fmt, startpos, in, (unsigned char *) w, _w_high);
+    {
+      s = PerformFormatString (fmt, startpos, in, (unsigned char *) w, _w_high);
+    }
   else
-    s = DynamicStrings_Dup (in);
+    {
+      s = DynamicStrings_Dup (in);
+    }
   DSdbExit (s);
   return s;
 }
@@ -286,12 +296,18 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
               afterperc += 1;
             }
           else
-            left = FALSE;
+            {
+              left = FALSE;
+            }
           ch = DynamicStrings_char (fmt, afterperc);
           if (ch == '0')
-            leader = '0';
+            {
+              leader = '0';
+            }
           else
-            leader = ' ';
+            {
+              leader = ' ';
+            }
           width = 0;
           while (IsDigit (ch))
             {
@@ -316,15 +332,21 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
                 {
                   /* avoid gcc warning by using compound statement even if not strictly necessary.  */
                   if (left)
-                    /* place trailing spaces after, p.  */
-                    p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
+                    {
+                      /* place trailing spaces after, p.  */
+                      p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
+                    }
                   else
-                    /* padd string, p, with leading spaces.  */
-                    p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
+                    {
+                      /* padd string, p, with leading spaces.  */
+                      p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
+                    }
                 }
               /* include string, p, into, in.  */
               if (nextperc > 0)
-                in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+                {
+                  in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+                }
               in = DynamicStrings_ConCat (in, p);
               (*startpos) = afterperc;
               DSdbExit ((DynamicStrings_String) NULL);
@@ -332,6 +354,7 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
             }
           else if (ch == 'd')
             {
+              /* avoid dangling else.  */
               afterperc += 1;
               Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
               in = Copy (fmt, in, (*startpos), nextperc);
@@ -342,6 +365,7 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
             }
           else if (ch == 'x')
             {
+              /* avoid dangling else.  */
               afterperc += 1;
               Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
               in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
@@ -352,6 +376,7 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
             }
           else if (ch == 'u')
             {
+              /* avoid dangling else.  */
               afterperc += 1;
               Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
               in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
@@ -362,10 +387,13 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
             }
           else
             {
+              /* avoid dangling else.  */
               afterperc += 1;
               /* copy format string.  */
               if (nextperc > 0)
-                in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+                {
+                  in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+                }
               /* and the character after the %.  */
               in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
             }
@@ -393,9 +421,14 @@ static DynamicStrings_String Copy (DynamicStrings_String fmt, DynamicStrings_Str
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (end > 0)
-        in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, end)));
+        {
+          in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, end)));
+        }
       else if (end < 0)
-        in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, 0)));
+        {
+          /* avoid dangling else.  */
+          in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, 0)));
+        }
     }
   return in;
 }
@@ -413,7 +446,9 @@ static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicSt
   DynamicStrings_String result;
 
   if ((startpos == (DynamicStrings_Length (fmt))) || (startpos < 0))
-    return s;
+    {
+      return s;
+    }
   else
     {
       prevpos = startpos;
@@ -423,7 +458,9 @@ static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicSt
           if (startpos >= prevpos)
             {
               if (startpos > 0)
-                s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, startpos)));
+                {
+                  s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, startpos)));
+                }
               startpos += 1;
               if ((DynamicStrings_char (fmt, startpos)) == '%')
                 {
@@ -434,7 +471,9 @@ static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicSt
             }
         }
       if (prevpos < ((int ) (DynamicStrings_Length (fmt))))
-        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, 0)));
+        {
+          s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, 0)));
+        }
       return s;
     }
 }
@@ -587,18 +626,28 @@ DynamicStrings_String FormatStrings_HandleEscape (DynamicStrings_String s)
   while (i >= 0)
     {
       if (i > 0)
-        /* initially i might be zero which means the end of the string, which is not what we want.  */
-        d = DynamicStrings_ConCat (d, DynamicStrings_Slice (s, j, i));
+        {
+          /* initially i might be zero which means the end of the string, which is not what we want.  */
+          d = DynamicStrings_ConCat (d, DynamicStrings_Slice (s, j, i));
+        }
       ch = DynamicStrings_char (s, i+1);
       if (ch == 'n')
-        /* requires a newline.  */
-        d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_nl)));
+        {
+          /* requires a newline.  */
+          d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_nl)));
+        }
       else if (ch == 't')
-        /* requires a tab.  */
-        d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_tab)));
+        {
+          /* avoid dangling else.  */
+          /* requires a tab.  */
+          d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_tab)));
+        }
       else
-        /* copy escaped character.  */
-        d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
+        {
+          /* avoid dangling else.  */
+          /* copy escaped character.  */
+          d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
+        }
       i += 2;
       j = i;
       i = DynamicStrings_Index (s, '\\', (unsigned int ) (i));

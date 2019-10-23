@@ -441,11 +441,17 @@ static Handler findHandler (RTExceptions_EHBlock e, unsigned int number)
 
   h = e->handlers->right;
   while ((h != e->handlers) && (number != h->n))
-    h = h->right;
+    {
+      h = h->right;
+    }
   if (h == e->handlers)
-    return NULL;
+    {
+      return NULL;
+    }
   else
-    return h;
+    {
+      return h;
+    }
 }
 
 
@@ -460,9 +466,13 @@ static void InvokeHandler (void)
 
   h = findHandler (currentEHB, currentEHB->number);
   if (h == NULL)
-    throw (RTExceptions_GetNumber (RTExceptions_GetExceptionBlock ()));
+    {
+      throw (RTExceptions_GetNumber (RTExceptions_GetExceptionBlock ()));
+    }
   else
-    (*h->p.proc) ();
+    {
+      (*h->p.proc) ();
+    }
 }
 
 
@@ -503,13 +513,17 @@ static void * stripPath (void * s)
   p = s;
   f = s;
   while ((*p) != ASCII_nul)
-    if ((*p) == '/')
-      {
-        p += 1;
-        f = p;
-      }
-    else
-      p += 1;
+    {
+      if ((*p) == '/')
+        {
+          p += 1;
+          f = p;
+        }
+      else
+        {
+          p += 1;
+        }
+    }
   return f;
 }
 
@@ -558,7 +572,9 @@ static void addStr (void * s, unsigned int *i)
 static void addNum (unsigned int n, unsigned int *i)
 {
   if (n < 10)
-    addChar ( ((char) ((n % 10)+ ((unsigned int) ('0')))), i);
+    {
+      addChar ( ((char) ((n % 10)+ ((unsigned int) ('0')))), i);
+    }
   else
     {
       addNum (n / 10, i);
@@ -576,7 +592,9 @@ static RTExceptions_EHBlock New (void)
   RTExceptions_EHBlock e;
 
   if (freeEHB == NULL)
-    Storage_ALLOCATE ((void **) &e, sizeof (_T1));
+    {
+      Storage_ALLOCATE ((void **) &e, sizeof (_T1));
+    }
   else
     {
       e = freeEHB;
@@ -595,7 +613,9 @@ static Handler NewHandler (void)
   Handler h;
 
   if (freeHandler == NULL)
-    Storage_ALLOCATE ((void **) &h, sizeof (_T3));
+    {
+      Storage_ALLOCATE ((void **) &h, sizeof (_T3));
+    }
   else
     {
       h = freeHandler;
@@ -844,7 +864,9 @@ static void TidyUp (void)
   RTExceptions_EHBlock e;
 
   if (currentEHB != NULL)
-    currentEHB = RTExceptions_KillExceptionBlock (currentEHB);
+    {
+      currentEHB = RTExceptions_KillExceptionBlock (currentEHB);
+    }
   while (freeHandler != NULL)
     {
       f = freeHandler;
@@ -985,7 +1007,9 @@ void RTExceptions_PushHandler (RTExceptions_EHBlock e, unsigned int number, RTEx
 
   h = findHandler (e, number);
   if (h == NULL)
-    i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, (Handler) NULL, number, p);
+    {
+      i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, (Handler) NULL, number, p);
+    }
   else
     {
       /* remove, h,  */
@@ -1014,7 +1038,9 @@ void RTExceptions_PopHandler (RTExceptions_EHBlock e, unsigned int number)
       /* remove, h,  */
       SubHandler (h);
       if (h->stack != NULL)
-        AddHandler (e, h->stack);
+        {
+          AddHandler (e, h->stack);
+        }
       h = KillHandler (h);
     }
 }
@@ -1050,7 +1076,9 @@ void RTExceptions_BaseExceptionsThrow (void)
   M2EXCEPTION_M2Exceptions i;
 
   for (i=M2EXCEPTION_indexException; i<=M2EXCEPTION_exException; i++)
-    RTExceptions_PushHandler (RTExceptions_GetExceptionBlock (), (unsigned int ) (i), (RTExceptions_ProcedureHandler) {(RTExceptions_ProcedureHandler_t) DoThrow});
+    {
+      RTExceptions_PushHandler (RTExceptions_GetExceptionBlock (), (unsigned int ) (i), (RTExceptions_ProcedureHandler) {(RTExceptions_ProcedureHandler_t) DoThrow});
+    }
 }
 
 
@@ -1102,9 +1130,13 @@ void RTExceptions_SwitchExceptionState (unsigned int *from, unsigned int to)
 RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
 {
   if (currentEHB == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 53, 588, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
+    {
+      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 53, 588, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
+    }
   else
-    return currentEHB;
+    {
+      return currentEHB;
+    }
   ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.def", 25, 1);
 }
 

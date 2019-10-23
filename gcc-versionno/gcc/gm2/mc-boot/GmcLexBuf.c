@@ -421,14 +421,20 @@ static void debugLex (unsigned int n)
   tokenBucket b;
 
   if (nextTokNo > n)
-    o = nextTokNo-n;
+    {
+      o = nextTokNo-n;
+    }
   else
-    o = 0;
+    {
+      o = 0;
+    }
   i = 0;
   do {
     t = o+i;
     if (nextTokNo == t)
-      mcPrintf_printf0 ((char *) "nextTokNo ", 10);
+      {
+        mcPrintf_printf0 ((char *) "nextTokNo ", 10);
+      }
     b = findtokenBucket (&t);
     if (b == NULL)
       {
@@ -461,7 +467,9 @@ static void seekTo (unsigned int t)
       t -= 1;
       b = findtokenBucket (&t);
       if (b == NULL)
-        updateFromBucket (b, t);
+        {
+          updateFromBucket (b, t);
+        }
     }
 }
 
@@ -480,7 +488,9 @@ static tokenBucket peeptokenBucket (unsigned int *t)
 
   ct = mcLexBuf_currenttoken;
   if (Debugging)
-    debugLex (5);
+    {
+      debugLex (5);
+    }
   old = mcLexBuf_getTokenNo ();
   do {
     n = (*t);
@@ -503,14 +513,22 @@ static tokenBucket peeptokenBucket (unsigned int *t)
   (*t) = n;
   nextTokNo = old+1;
   if (Debugging)
-    mcPrintf_printf2 ((char *) "nextTokNo = %d, old = %d\\n", 26, (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1), (unsigned char *) &old, (sizeof (old)-1));
+    {
+      mcPrintf_printf2 ((char *) "nextTokNo = %d, old = %d\\n", 26, (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1), (unsigned char *) &old, (sizeof (old)-1));
+    }
   b = findtokenBucket (&old);
   if (Debugging)
-    mcPrintf_printf1 ((char *) "  adjusted old = %d\\n", 21, (unsigned char *) &old, (sizeof (old)-1));
+    {
+      mcPrintf_printf1 ((char *) "  adjusted old = %d\\n", 21, (unsigned char *) &old, (sizeof (old)-1));
+    }
   if (b != NULL)
-    updateFromBucket (b, old);
+    {
+      updateFromBucket (b, old);
+    }
   if (Debugging)
-    debugLex (5);
+    {
+      debugLex (5);
+    }
   mcDebug_assert (ct == mcLexBuf_currenttoken);
   return b;
 }
@@ -542,29 +560,37 @@ static void peepAfterComment (void)
     t = cno+peep;
     b = peeptokenBucket (&t);
     if ((b == NULL) || (mcLexBuf_currenttoken == mcReserved_eoftok))
-      finished = TRUE;
+      {
+        finished = TRUE;
+      }
     else
       {
         nextline = b->buf.array[t].line;
         if (nextline == curline)
-          switch (b->buf.array[t].token)
-            {
-              case mcReserved_eoftok:
-              case mcReserved_endtok:
-                finished = TRUE;
-                break;
+          {
+            switch (b->buf.array[t].token)
+              {
+                case mcReserved_eoftok:
+                case mcReserved_endtok:
+                  finished = TRUE;
+                  break;
 
-              case mcReserved_commenttok:
-                if (mcComment_isAfterComment (b->buf.array[t].com))
-                  afterComment = b->buf.array[t].com;
-                break;
+                case mcReserved_commenttok:
+                  if (mcComment_isAfterComment (b->buf.array[t].com))
+                    {
+                      afterComment = b->buf.array[t].com;
+                    }
+                  break;
 
 
-              default:
-                break;
-            }
+                default:
+                  break;
+              }
+          }
         else
-          finished = TRUE;
+          {
+            finished = TRUE;
+          }
       }
     peep += 1;
   } while (! (finished));
@@ -627,7 +653,9 @@ static sourceList newElement (void * s)
 
   Storage_ALLOCATE ((void **) &l, sizeof (_T1));
   if (l == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
     {
       l->name = DynamicStrings_InitStringCharStar (s);
@@ -1053,9 +1081,13 @@ static void updateFromBucket (tokenBucket b, unsigned int offset)
   mcLexBuf_currentinteger = b->buf.array[offset].int_;
   mcLexBuf_currentcomment = b->buf.array[offset].com;
   if (mcLexBuf_currentcomment != NULL)
-    mcLexBuf_lastcomment = mcLexBuf_currentcomment;
+    {
+      mcLexBuf_lastcomment = mcLexBuf_currentcomment;
+    }
   if (Debugging)
-    mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1));
+    {
+      mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1));
+    }
 }
 
 
@@ -1081,36 +1113,48 @@ static void doGetToken (void)
         {
           a = mcflex_getToken ();
           if (listOfTokens.tail == NULL)
-            M2RTS_HALT (-1);
+            {
+              M2RTS_HALT (-1);
+            }
         }
       if (nextTokNo >= listOfTokens.lastBucketOffset)
-        /* nextTokNo is in the last bucket or needs to be read.  */
-        if ((nextTokNo-listOfTokens.lastBucketOffset) < listOfTokens.tail->len)
-          {
-            if (Debugging)
-              mcPrintf_printf0 ((char *) "fetching token from buffer (updateFromBucket)\\n", 47);
-            updateFromBucket (listOfTokens.tail, nextTokNo-listOfTokens.lastBucketOffset);
-          }
-        else
-          {
-            if (Debugging)
-              mcPrintf_printf0 ((char *) "calling flex to place token into buffer\\n", 41);
-            /* call the lexical phase to place a new token into the last bucket.  */
-            a = mcflex_getToken ();
-            mcLexBuf_getToken ();  /* and call ourselves again to collect the token from bucket.  */
-            return;  /* and call ourselves again to collect the token from bucket.  */
-          }
+        {
+          /* nextTokNo is in the last bucket or needs to be read.  */
+          if ((nextTokNo-listOfTokens.lastBucketOffset) < listOfTokens.tail->len)
+            {
+              if (Debugging)
+                {
+                  mcPrintf_printf0 ((char *) "fetching token from buffer (updateFromBucket)\\n", 47);
+                }
+              updateFromBucket (listOfTokens.tail, nextTokNo-listOfTokens.lastBucketOffset);
+            }
+          else
+            {
+              if (Debugging)
+                {
+                  mcPrintf_printf0 ((char *) "calling flex to place token into buffer\\n", 41);
+                }
+              /* call the lexical phase to place a new token into the last bucket.  */
+              a = mcflex_getToken ();
+              mcLexBuf_getToken ();  /* and call ourselves again to collect the token from bucket.  */
+              return;  /* and call ourselves again to collect the token from bucket.  */
+            }
+        }
       else
         {
           if (Debugging)
-            mcPrintf_printf0 ((char *) "fetching token from buffer\\n", 28);
+            {
+              mcPrintf_printf0 ((char *) "fetching token from buffer\\n", 28);
+            }
           t = nextTokNo;
           b = findtokenBucket (&t);
           updateFromBucket (b, t);
         }
     }
   if (Debugging)
-    displayToken (mcLexBuf_currenttoken);
+    {
+      displayToken (mcLexBuf_currenttoken);
+    }
   nextTokNo += 1;
 }
 
@@ -1123,7 +1167,9 @@ static void doGetToken (void)
 static void syncOpenWithBuffer (void)
 {
   if (listOfTokens.tail != NULL)
-    nextTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
+    {
+      nextTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
+    }
 }
 
 
@@ -1139,9 +1185,13 @@ static tokenBucket findtokenBucket (unsigned int *tokenNo)
   while (b != NULL)
     {
       if ((*tokenNo) < b->len)
-        return b;
+        {
+          return b;
+        }
       else
-        (*tokenNo) -= b->len;
+        {
+          (*tokenNo) -= b->len;
+        }
       b = b->next;
     }
   return NULL;
@@ -1176,6 +1226,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, mcComment
     }
   else if (listOfTokens.tail->len == MaxBucketSize)
     {
+      /* avoid dangling else.  */
       mcDebug_assert (listOfTokens.tail->next == NULL);
       Storage_ALLOCATE ((void **) &listOfTokens.tail->next, sizeof (_T2));
       if (listOfTokens.tail->next == NULL)
@@ -1216,12 +1267,18 @@ static unsigned int isLastTokenEof (void)
         {
           b = listOfTokens.head;
           if (b == listOfTokens.tail)
-            return FALSE;
+            {
+              return FALSE;
+            }
           while (b->next != listOfTokens.tail)
-            b = b->next;
+            {
+              b = b->next;
+            }
         }
       else
-        b = listOfTokens.tail;
+        {
+          b = listOfTokens.tail;
+        }
       mcDebug_assert (b->len > 0);  /* len should always be >0  */
       return b->buf.array[b->len-1].token == mcReserved_eoftok;  /* len should always be >0  */
     }
@@ -1286,15 +1343,19 @@ unsigned int mcLexBuf_openSource (DynamicStrings_String s)
       return TRUE;
     }
   else
-    if (mcflex_openSource (DynamicStrings_string (s)))
-      {
-        mcLexBuf_setFile (DynamicStrings_string (s));
-        syncOpenWithBuffer ();
-        mcLexBuf_getToken ();
-        return TRUE;
-      }
-    else
-      return FALSE;
+    {
+      if (mcflex_openSource (DynamicStrings_string (s)))
+        {
+          mcLexBuf_setFile (DynamicStrings_string (s));
+          syncOpenWithBuffer ();
+          mcLexBuf_getToken ();
+          return TRUE;
+        }
+      else
+        {
+          return FALSE;
+        }
+    }
 }
 
 
@@ -1305,8 +1366,12 @@ unsigned int mcLexBuf_openSource (DynamicStrings_String s)
 void mcLexBuf_closeSource (void)
 {
   if (useBufferedTokens)
-    while (mcLexBuf_currenttoken != mcReserved_eoftok)
-      mcLexBuf_getToken ();
+    {
+      while (mcLexBuf_currenttoken != mcReserved_eoftok)
+        {
+          mcLexBuf_getToken ();
+        }
+    }
   /* a subsequent call to mcflex.OpenSource will really close the file  */
 }
 
@@ -1366,11 +1431,13 @@ void mcLexBuf_getToken (void)
           }
         else if (mcComment_isBodyComment (mcLexBuf_currentcomment))
           {
+            /* avoid dangling else.  */
             bodyComment = mcLexBuf_currentcomment;
             afterComment = NULL;
           }
         else if (mcComment_isAfterComment (mcLexBuf_currentcomment))
           {
+            /* avoid dangling else.  */
             procedureComment = NULL;
             bodyComment = NULL;
             afterComment = mcLexBuf_currentcomment;
@@ -1390,7 +1457,9 @@ void mcLexBuf_insertToken (mcReserved_toktype token)
   if (listOfTokens.tail != NULL)
     {
       if (listOfTokens.tail->len > 0)
-        listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
+        {
+          listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
+        }
       addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, (mcComment_commentDesc) NULL, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
       mcLexBuf_getToken ();
     }
@@ -1407,7 +1476,9 @@ void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
   if (listOfTokens.tail != NULL)
     {
       if (listOfTokens.tail->len > 0)
-        listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
+        {
+          listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
+        }
       addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, (mcComment_commentDesc) NULL, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
       mcLexBuf_currenttoken = token;
     }
@@ -1432,9 +1503,13 @@ unsigned int mcLexBuf_getPreviousTokenLineNo (void)
 unsigned int mcLexBuf_getLineNo (void)
 {
   if (nextTokNo == 0)
-    return 0;
+    {
+      return 0;
+    }
   else
-    return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
+    {
+      return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
+    }
 }
 
 
@@ -1445,9 +1520,13 @@ unsigned int mcLexBuf_getLineNo (void)
 unsigned int mcLexBuf_getTokenNo (void)
 {
   if (nextTokNo == 0)
-    return 0;
+    {
+      return 0;
+    }
   else
-    return nextTokNo-1;
+    {
+      return nextTokNo-1;
+    }
 }
 
 
@@ -1466,22 +1545,30 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
 
   b = findtokenBucket (&tokenNo);
   if (b == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
-    if (depth == 0)
-      return b->buf.array[tokenNo].line;
-    else
-      {
-        l = b->buf.array[tokenNo].file->left;
-        while (depth > 0)
-          {
-            l = l->left;
-            if (l == b->buf.array[tokenNo].file->left)
-              return 0;
-            depth -= 1;
-          }
-        return l->line;
-      }
+    {
+      if (depth == 0)
+        {
+          return b->buf.array[tokenNo].line;
+        }
+      else
+        {
+          l = b->buf.array[tokenNo].file->left;
+          while (depth > 0)
+            {
+              l = l->left;
+              if (l == b->buf.array[tokenNo].file->left)
+                {
+                  return 0;
+                }
+              depth -= 1;
+            }
+          return l->line;
+        }
+    }
 }
 
 
@@ -1493,9 +1580,13 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
 unsigned int mcLexBuf_getColumnNo (void)
 {
   if (nextTokNo == 0)
-    return 0;
+    {
+      return 0;
+    }
   else
-    return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
+    {
+      return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
+    }
 }
 
 
@@ -1514,22 +1605,30 @@ unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
 
   b = findtokenBucket (&tokenNo);
   if (b == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
-    if (depth == 0)
-      return b->buf.array[tokenNo].col;
-    else
-      {
-        l = b->buf.array[tokenNo].file->left;
-        while (depth > 0)
-          {
-            l = l->left;
-            if (l == b->buf.array[tokenNo].file->left)
-              return 0;
-            depth -= 1;
-          }
-        return l->col;
-      }
+    {
+      if (depth == 0)
+        {
+          return b->buf.array[tokenNo].col;
+        }
+      else
+        {
+          l = b->buf.array[tokenNo].file->left;
+          while (depth > 0)
+            {
+              l = l->left;
+              if (l == b->buf.array[tokenNo].file->left)
+                {
+                  return 0;
+                }
+              depth -= 1;
+            }
+          return l->col;
+        }
+    }
 }
 
 
@@ -1548,7 +1647,9 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
 
   b = findtokenBucket (&tokenNo);
   if (b == NULL)
-    return NULL;
+    {
+      return NULL;
+    }
   else
     {
       l = b->buf.array[tokenNo].file->left;
@@ -1556,7 +1657,9 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
         {
           l = l->left;
           if (l == b->buf.array[tokenNo].file->left)
-            return NULL;
+            {
+              return NULL;
+            }
           depth -= 1;
         }
       return l->name;
@@ -1596,7 +1699,9 @@ void mcLexBuf_addTok (mcReserved_toktype t)
 void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s)
 {
   if ((libc_strlen (s)) > 80)
-    stop ();
+    {
+      stop ();
+    }
   addTokToList (t, nameKey_makekey (s), 0, (mcComment_commentDesc) NULL, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
   currentUsed = TRUE;
 }
@@ -1656,14 +1761,16 @@ void mcLexBuf_pushFile (void * filename)
   checkIfNeedToDuplicate ();
   addTo (newElement (filename));
   if (Debugging)
-    if (currentSource->right != currentSource)
-      {
-        l = currentSource;
-        do {
-          mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\n", 32, (unsigned char *) &l->name, (sizeof (l->name)-1), (unsigned char *) &l->line, (sizeof (l->line)-1), (unsigned char *) &l->col, (sizeof (l->col)-1));
-          l = l->right;
-        } while (! (l == currentSource));
-      }
+    {
+      if (currentSource->right != currentSource)
+        {
+          l = currentSource;
+          do {
+            mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\n", 32, (unsigned char *) &l->name, (sizeof (l->name)-1), (unsigned char *) &l->line, (sizeof (l->line)-1), (unsigned char *) &l->col, (sizeof (l->col)-1));
+            l = l->right;
+          } while (! (l == currentSource));
+        }
+    }
 }
 
 

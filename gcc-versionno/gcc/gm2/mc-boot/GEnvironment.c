@@ -75,7 +75,9 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
       i += 1;
     }
   if (i < High)
-    a[i] = ASCII_nul;
+    {
+      a[i] = ASCII_nul;
+    }
   return Addr != NULL;
 }
 

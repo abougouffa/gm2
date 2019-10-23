@@ -52,7 +52,9 @@ void mcDebug_writeDebug (char *a_, unsigned int _a_high);
 void mcDebug_assert (unsigned int q)
 {
   if (! q)
-    mcError_internalError ((char *) "assert failed", 13, (char *) "../../gcc-versionno/gcc/gm2/mc/mcDebug.mod", 42, 36);
+    {
+      mcError_internalError ((char *) "assert failed", 13, (char *) "../../gcc-versionno/gcc/gm2/mc/mcDebug.mod", 42, 36);
+    }
 }
 
 

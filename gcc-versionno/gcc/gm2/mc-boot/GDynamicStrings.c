@@ -698,7 +698,9 @@ static void DumpStringInfo (DynamicStrings_String s, unsigned int i)
 static void doDSdbEnter (void)
 {
   if (CheckOn)
-    DynamicStrings_PushAllocation ();
+    {
+      DynamicStrings_PushAllocation ();
+    }
 }
 
 
@@ -709,7 +711,9 @@ static void doDSdbEnter (void)
 static void doDSdbExit (DynamicStrings_String s)
 {
   if (CheckOn)
-    s = DynamicStrings_PopAllocationExemption (TRUE, s);
+    {
+      s = DynamicStrings_PopAllocationExemption (TRUE, s);
+    }
 }
 
 
@@ -753,9 +757,13 @@ static unsigned int Capture (DynamicStrings_String s)
 static unsigned int Min (unsigned int a, unsigned int b)
 {
   if (a < b)
-    return a;
+    {
+      return a;
+    }
   else
-    return b;
+    {
+      return b;
+    }
 }
 
 
@@ -766,9 +774,13 @@ static unsigned int Min (unsigned int a, unsigned int b)
 static unsigned int Max (unsigned int a, unsigned int b)
 {
   if (a > b)
-    return a;
+    {
+      return a;
+    }
   else
-    return b;
+    {
+      return b;
+    }
 }
 
 
@@ -797,9 +809,13 @@ static void writeCstring (void * a)
   int i;
 
   if (a == NULL)
-    writeString ((char *) "(null)", 6);
+    {
+      writeString ((char *) "(null)", 6);
+    }
   else
-    i = libc_write (1, a, libc_strlen (a));
+    {
+      i = libc_write (1, a, libc_strlen (a));
+    }
 }
 
 
@@ -841,11 +857,13 @@ static void writeLongcard (long unsigned int l)
     }
   else if (l < 10)
     {
+      /* avoid dangling else.  */
       ch = ((char) ( ((unsigned int) ('0'))+((unsigned int ) (l))));
       i = libc_write (1, &ch, (size_t) 1);
     }
   else if (l < 16)
     {
+      /* avoid dangling else.  */
       ch = ((char) (( ((unsigned int) ('a'))+((unsigned int ) (l)))-10));
       i = libc_write (1, &ch, (size_t) 1);
     }
@@ -911,7 +929,9 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
 static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s)
 {
   while ((list != s) && (list != NULL))
-    list = list->debug.next;
+    {
+      list = list->debug.next;
+    }
   return list == s;
 }
 
@@ -944,17 +964,25 @@ static void SubFrom (DynamicStrings_String *list, DynamicStrings_String s)
   DynamicStrings_String p;
 
   if ((*list) == s)
-    (*list) = s->debug.next;
+    {
+      (*list) = s->debug.next;
+    }
   else
     {
       p = (*list);
       while ((p->debug.next != NULL) && (p->debug.next != s))
-        p = p->debug.next;
+        {
+          p = p->debug.next;
+        }
       if (p->debug.next == s)
-        p->debug.next = s->debug.next;
+        {
+          p->debug.next = s->debug.next;
+        }
       else
-        /* not found, quit  */
-        return;
+        {
+          /* not found, quit  */
+          return;
+        }
     }
   s->debug.next = NULL;
 }
@@ -994,9 +1022,13 @@ static unsigned int IsOnAllocated (DynamicStrings_String s)
   f = frameHead;
   do {
     if (IsOn (f->alloc, s))
-      return TRUE;
+      {
+        return TRUE;
+      }
     else
-      f = f->next;
+      {
+        f = f->next;
+      }
   } while (! (f == NULL));
   return FALSE;
 }
@@ -1014,9 +1046,13 @@ static unsigned int IsOnDeallocated (DynamicStrings_String s)
   f = frameHead;
   do {
     if (IsOn (f->dealloc, s))
-      return TRUE;
+      {
+        return TRUE;
+      }
     else
-      f = f->next;
+      {
+        f = f->next;
+      }
   } while (! (f == NULL));
   return FALSE;
 }
@@ -1039,7 +1075,9 @@ static void SubAllocated (DynamicStrings_String s)
         return;
       }
     else
-      f = f->next;
+      {
+        f = f->next;
+      }
   } while (! (f == NULL));
 }
 
@@ -1061,7 +1099,9 @@ static void SubDeallocated (DynamicStrings_String s)
         return;
       }
     else
-      f = f->next;
+      {
+        f = f->next;
+      }
   } while (! (f == NULL));
 }
 
@@ -1084,8 +1124,10 @@ static void SubDebugInfo (DynamicStrings_String s)
       AddDeallocated (s);
     }
   else
-    /* string has not been allocated  */
-    Assertion_Assert (! DebugOn);
+    {
+      /* string has not been allocated  */
+      Assertion_Assert (! DebugOn);
+    }
 }
 
 
@@ -1100,7 +1142,9 @@ static void AddDebugInfo (DynamicStrings_String s)
   s->debug.line = 0;
   s->debug.proc = NULL;
   if (CheckOn)
-    AddAllocated (s);
+    {
+      AddAllocated (s);
+    }
 }
 
 
@@ -1136,7 +1180,9 @@ static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigne
       (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 703, (char *) "ConcatContents", 14);
     }
   else
-    (*c).len = i;
+    {
+      (*c).len = i;
+    }
 }
 
 
@@ -1149,7 +1195,9 @@ static void DeallocateCharStar (DynamicStrings_String s)
   if ((s != NULL) && (s->head != NULL))
     {
       if (s->head->charStarUsed && (s->head->charStar != NULL))
-        Storage_DEALLOCATE (&s->head->charStar, s->head->charStarSize);
+        {
+          Storage_DEALLOCATE (&s->head->charStar, s->head->charStarSize);
+        }
       s->head->charStarUsed = FALSE;
       s->head->charStar = NULL;
       s->head->charStarSize = 0;
@@ -1165,7 +1213,9 @@ static void DeallocateCharStar (DynamicStrings_String s)
 static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
 {
   if (((PoisonOn && (s != NULL)) && (s->head != NULL)) && (s->head->state == poisoned))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   return s;
 }
 
@@ -1177,9 +1227,13 @@ static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
 static void MarkInvalid (DynamicStrings_String s)
 {
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (s->head != NULL)
-    s->head->charStarValid = FALSE;
+    {
+      s->head->charStarValid = FALSE;
+    }
 }
 
 
@@ -1215,7 +1269,9 @@ static void ConcatContentsAddress (Contents *c, void * a, unsigned int h)
       ConcatContentsAddress (&(*c).next->contents, (void *) p, h-j);
       AddDebugInfo ((*c).next);
       if (TraceOn)
-        (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 898, (char *) "ConcatContentsAddress", 21);
+        {
+          (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 898, (char *) "ConcatContentsAddress", 21);
+        }
     }
   else
     {
@@ -1250,11 +1306,15 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
     {
       c = a;
       while (c->head->garbage != NULL)
-        c = c->head->garbage;
+        {
+          c = c->head->garbage;
+        }
       c->head->garbage = b;
       b->head->state = onlist;
       if (CheckOn)
-        SubDebugInfo (b);
+        {
+          SubDebugInfo (b);
+        }
     }
   return a;
 }
@@ -1267,11 +1327,19 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
 static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String s)
 {
   if ((e != NULL) && (s != NULL))
-    while (e->head->garbage != NULL)
-      if (e->head->garbage == s)
-        return TRUE;
-      else
-        e = e->head->garbage;
+    {
+      while (e->head->garbage != NULL)
+        {
+          if (e->head->garbage == s)
+            {
+              return TRUE;
+            }
+          else
+            {
+              e = e->head->garbage;
+            }
+        }
+    }
   return FALSE;
 }
 
@@ -1336,11 +1404,19 @@ static void DumpStringSynopsis (DynamicStrings_String s)
   writeString ((char *) " ", 1);
   DumpState (s);
   if (IsOnAllocated (s))
-    writeString ((char *) " globally allocated", 19);
+    {
+      writeString ((char *) " globally allocated", 19);
+    }
   else if (IsOnDeallocated (s))
-    writeString ((char *) " globally deallocated", 21);
+    {
+      /* avoid dangling else.  */
+      writeString ((char *) " globally deallocated", 21);
+    }
   else
-    writeString ((char *) " globally unknown", 17);
+    {
+      /* avoid dangling else.  */
+      writeString ((char *) " globally unknown", 17);
+    }
   writeLn ();
 }
 
@@ -1412,7 +1488,9 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
   s->head->state = inuse;
   AddDebugInfo (s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 739, (char *) "InitString", 10);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 739, (char *) "InitString", 10);
+    }
   return s;
 }
 
@@ -1427,23 +1505,32 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
   DynamicStrings_String t;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (s != NULL)
     {
       if (CheckOn)
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           if (IsOnAllocated (s))
-            SubAllocated (s);
+            {
+              SubAllocated (s);
+            }
           else if (IsOnDeallocated (s))
-            SubDeallocated (s);
+            {
+              /* avoid dangling else.  */
+              SubDeallocated (s);
+            }
         }
       if (s->head != NULL)
         {
           s->head->state = poisoned;
           s->head->garbage = DynamicStrings_KillString (s->head->garbage);
           if (! PoisonOn)
-            DeallocateCharStar (s);
+            {
+              DeallocateCharStar (s);
+            }
           if (! PoisonOn)
             {
               Storage_DEALLOCATE ((void **) &s->head, sizeof (descriptor));
@@ -1452,7 +1539,9 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
         }
       t = DynamicStrings_KillString (s->contents.next);
       if (! PoisonOn)
-        Storage_DEALLOCATE ((void **) &s, sizeof (stringRecord));
+        {
+          Storage_DEALLOCATE ((void **) &s, sizeof (stringRecord));
+        }
     }
   return NULL;
 }
@@ -1467,7 +1556,9 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
 void DynamicStrings_Fin (DynamicStrings_String s)
 {
   if ((DynamicStrings_KillString (s)) != NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -1483,7 +1574,9 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   s->contents.len = 0;
   s->contents.next = NULL;
   if (a != NULL)
-    ConcatContentsAddress (&s->contents, a, (unsigned int) libc_strlen (a));
+    {
+      ConcatContentsAddress (&s->contents, a, (unsigned int) libc_strlen (a));
+    }
   Storage_ALLOCATE ((void **) &s->head, sizeof (descriptor));
   s->head->charStarUsed = FALSE;
   s->head->charStar = NULL;
@@ -1493,7 +1586,9 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   s->head->state = inuse;
   AddDebugInfo (s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 938, (char *) "InitStringCharStar", 18);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 938, (char *) "InitStringCharStar", 18);
+    }
   return s;
 }
 
@@ -1514,7 +1609,9 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
   a.array[1] = ASCII_nul;
   s = DynamicStrings_InitString ((char *) &a.array[0], 1);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 958, (char *) "InitStringChar", 14);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 958, (char *) "InitStringChar", 14);
+    }
   return s;
 }
 
@@ -1526,9 +1623,13 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
 DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
 {
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if ((s != NULL) && (s->head->state == inuse))
-    s->head->state = marked;
+    {
+      s->head->state = marked;
+    }
   return s;
 }
 
@@ -1540,9 +1641,13 @@ DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
 unsigned int DynamicStrings_Length (DynamicStrings_String s)
 {
   if (s == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
-    return s->contents.len+(DynamicStrings_Length (s->contents.next));
+    {
+      return s->contents.len+(DynamicStrings_Length (s->contents.next));
+    }
 }
 
 
@@ -1560,22 +1665,29 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
       b = CheckPoisoned (b);
     }
   if (a == b)
-    return DynamicStrings_ConCat (a, DynamicStrings_Mark (DynamicStrings_Dup (b)));
+    {
+      return DynamicStrings_ConCat (a, DynamicStrings_Mark (DynamicStrings_Dup (b)));
+    }
   else if (a != NULL)
     {
+      /* avoid dangling else.  */
       a = AddToGarbage (a, b);
       MarkInvalid (a);
       t = a;
       while (b != NULL)
         {
           while ((t->contents.len == MaxBuf) && (t->contents.next != NULL))
-            t = t->contents.next;
+            {
+              t = t->contents.next;
+            }
           ConcatContents (&t->contents, (char *) &b->contents.buf.array[0], (MaxBuf-1), b->contents.len, 0);
           b = b->contents.next;
         }
     }
   if ((a == NULL) && (b != NULL))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   return a;
 }
 
@@ -1593,13 +1705,17 @@ DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char c
   DynamicStrings_String t;
 
   if (PoisonOn)
-    a = CheckPoisoned (a);
+    {
+      a = CheckPoisoned (a);
+    }
   b.array[0] = ch;
   b.array[1] = ASCII_nul;
   t = a;
   MarkInvalid (a);
   while ((t->contents.len == MaxBuf) && (t->contents.next != NULL))
-    t = t->contents.next;
+    {
+      t = t->contents.next;
+    }
   ConcatContents (&t->contents, (char *) &b.array[0], 1, 1, 0);
   return a;
 }
@@ -1633,10 +1749,14 @@ DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStr
 DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
 {
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   s = DynamicStrings_Assign (DynamicStrings_InitString ((char *) "", 0), s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1154, (char *) "Dup", 3);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1154, (char *) "Dup", 3);
+    }
   return s;
 }
 
@@ -1654,7 +1774,9 @@ DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicString
     }
   a = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "", 0), a), b);
   if (TraceOn)
-    a = AssignDebug (a, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1174, (char *) "Add", 3);
+    {
+      a = AssignDebug (a, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1174, (char *) "Add", 3);
+    }
   return a;
 }
 
@@ -1681,11 +1803,17 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
           while (i < a->contents.len)
             {
               if (a->contents.buf.array[i] != a->contents.buf.array[i])
-                M2RTS_HALT (-1);
+                {
+                  M2RTS_HALT (-1);
+                }
               if (b->contents.buf.array[i] != b->contents.buf.array[i])
-                M2RTS_HALT (-1);
+                {
+                  M2RTS_HALT (-1);
+                }
               if (a->contents.buf.array[i] != b->contents.buf.array[i])
-                return FALSE;
+                {
+                  return FALSE;
+                }
               i += 1;
             }
           a = a->contents.next;
@@ -1694,7 +1822,9 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
       return TRUE;
     }
   else
-    return FALSE;
+    {
+      return FALSE;
+    }
 }
 
 
@@ -1708,10 +1838,14 @@ unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
   DynamicStrings_String t;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   t = DynamicStrings_InitStringCharStar (a);
   if (TraceOn)
-    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1239, (char *) "EqualCharStar", 13);
+    {
+      t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1239, (char *) "EqualCharStar", 13);
+    }
   t = AddToGarbage (t, s);
   if (DynamicStrings_Equal (t, s))
     {
@@ -1740,10 +1874,14 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
   memcpy (a, a_, _a_high+1);
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   t = DynamicStrings_InitString ((char *) a, _a_high);
   if (TraceOn)
-    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1269, (char *) "EqualArray", 10);
+    {
+      t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1269, (char *) "EqualArray", 10);
+    }
   t = AddToGarbage (t, s);
   if (DynamicStrings_Equal (t, s))
     {
@@ -1765,13 +1903,21 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
 DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int n)
 {
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (n <= 0)
-    s = AddToGarbage (DynamicStrings_InitString ((char *) "", 0), s);
+    {
+      s = AddToGarbage (DynamicStrings_InitString ((char *) "", 0), s);
+    }
   else
-    s = DynamicStrings_ConCat (DynamicStrings_Mult (s, n-1), s);
+    {
+      s = DynamicStrings_ConCat (DynamicStrings_Mult (s, n-1), s);
+    }
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1301, (char *) "Mult", 4);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1301, (char *) "Mult", 4);
+    }
   return s;
 }
 
@@ -1797,54 +1943,76 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
   int o;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (low < 0)
-    low = ((int ) (DynamicStrings_Length (s)))+low;
+    {
+      low = ((int ) (DynamicStrings_Length (s)))+low;
+    }
   if (high <= 0)
-    high = ((int ) (DynamicStrings_Length (s)))+high;
+    {
+      high = ((int ) (DynamicStrings_Length (s)))+high;
+    }
   else
-    /* make sure high is <= Length (s)  */
-    high = Min (DynamicStrings_Length (s), (unsigned int) high);
+    {
+      /* make sure high is <= Length (s)  */
+      high = Min (DynamicStrings_Length (s), (unsigned int) high);
+    }
   d = DynamicStrings_InitString ((char *) "", 0);
   d = AddToGarbage (d, s);
   o = 0;
   t = d;
   while (s != NULL)
-    if (low < (o+((int ) (s->contents.len))))
-      if (o > high)
-        s = NULL;
+    {
+      if (low < (o+((int ) (s->contents.len))))
+        {
+          if (o > high)
+            {
+              s = NULL;
+            }
+          else
+            {
+              /* found sliceable unit  */
+              if (low < o)
+                {
+                  start = 0;
+                }
+              else
+                {
+                  start = low-o;
+                }
+              end = Max (Min (MaxBuf, (unsigned int) high-o), 0);
+              while (t->contents.len == MaxBuf)
+                {
+                  if (t->contents.next == NULL)
+                    {
+                      Storage_ALLOCATE ((void **) &t->contents.next, sizeof (stringRecord));
+                      t->contents.next->head = NULL;
+                      t->contents.next->contents.len = 0;
+                      AddDebugInfo (t->contents.next);
+                      if (TraceOn)
+                        {
+                          t->contents.next = AssignDebug (t->contents.next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1369, (char *) "Slice", 5);
+                        }
+                    }
+                  t = t->contents.next;
+                }
+              ConcatContentsAddress (&t->contents, &s->contents.buf.array[start], (unsigned int) end-start);
+              o += s->contents.len;
+              s = s->contents.next;
+            }
+        }
       else
         {
-          /* found sliceable unit  */
-          if (low < o)
-            start = 0;
-          else
-            start = low-o;
-          end = Max (Min (MaxBuf, (unsigned int) high-o), 0);
-          while (t->contents.len == MaxBuf)
-            {
-              if (t->contents.next == NULL)
-                {
-                  Storage_ALLOCATE ((void **) &t->contents.next, sizeof (stringRecord));
-                  t->contents.next->head = NULL;
-                  t->contents.next->contents.len = 0;
-                  AddDebugInfo (t->contents.next);
-                  if (TraceOn)
-                    t->contents.next = AssignDebug (t->contents.next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1369, (char *) "Slice", 5);
-                }
-              t = t->contents.next;
-            }
-          ConcatContentsAddress (&t->contents, &s->contents.buf.array[start], (unsigned int) end-start);
           o += s->contents.len;
           s = s->contents.next;
         }
-    else
-      {
-        o += s->contents.len;
-        s = s->contents.next;
-      }
+    }
   if (TraceOn)
-    d = AssignDebug (d, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1386, (char *) "Slice", 5);
+    {
+      d = AssignDebug (d, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1386, (char *) "Slice", 5);
+    }
   return d;
 }
 
@@ -1861,19 +2029,25 @@ int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
   unsigned int k;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   k = 0;
   while (s != NULL)
     {
       if ((k+s->contents.len) < o)
-        k += s->contents.len;
+        {
+          k += s->contents.len;
+        }
       else
         {
           i = o-k;
           while (i < s->contents.len)
             {
               if (s->contents.buf.array[i] == ch)
-                return k+i;
+                {
+                  return k+i;
+                }
               i += 1;
             }
           k += i;
@@ -1898,23 +2072,33 @@ int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
   int j;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   j = -1;
   k = 0;
   while (s != NULL)
     {
       if ((k+s->contents.len) < o)
-        k += s->contents.len;
+        {
+          k += s->contents.len;
+        }
       else
         {
           if (o < k)
-            i = 0;
+            {
+              i = 0;
+            }
           else
-            i = o-k;
+            {
+              i = o-k;
+            }
           while (i < s->contents.len)
             {
               if (s->contents.buf.array[i] == ch)
-                j = k;
+                {
+                  j = k;
+                }
               k += 1;
               i += 1;
             }
@@ -1939,11 +2123,18 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
 
   i = DynamicStrings_Index (s, comment, 0);
   if (i == 0)
-    s = DynamicStrings_InitString ((char *) "", 0);
+    {
+      s = DynamicStrings_InitString ((char *) "", 0);
+    }
   else if (i > 0)
-    s = DynamicStrings_RemoveWhitePostfix (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i));
+    {
+      /* avoid dangling else.  */
+      s = DynamicStrings_RemoveWhitePostfix (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i));
+    }
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1498, (char *) "RemoveComment", 13);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1498, (char *) "RemoveComment", 13);
+    }
   return s;
 }
 
@@ -1959,10 +2150,14 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
 
   i = 0;
   while (IsWhite (DynamicStrings_char (s, (int) i)))
-    i += 1;
+    {
+      i += 1;
+    }
   s = DynamicStrings_Slice (s, (int ) (i), 0);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1610, (char *) "RemoveWhitePrefix", 17);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1610, (char *) "RemoveWhitePrefix", 17);
+    }
   return s;
 }
 
@@ -1978,10 +2173,14 @@ DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s
 
   i = ((int ) (DynamicStrings_Length (s)))-1;
   while ((i >= 0) && (IsWhite (DynamicStrings_char (s, i))))
-    i -= 1;
+    {
+      i -= 1;
+    }
   s = DynamicStrings_Slice (s, 0, i+1);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1632, (char *) "RemoveWhitePostfix", 18);
+    {
+      s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1632, (char *) "RemoveWhitePostfix", 18);
+    }
   return s;
 }
 
@@ -2009,7 +2208,9 @@ DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
             {
               ch = t->contents.buf.array[i];
               if ((ch >= 'a') && (ch <= 'z'))
-                t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('a')))+ ((unsigned int) ('A'))));
+                {
+                  t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('a')))+ ((unsigned int) ('A'))));
+                }
               i += 1;
             }
           t = t->contents.next;
@@ -2042,7 +2243,9 @@ DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
             {
               ch = t->contents.buf.array[i];
               if ((ch >= 'A') && (ch <= 'Z'))
-                t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))));
+                {
+                  t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))));
+                }
               i += 1;
             }
           t = t->contents.next;
@@ -2069,7 +2272,9 @@ void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_Strin
       i += 1;
     }
   if (i <= _a_high)
-    a[i] = ASCII_nul;
+    {
+      a[i] = ASCII_nul;
+    }
 }
 
 
@@ -2082,20 +2287,30 @@ char DynamicStrings_char (DynamicStrings_String s, int i)
   unsigned int c;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (i < 0)
-    c = (unsigned int ) (((int ) (DynamicStrings_Length (s)))+i);
+    {
+      c = (unsigned int ) (((int ) (DynamicStrings_Length (s)))+i);
+    }
   else
-    c = i;
+    {
+      c = i;
+    }
   while ((s != NULL) && (c >= s->contents.len))
     {
       c -= s->contents.len;
       s = s->contents.next;
     }
   if ((s == NULL) || (c >= s->contents.len))
-    return ASCII_nul;
+    {
+      return ASCII_nul;
+    }
   else
-    return s->contents.buf.array[c];
+    {
+      return s->contents.buf.array[c];
+    }
 }
 
 
@@ -2111,9 +2326,13 @@ void * DynamicStrings_string (DynamicStrings_String s)
   char * p;
 
   if (PoisonOn)
-    s = CheckPoisoned (s);
+    {
+      s = CheckPoisoned (s);
+    }
   if (s == NULL)
-    return NULL;
+    {
+      return NULL;
+    }
   else
     {
       if (! s->head->charStarValid)
@@ -2296,7 +2515,9 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
 
   Init ();
   if (frameHead == NULL)
-    writeString ((char *) "mismatched number of PopAllocation's compared to PushAllocation's", 65);
+    {
+      writeString ((char *) "mismatched number of PopAllocation's compared to PushAllocation's", 65);
+    }
   else
     {
       if (frameHead->alloc != NULL)
@@ -2318,7 +2539,9 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
               s = s->debug.next;
             }
           if (b && halt)
-            libc_exit (1);
+            {
+              libc_exit (1);
+            }
         }
       frameHead = frameHead->next;
     }

@@ -108,7 +108,9 @@ static void Erase (void)
 static void Echo (char ch)
 {
   if (IsATTY)
-    StdIO_Write (ch);
+    {
+      StdIO_Write (ch);
+    }
 }
 
 
@@ -151,32 +153,48 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
   do {
     StdIO_Read (&ch);
     if ((ch == ASCII_del) || (ch == ASCII_bs))
-      if (n == 0)
-        StdIO_Write (ASCII_bel);
-      else
-        {
-          Erase ();
-          n -= 1;
-        }
+      {
+        if (n == 0)
+          {
+            StdIO_Write (ASCII_bel);
+          }
+        else
+          {
+            Erase ();
+            n -= 1;
+          }
+      }
     else if (ch == ASCII_nak)
-      while (n > 0)
-        {
-          Erase ();
-          n -= 1;
-        }
+      {
+        /* avoid dangling else.  */
+        while (n > 0)
+          {
+            Erase ();
+            n -= 1;
+          }
+      }
     else if (ch == ASCII_etb)
-      if (n == 0)
-        Echo (ASCII_bel);
-      else if (AlphaNum (a[n-1]))
-        do {
-          Erase ();
-          n -= 1;
-        } while (! ((n == 0) || (! (AlphaNum (a[n-1])))));
-      else
-        {
-          Erase ();
-          n -= 1;
-        }
+      {
+        /* avoid dangling else.  */
+        if (n == 0)
+          {
+            Echo (ASCII_bel);
+          }
+        else if (AlphaNum (a[n-1]))
+          {
+            /* avoid dangling else.  */
+            do {
+              Erase ();
+              n -= 1;
+            } while (! ((n == 0) || (! (AlphaNum (a[n-1])))));
+          }
+        else
+          {
+            /* avoid dangling else.  */
+            Erase ();
+            n -= 1;
+          }
+      }
     else if (n <= high)
       {
         /* avoid dangling else.  */
@@ -187,28 +205,38 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
           }
         else if (ch == ASCII_ff)
           {
+            /* avoid dangling else.  */
             a[0] = ch;
             if (high > 0)
-              a[1] = ASCII_nul;
+              {
+                a[1] = ASCII_nul;
+              }
             ch = ASCII_cr;
           }
         else if (ch >= ' ')
           {
+            /* avoid dangling else.  */
             Echo (ch);
             a[n] = ch;
             n += 1;
           }
         else if (ch == ASCII_eof)
           {
+            /* avoid dangling else.  */
             a[n] = ch;
             n += 1;
             ch = ASCII_cr;
             if (n <= high)
-              a[n] = ASCII_nul;
+              {
+                a[n] = ASCII_nul;
+              }
           }
       }
     else if (ch != ASCII_cr)
-      Echo (ASCII_bel);
+      {
+        /* avoid dangling else.  */
+        Echo (ASCII_bel);
+      }
   } while (! ((ch == ASCII_cr) || (ch == ASCII_lf)));
 }
 

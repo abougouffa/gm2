@@ -144,7 +144,9 @@ void StdIO_Write (char ch)
 void StdIO_PushOutput (StdIO_ProcWrite p)
 {
   if (StackWPtr == MaxStack)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
     {
       StackWPtr += 1;
@@ -160,9 +162,13 @@ void StdIO_PushOutput (StdIO_ProcWrite p)
 void StdIO_PopOutput (void)
 {
   if (StackWPtr == 1)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    StackWPtr -= 1;
+    {
+      StackWPtr -= 1;
+    }
 }
 
 
@@ -173,9 +179,13 @@ void StdIO_PopOutput (void)
 StdIO_ProcWrite StdIO_GetCurrentOutput (void)
 {
   if (StackWPtr > 0)
-    return StackW.array[StackWPtr];
+    {
+      return StackW.array[StackWPtr];
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -188,7 +198,9 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
 void StdIO_PushInput (StdIO_ProcRead p)
 {
   if (StackRPtr == MaxStack)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
     {
       StackRPtr += 1;
@@ -204,9 +216,13 @@ void StdIO_PushInput (StdIO_ProcRead p)
 void StdIO_PopInput (void)
 {
   if (StackRPtr == 1)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    StackRPtr -= 1;
+    {
+      StackRPtr -= 1;
+    }
 }
 
 
@@ -217,9 +233,13 @@ void StdIO_PopInput (void)
 StdIO_ProcRead StdIO_GetCurrentInput (void)
 {
   if (StackRPtr > 0)
-    return StackR.array[StackRPtr];
+    {
+      return StackR.array[StackRPtr];
+    }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

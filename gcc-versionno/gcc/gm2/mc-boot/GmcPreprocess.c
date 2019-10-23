@@ -135,14 +135,18 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
 
   command = mcOptions_getCppCommandLine ();
   if (DynamicStrings_EqualArray (command, (char *) "", 0))
-    return filename;
+    {
+      return filename;
+    }
   else
     {
       tempfile = DynamicStrings_InitStringCharStar ((void *) makeTempFile (DynamicStrings_InitString ((char *) "cpp", 3)));
       commandLine = DynamicStrings_Dup (command);
       commandLine = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Dup (commandLine), ' '), filename), DynamicStrings_Mark (DynamicStrings_InitString ((char *) " -o ", 4))), tempfile);
       if (mcOptions_getVerbose ())
-        mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\n", 4, (unsigned char *) &commandLine, (sizeof (commandLine)-1));
+        {
+          mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\n", 4, (unsigned char *) &commandLine, (sizeof (commandLine)-1));
+        }
       if ((libc_system (DynamicStrings_string (commandLine))) != 0)
         {
           mcPrintf_fprintf1 (FIO_StdErr, (char *) "C preprocessor failed when preprocessing %s\\n", 45, (unsigned char *) &filename, (sizeof (filename)-1));
@@ -157,7 +161,9 @@ void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unu
 {
   listOfFiles = alists_initList ();
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles})))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 void _M2_mcPreprocess_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

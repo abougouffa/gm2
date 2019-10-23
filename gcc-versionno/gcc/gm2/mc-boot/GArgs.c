@@ -83,7 +83,9 @@ unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
         }
     }
   if (j <= High)
-    a[j] = ASCII_nul;
+    {
+      a[j] = ASCII_nul;
+    }
   return i < UnixArgs_ArgC;
 }
 

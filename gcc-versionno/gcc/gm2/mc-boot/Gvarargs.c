@@ -147,7 +147,9 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (-1);  /* too many calls to arg.  */
+    {
+      M2RTS_HALT (-1);  /* too many calls to arg.  */
+    }
   else
     {
       if ((_a_high+1) == v->arg.array[v->i].len)
@@ -162,7 +164,9 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
             }
         }
       else
-        M2RTS_HALT (-1);  /* parameter mismatch.  */
+        {
+          M2RTS_HALT (-1);  /* parameter mismatch.  */
+        }
       v->i += 1;
     }
 }
@@ -216,21 +220,27 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (-1);  /* too many calls to arg.  */
+    {
+      M2RTS_HALT (-1);  /* too many calls to arg.  */
+    }
   else
-    if ((_a_high+1) == v->arg.array[v->i].len)
-      {
-        p = v->arg.array[v->i].ptr;
-        j = 0;
-        while (j <= _a_high)
-          {
-            (*p) = a[j];
-            p += 1;
-            j += 1;
-          }
-      }
-    else
-      M2RTS_HALT (-1);  /* parameter mismatch.  */
+    {
+      if ((_a_high+1) == v->arg.array[v->i].len)
+        {
+          p = v->arg.array[v->i].ptr;
+          j = 0;
+          while (j <= _a_high)
+            {
+              (*p) = a[j];
+              p += 1;
+              j += 1;
+            }
+        }
+      else
+        {
+          M2RTS_HALT (-1);  /* parameter mismatch.  */
+        }
+    }
 }
 
 

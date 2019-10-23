@@ -202,9 +202,13 @@ Indexing_Index Indexing_DebugIndex (Indexing_Index i)
 unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 {
   if (i == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    return (n >= i->Low) && (n <= i->High);
+    {
+      return (n >= i->Low) && (n <= i->High);
+    }
 }
 
 
@@ -215,9 +219,13 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 unsigned int Indexing_HighIndice (Indexing_Index i)
 {
   if (i == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    return i->High;
+    {
+      return i->High;
+    }
 }
 
 
@@ -228,9 +236,13 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
 unsigned int Indexing_LowIndice (Indexing_Index i)
 {
   if (i == NULL)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    return i->Low;
+    {
+      return i->Low;
+    }
 }
 
 
@@ -248,12 +260,16 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (n < i->Low)
-        M2RTS_HALT (-1);
+        {
+          M2RTS_HALT (-1);
+        }
       else
         {
           oldSize = i->ArraySize;
           while (((n-i->Low)*sizeof (void *)) >= i->ArraySize)
-            i->ArraySize = i->ArraySize*2;
+            {
+              i->ArraySize = i->ArraySize*2;
+            }
           if (oldSize != i->ArraySize)
             {
               /* 
@@ -279,8 +295,12 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
   (*p) = a;
   i->Used += 1;
   if (i->Debug)
-    if (n < 32)
-      i->Map |= (1 << (n ));
+    {
+      if (n < 32)
+        {
+          i->Map |= (1 << (n ));
+        }
+    }
 }
 
 
@@ -294,13 +314,19 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
   PtrToAddress p;
 
   if (! (Indexing_InBounds (i, n)))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   b = i->ArrayStart;
   b += (n-i->Low)*sizeof (void *);
   p = (PtrToAddress) (b);
   if (i->Debug)
-    if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
-      M2RTS_HALT (-1);
+    {
+      if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
+        {
+          M2RTS_HALT (-1);
+        }
+    }
   return (*p);
 }
 
@@ -321,7 +347,9 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
     {
       p = (PtrToAddress) (b);
       if ((*p) == a)
-        return TRUE;
+        {
+          return TRUE;
+        }
       /* we must not INC(p, ..) as p2c gets confused  */
       b += sizeof (void *);
       j += 1;
@@ -348,7 +376,9 @@ void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a)
       p = (PtrToAddress) (b);
       b += sizeof (void *);
       if ((*p) == a)
-        Indexing_DeleteIndice (i, j);
+        {
+          Indexing_DeleteIndice (i, j);
+        }
       j += 1;
     }
 }
@@ -374,7 +404,9 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
       i->Used -= 1;
     }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -389,9 +421,13 @@ void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (i->Used == 0)
-        Indexing_PutIndice (i, Indexing_LowIndice (i), a);
+        {
+          Indexing_PutIndice (i, Indexing_LowIndice (i), a);
+        }
       else
-        Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
+        {
+          Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
+        }
     }
 }
 

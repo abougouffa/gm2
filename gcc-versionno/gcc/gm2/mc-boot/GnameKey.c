@@ -177,6 +177,7 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
         }
       else if (result == greater)
         {
+          /* avoid dangling else.  */
           Storage_ALLOCATE ((void **) &child, sizeof (_T1));
           father->right = child;
         }
@@ -211,17 +212,25 @@ static comparison compare (ptrToChar pi, nameKey_Name j)
   c1 = (*pi);
   c2 = (*pj);
   while ((c1 != ASCII_nul) || (c2 != ASCII_nul))
-    if (c1 < c2)
-      return less;
-    else if (c1 > c2)
-      return greater;
-    else
-      {
-        pi += 1;
-        pj += 1;
-        c1 = (*pi);
-        c2 = (*pj);
-      }
+    {
+      if (c1 < c2)
+        {
+          return less;
+        }
+      else if (c1 > c2)
+        {
+          /* avoid dangling else.  */
+          return greater;
+        }
+      else
+        {
+          /* avoid dangling else.  */
+          pi += 1;
+          pj += 1;
+          c1 = (*pi);
+          c2 = (*pj);
+        }
+    }
   return equal;
 }
 
@@ -241,7 +250,9 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
   (*father) = binaryTree;
   (*child) = binaryTree->left;
   if ((*child) == NULL)
-    return less;
+    {
+      return less;
+    }
   else
     {
       do {
@@ -253,6 +264,7 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
           }
         else if (result == greater)
           {
+            /* avoid dangling else.  */
             (*father) = (*child);
             (*child) = (*child)->right;
           }
@@ -283,7 +295,9 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   higha = StrLib_StrLen ((char *) a, _a_high);
   Storage_ALLOCATE ((void **) &p, higha+1);
   if (p == NULL)
-    M2RTS_HALT (-1);  /* out of memory error  */
+    {
+      M2RTS_HALT (-1);  /* out of memory error  */
+    }
   else
     {
       n = p;
@@ -317,13 +331,17 @@ nameKey_Name nameKey_makekey (void * a)
   unsigned int higha;
 
   if (a == NULL)
-    return nameKey_NulName;
+    {
+      return nameKey_NulName;
+    }
   else
     {
       higha = libc_strlen (a);
       Storage_ALLOCATE ((void **) &p, higha+1);
       if (p == NULL)
-        M2RTS_HALT (-1);  /* out of memory error  */
+        {
+          M2RTS_HALT (-1);  /* out of memory error  */
+        }
       else
         {
           n = p;
@@ -363,7 +381,9 @@ void nameKey_getKey (nameKey_Name key, char *a, unsigned int _a_high)
       i += 1;
     }
   if (i <= higha)
-    a[i] = ASCII_nul;
+    {
+      a[i] = ASCII_nul;
+    }
 }
 
 
@@ -407,37 +427,45 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
   /* firstly set up the initial values of child, using sentinal node  */
   child = binaryTree->left;
   if (child != NULL)
-    do {
-      i = 0;
-      higha = _a_high;
-      p = nameKey_keyToCharStar (child->key);
-      while ((i <= higha) && (a[i] != ASCII_nul))
-        {
-          if (a[i] < (*p))
-            {
-              child = child->left;
-              i = higha;
-            }
-          else if (a[i] > (*p))
-            {
-              child = child->right;
-              i = higha;
-            }
-          else
-            {
-              if ((a[i] == ASCII_nul) || (i == higha))
-                {
-                  /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-                  if ((*p) == ASCII_nul)
-                    return TRUE;
-                  else
-                    child = child->left;
-                }
-              p += 1;
-            }
-          i += 1;
-        }
-    } while (! (child == NULL));
+    {
+      do {
+        i = 0;
+        higha = _a_high;
+        p = nameKey_keyToCharStar (child->key);
+        while ((i <= higha) && (a[i] != ASCII_nul))
+          {
+            if (a[i] < (*p))
+              {
+                child = child->left;
+                i = higha;
+              }
+            else if (a[i] > (*p))
+              {
+                /* avoid dangling else.  */
+                child = child->right;
+                i = higha;
+              }
+            else
+              {
+                /* avoid dangling else.  */
+                if ((a[i] == ASCII_nul) || (i == higha))
+                  {
+                    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+                    if ((*p) == ASCII_nul)
+                      {
+                        return TRUE;
+                      }
+                    else
+                      {
+                        child = child->left;
+                      }
+                  }
+                p += 1;
+              }
+            i += 1;
+          }
+      } while (! (child == NULL));
+    }
   return FALSE;
 }
 
@@ -473,7 +501,9 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
   char c2;
 
   if (key1 == key2)
-    return TRUE;
+    {
+      return TRUE;
+    }
   else
     {
       pi = nameKey_keyToCharStar (key1);
@@ -481,16 +511,20 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
       c1 = (*pi);
       c2 = (*pj);
       while ((c1 != ASCII_nul) && (c2 != ASCII_nul))
-        if (((c1 == c2) || (((c1 >= 'A') && (c1 <= 'Z')) && (c2 == ((char) (( ((unsigned int) (c1))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))))))) || (((c2 >= 'A') && (c2 <= 'Z')) && (c1 == ((char) (( ((unsigned int) (c2))- ((unsigned int) ('A')))+ ((unsigned int) ('a')))))))
-          {
-            pi += 1;
-            pj += 1;
-            c1 = (*pi);
-            c2 = (*pj);
-          }
-        else
-          /* difference found  */
-          return FALSE;
+        {
+          if (((c1 == c2) || (((c1 >= 'A') && (c1 <= 'Z')) && (c2 == ((char) (( ((unsigned int) (c1))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))))))) || (((c2 >= 'A') && (c2 <= 'Z')) && (c1 == ((char) (( ((unsigned int) (c2))- ((unsigned int) ('A')))+ ((unsigned int) ('a')))))))
+            {
+              pi += 1;
+              pj += 1;
+              c1 = (*pi);
+              c2 = (*pj);
+            }
+          else
+            {
+              /* difference found  */
+              return FALSE;
+            }
+        }
       return c1 == c2;
     }
 }
@@ -503,9 +537,13 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
 void * nameKey_keyToCharStar (nameKey_Name key)
 {
   if ((key == nameKey_NulName) || (! (Indexing_InBounds (keyIndex, (unsigned int) key))))
-    return NULL;
+    {
+      return NULL;
+    }
   else
-    return Indexing_GetIndice (keyIndex, (unsigned int) key);
+    {
+      return Indexing_GetIndice (keyIndex, (unsigned int) key);
+    }
 }
 
 void _M2_nameKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

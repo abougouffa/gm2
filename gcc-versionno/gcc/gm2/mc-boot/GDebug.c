@@ -143,13 +143,16 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
                 }
               else if (a[n+1] == '\\')
                 {
+                  /* avoid dangling else.  */
                   StdIO_Write ('\\');
                   n += 1;
                 }
             }
         }
       else
-        StdIO_Write (a[n]);
+        {
+          StdIO_Write (a[n]);
+        }
       n += 1;
     }
 }

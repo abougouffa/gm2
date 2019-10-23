@@ -122,9 +122,13 @@ void mcStack_kill (mcStack_stack *s)
 void * mcStack_push (mcStack_stack s, void * a)
 {
   if (s->count == 0)
-    Indexing_PutIndice (s->list, Indexing_LowIndice (s->list), a);
+    {
+      Indexing_PutIndice (s->list, Indexing_LowIndice (s->list), a);
+    }
   else
-    Indexing_PutIndice (s->list, (Indexing_HighIndice (s->list))+1, a);
+    {
+      Indexing_PutIndice (s->list, (Indexing_HighIndice (s->list))+1, a);
+    }
   s->count += 1;
   return a;
 }
@@ -139,7 +143,9 @@ void * mcStack_pop (mcStack_stack s)
   void * a;
 
   if (s->count == 0)
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
     {
       s->count -= 1;
@@ -183,9 +189,13 @@ unsigned int mcStack_depth (mcStack_stack s)
 void * mcStack_access (mcStack_stack s, unsigned int i)
 {
   if ((i > s->count) || (i == 0))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
   else
-    return Indexing_GetIndice (s->list, i);
+    {
+      return Indexing_GetIndice (s->list, i);
+    }
 }
 
 void _M2_mcStack_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

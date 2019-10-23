@@ -189,7 +189,9 @@ void wlists_killList (wlists_wlist *l)
   if ((*l) != NULL)
     {
       if ((*l)->next != NULL)
-        wlists_killList (&(*l)->next);
+        {
+          wlists_killList (&(*l)->next);
+        }
       Storage_DEALLOCATE ((void **) &(*l), sizeof (_T1));
     }
 }
@@ -207,9 +209,13 @@ void wlists_putItemIntoList (wlists_wlist l, unsigned int c)
       l->elements.array[l->noOfElements-1] = c;
     }
   else if (l->next != NULL)
-    wlists_putItemIntoList (l->next, c);
+    {
+      /* avoid dangling else.  */
+      wlists_putItemIntoList (l->next, c);
+    }
   else
     {
+      /* avoid dangling else.  */
       l->next = wlists_initList ();
       wlists_putItemIntoList (l->next, c);
     }
@@ -225,9 +231,13 @@ unsigned int wlists_getItemFromList (wlists_wlist l, unsigned int n)
   while (l != NULL)
     {
       if (n <= l->noOfElements)
-        return l->elements.array[n-1];
+        {
+          return l->elements.array[n-1];
+        }
       else
-        n -= l->noOfElements;
+        {
+          n -= l->noOfElements;
+        }
       l = l->next;
     }
   return 0;
@@ -245,15 +255,23 @@ unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c)
   unsigned int i;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       i = 1;
       while (i <= l->noOfElements)
-        if (l->elements.array[i-1] == c)
-          return i;
-        else
-          i += 1;
+        {
+          if (l->elements.array[i-1] == c)
+            {
+              return i;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
       return l->noOfElements+(wlists_getIndexOfList (l->next, c));
     }
 }
@@ -268,7 +286,9 @@ unsigned int wlists_noOfItemsInList (wlists_wlist l)
   unsigned int t;
 
   if (l == NULL)
-    return 0;
+    {
+      return 0;
+    }
   else
     {
       t = 0;
@@ -289,7 +309,9 @@ unsigned int wlists_noOfItemsInList (wlists_wlist l)
 void wlists_includeItemIntoList (wlists_wlist l, unsigned int c)
 {
   if (! (wlists_isItemInList (l, c)))
-    wlists_putItemIntoList (l, c);
+    {
+      wlists_putItemIntoList (l, c);
+    }
 }
 
 
@@ -311,9 +333,13 @@ void wlists_removeItemFromList (wlists_wlist l, unsigned int c)
       do {
         i = 1;
         while ((i <= l->noOfElements) && (l->elements.array[i-1] != c))
-          i += 1;
+          {
+            i += 1;
+          }
         if ((i <= l->noOfElements) && (l->elements.array[i-1] == c))
-          found = TRUE;
+          {
+            found = TRUE;
+          }
         else
           {
             p = l;
@@ -321,7 +347,9 @@ void wlists_removeItemFromList (wlists_wlist l, unsigned int c)
           }
       } while (! ((l == NULL) || found));
       if (found)
-        removeItem (p, l, i);
+        {
+          removeItem (p, l, i);
+        }
     }
 }
 
@@ -337,9 +365,13 @@ void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned int w)
   while (l != NULL)
     {
       if (n <= l->noOfElements)
-        l->elements.array[n-1] = w;
+        {
+          l->elements.array[n-1] = w;
+        }
       else
-        n -= l->noOfElements;
+        {
+          n -= l->noOfElements;
+        }
       l = l->next;
     }
 }
@@ -356,10 +388,16 @@ unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c)
   do {
     i = 1;
     while (i <= l->noOfElements)
-      if (l->elements.array[i-1] == c)
-        return TRUE;
-      else
-        i += 1;
+      {
+        if (l->elements.array[i-1] == c)
+          {
+            return TRUE;
+          }
+        else
+          {
+            i += 1;
+          }
+      }
     l = l->next;
   } while (! (l == NULL));
   return FALSE;

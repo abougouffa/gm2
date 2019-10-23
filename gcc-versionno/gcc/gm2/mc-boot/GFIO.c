@@ -489,9 +489,13 @@ static void Init (void);
 static unsigned int Max (unsigned int a, unsigned int b)
 {
   if (a > b)
-    return a;
+    {
+      return a;
+    }
   else
-    return b;
+    {
+      return b;
+    }
 }
 
 
@@ -502,9 +506,13 @@ static unsigned int Max (unsigned int a, unsigned int b)
 static unsigned int Min (unsigned int a, unsigned int b)
 {
   if (a < b)
-    return a;
+    {
+      return a;
+    }
   else
-    return b;
+    {
+      return b;
+    }
 }
 
 
@@ -527,7 +535,9 @@ static FIO_File GetNextFreeDescriptor (void)
       {
         fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
         if (fd == NULL)
-          return f;
+          {
+            return f;
+          }
       }
     f += 1;
     if (f > h)
@@ -601,7 +611,9 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
           fd->buffer->position = 0;
           fd->buffer->filled = 0;
           if (fd->buffer->size == 0)
-            fd->buffer->address = NULL;
+            {
+              fd->buffer->address = NULL;
+            }
           else
             {
               Storage_ALLOCATE (&fd->buffer->address, fd->buffer->size);
@@ -612,9 +624,13 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
                 }
             }
           if (towrite)
-            fd->buffer->left = fd->buffer->size;
+            {
+              fd->buffer->left = fd->buffer->size;
+            }
           else
-            fd->buffer->left = 0;
+            {
+              fd->buffer->left = 0;
+            }
           fd->buffer->contents = fd->buffer->address;  /* provides easy access for reading characters  */
           fd->state = fstate;  /* provides easy access for reading characters  */
         }
@@ -637,14 +653,24 @@ static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfil
       if (fd != NULL)
         {
           if (towrite)
-            if (newfile)
-              fd->unixfd = libc_creat (fd->name.address, CreatePermissions);
-            else
-              fd->unixfd = libc_open (fd->name.address, UNIXWRITEONLY, 0);
+            {
+              if (newfile)
+                {
+                  fd->unixfd = libc_creat (fd->name.address, CreatePermissions);
+                }
+              else
+                {
+                  fd->unixfd = libc_open (fd->name.address, UNIXWRITEONLY, 0);
+                }
+            }
           else
-            fd->unixfd = libc_open (fd->name.address, UNIXREADONLY, 0);
+            {
+              fd->unixfd = libc_open (fd->name.address, UNIXREADONLY, 0);
+            }
           if (fd->unixfd < 0)
-            fd->state = connectionfailure;
+            {
+              fd->state = connectionfailure;
+            }
         }
     }
 }
@@ -675,38 +701,40 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);  /* how many bytes have we read  */
       /* extract from the buffer first  */
       if ((fd->buffer != NULL) && fd->buffer->valid)
-        if (fd->buffer->left > 0)
-          {
-            /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-            if (nBytes == 1)
-              {
-                /* too expensive to call memcpy for 1 character  */
-                p = a;
-                (*p) = (*fd->buffer->contents).array[fd->buffer->position];
-                fd->buffer->left -= 1;  /* remove consumed bytes  */
-                fd->buffer->position += 1;  /* move onwards n bytes  */
-                nBytes = 0;  /* reduce the amount for future direct  */
-                /* read  */
-                return 1;
-              }
-            else
-              {
-                n = Min (fd->buffer->left, nBytes);
-                t = fd->buffer->address;
-                t += fd->buffer->position;
-                p = libc_memcpy (a, t, (size_t) n);
-                fd->buffer->left -= n;  /* remove consumed bytes  */
-                fd->buffer->position += n;  /* move onwards n bytes  */
-                /* move onwards ready for direct reads  */
-                a += n;
-                nBytes -= n;  /* reduce the amount for future direct  */
-                /* read  */
-                total += n;
-                return total;  /* much cleaner to return now,  */
-              }
-             /* difficult to record an error if  */
-          }
-         /* the read below returns -1  */
+        {
+          if (fd->buffer->left > 0)
+            {
+              /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+              if (nBytes == 1)
+                {
+                  /* too expensive to call memcpy for 1 character  */
+                  p = a;
+                  (*p) = (*fd->buffer->contents).array[fd->buffer->position];
+                  fd->buffer->left -= 1;  /* remove consumed bytes  */
+                  fd->buffer->position += 1;  /* move onwards n bytes  */
+                  nBytes = 0;  /* reduce the amount for future direct  */
+                  /* read  */
+                  return 1;
+                }
+              else
+                {
+                  n = Min (fd->buffer->left, nBytes);
+                  t = fd->buffer->address;
+                  t += fd->buffer->position;
+                  p = libc_memcpy (a, t, (size_t) n);
+                  fd->buffer->left -= n;  /* remove consumed bytes  */
+                  fd->buffer->position += n;  /* move onwards n bytes  */
+                  /* move onwards ready for direct reads  */
+                  a += n;
+                  nBytes -= n;  /* reduce the amount for future direct  */
+                  /* read  */
+                  total += n;
+                  return total;  /* much cleaner to return now,  */
+                }
+               /* difficult to record an error if  */
+            }
+           /* the read below returns -1  */
+        }
       if (nBytes > 0)
         {
           /* still more to read  */
@@ -718,15 +746,21 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
               fd->abspos += result;
               /* now disable the buffer as we read directly into, a.  */
               if (fd->buffer != NULL)
-                fd->buffer->valid = FALSE;
+                {
+                  fd->buffer->valid = FALSE;
+                }
             }
           else
             {
               if (result == 0)
-                /* eof reached  */
-                fd->state = endoffile;
+                {
+                  /* eof reached  */
+                  fd->state = endoffile;
+                }
               else
-                fd->state = failed;
+                {
+                  fd->state = failed;
+                }
               /* indicate buffer is empty  */
               if (fd->buffer != NULL)
                 {
@@ -734,7 +768,9 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
                   fd->buffer->left = 0;
                   fd->buffer->position = 0;
                   if (fd->buffer->address != NULL)
-                    (*fd->buffer->contents).array[fd->buffer->position] = ASCII_nul;
+                    {
+                      (*fd->buffer->contents).array[fd->buffer->position] = ASCII_nul;
+                    }
                 }
               return -1;
             }
@@ -742,7 +778,9 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
       return total;
     }
   else
-    return -1;
+    {
+      return -1;
+    }
 }
 
 
@@ -769,72 +807,82 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       total = 0;  /* how many bytes have we read  */
       if (fd != NULL)  /* how many bytes have we read  */
-        /* extract from the buffer first  */
-        if (fd->buffer != NULL)
-          {
-            while (nBytes > 0)
-              if ((fd->buffer->left > 0) && fd->buffer->valid)
-                if (nBytes == 1)
-                  {
-                    /* too expensive to call memcpy for 1 character  */
-                    p = a;
-                    (*p) = (*fd->buffer->contents).array[fd->buffer->position];
-                    fd->buffer->left -= 1;  /* remove consumed byte  */
-                    fd->buffer->position += 1;  /* move onwards n byte  */
-                    total += 1;  /* move onwards n byte  */
-                    return total;
-                  }
-                else
-                  {
-                    n = Min (fd->buffer->left, nBytes);
-                    t = fd->buffer->address;
-                    t += fd->buffer->position;
-                    p = libc_memcpy (a, t, (size_t) n);
-                    fd->buffer->left -= n;  /* remove consumed bytes  */
-                    fd->buffer->position += n;  /* move onwards n bytes  */
-                    /* move onwards ready for direct reads  */
-                    a += n;
-                    nBytes -= n;  /* reduce the amount for future direct  */
-                    /* read  */
-                    total += n;
-                  }
-              else
+        {
+          /* extract from the buffer first  */
+          if (fd->buffer != NULL)
+            {
+              while (nBytes > 0)
                 {
-                  /* refill buffer  */
-                  n = libc_read (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->size);
-                  if (n >= 0)
+                  if ((fd->buffer->left > 0) && fd->buffer->valid)
                     {
-                      /* avoid dangling else.  */
-                      fd->buffer->valid = TRUE;
-                      fd->buffer->position = 0;
-                      fd->buffer->left = n;
-                      fd->buffer->filled = n;
-                      fd->buffer->bufstart = fd->abspos;
-                      fd->abspos += n;
-                      if (n == 0)
+                      if (nBytes == 1)
                         {
-                          /* eof reached  */
-                          fd->state = endoffile;
-                          return -1;
+                          /* too expensive to call memcpy for 1 character  */
+                          p = a;
+                          (*p) = (*fd->buffer->contents).array[fd->buffer->position];
+                          fd->buffer->left -= 1;  /* remove consumed byte  */
+                          fd->buffer->position += 1;  /* move onwards n byte  */
+                          total += 1;  /* move onwards n byte  */
+                          return total;
+                        }
+                      else
+                        {
+                          n = Min (fd->buffer->left, nBytes);
+                          t = fd->buffer->address;
+                          t += fd->buffer->position;
+                          p = libc_memcpy (a, t, (size_t) n);
+                          fd->buffer->left -= n;  /* remove consumed bytes  */
+                          fd->buffer->position += n;  /* move onwards n bytes  */
+                          /* move onwards ready for direct reads  */
+                          a += n;
+                          nBytes -= n;  /* reduce the amount for future direct  */
+                          /* read  */
+                          total += n;
                         }
                     }
                   else
                     {
-                      fd->buffer->valid = FALSE;
-                      fd->buffer->position = 0;
-                      fd->buffer->left = 0;
-                      fd->buffer->filled = 0;
-                      fd->state = failed;
-                      return total;
+                      /* refill buffer  */
+                      n = libc_read (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->size);
+                      if (n >= 0)
+                        {
+                          /* avoid dangling else.  */
+                          fd->buffer->valid = TRUE;
+                          fd->buffer->position = 0;
+                          fd->buffer->left = n;
+                          fd->buffer->filled = n;
+                          fd->buffer->bufstart = fd->abspos;
+                          fd->abspos += n;
+                          if (n == 0)
+                            {
+                              /* eof reached  */
+                              fd->state = endoffile;
+                              return -1;
+                            }
+                        }
+                      else
+                        {
+                          fd->buffer->valid = FALSE;
+                          fd->buffer->position = 0;
+                          fd->buffer->left = 0;
+                          fd->buffer->filled = 0;
+                          fd->state = failed;
+                          return total;
+                        }
                     }
                 }
-            return total;
-          }
-        else
-          return -1;
+              return total;
+            }
+          else
+            {
+              return -1;
+            }
+        }
     }
   else
-    return -1;
+    {
+      return -1;
+    }
 }
 
 
@@ -862,6 +910,7 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
         }
       else if (src[(*i)+1] == 't')
         {
+          /* avoid dangling else.  */
           /* requires a tab (yuck) tempted to fake this but I better not..  */
           dest[(*j)] = ASCII_tab;
           (*j) += 1;
@@ -869,6 +918,7 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
         }
       else
         {
+          /* avoid dangling else.  */
           /* copy escaped character  */
           (*i) += 1;
           dest[(*j)] = src[(*i)];
@@ -892,10 +942,16 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   memcpy (b, b_, _b_high+1);
 
   if (_a_high == _b_high)
-    for (i=0; i<=_a_high; i++)
-      a[i] = b[i];
+    {
+      for (i=0; i<=_a_high; i++)
+        {
+          a[i] = b[i];
+        }
+    }
   else
-    FormatError ((char *) "cast failed", 11);
+    {
+      FormatError ((char *) "cast failed", 11);
+    }
 }
 
 
@@ -928,14 +984,18 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
   i = 0;
   j = 0;
   while ((((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest)) && (src[i] != '%'))
-    if (src[i] == '\\')
-      HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
-    else
-      {
-        dest[j] = src[i];
-        i += 1;
-        j += 1;
-      }
+    {
+      if (src[i] == '\\')
+        {
+          HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
+        }
+      else
+        {
+          dest[j] = src[i];
+          i += 1;
+          j += 1;
+        }
+    }
   if ((((i+1) < HighSrc) && (src[i] == '%')) && (j < HighDest))
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
@@ -949,12 +1009,15 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
               p += 1;
             }
           if (j < HighDest)
-            dest[j] = ASCII_nul;
+            {
+              dest[j] = ASCII_nul;
+            }
           j = StrLib_StrLen ((char *) dest, _dest_high);
           i += 2;
         }
       else if (src[i+1] == 'd')
         {
+          /* avoid dangling else.  */
           dest[j] = ASCII_nul;
           Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
           NumberIO_CardToStr (c, 0, (char *) &str.array[0], MaxErrorString);
@@ -964,6 +1027,7 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
         }
       else
         {
+          /* avoid dangling else.  */
           dest[j] = src[i];
           i += 1;
           j += 1;
@@ -971,16 +1035,22 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
     }
   /* and finish off copying src into dest  */
   while (((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest))
-    if (src[i] == '\\')
-      HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
-    else
-      {
-        dest[j] = src[i];
-        i += 1;
-        j += 1;
-      }
+    {
+      if (src[i] == '\\')
+        {
+          HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
+        }
+      else
+        {
+          dest[j] = src[i];
+          i += 1;
+          j += 1;
+        }
+    }
   if (j < HighDest)
-    dest[j] = ASCII_nul;
+    {
+      dest[j] = ASCII_nul;
+    }
 }
 
 
@@ -1061,36 +1131,45 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
       if (fd == NULL)
         {
           if (f != FIO_StdErr)
-            FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
+            {
+              FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
+            }
           M2RTS_HALT (-1);
         }
       else
-        if ((use == openedforwrite) && (fd->usage == openedforread))
-          {
-            FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (-1);
-          }
-        else if ((use == openedforread) && (fd->usage == openedforwrite))
-          {
-            FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (-1);
-          }
-        else if (fd->state == connectionfailure)
-          {
-            FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (-1);
-          }
-        else if (towrite != fd->output)
-          if (fd->output)
+        {
+          if ((use == openedforwrite) && (fd->usage == openedforread))
             {
-              FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+              FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (-1);
             }
-          else
+          else if ((use == openedforread) && (fd->usage == openedforwrite))
             {
-              FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+              /* avoid dangling else.  */
+              FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (-1);
             }
+          else if (fd->state == connectionfailure)
+            {
+              /* avoid dangling else.  */
+              FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+              M2RTS_HALT (-1);
+            }
+          else if (towrite != fd->output)
+            {
+              /* avoid dangling else.  */
+              if (fd->output)
+                {
+                  FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+                  M2RTS_HALT (-1);
+                }
+              else
+                {
+                  FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+                  M2RTS_HALT (-1);
+                }
+            }
+        }
     }
   else
     {
@@ -1113,9 +1192,13 @@ static void SetEndOfLine (FIO_File f, char ch)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (ch == ASCII_nl)
-        fd->state = endofline;
+        {
+          fd->state = endofline;
+        }
       else
-        fd->state = successful;
+        {
+          fd->state = successful;
+        }
     }
 }
 
@@ -1147,36 +1230,42 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
             {
               /* place into the buffer first  */
               while (nBytes > 0)
-                if (fd->buffer->left > 0)
-                  if (nBytes == 1)
+                {
+                  if (fd->buffer->left > 0)
                     {
-                      /* too expensive to call memcpy for 1 character  */
-                      p = a;
-                      (*fd->buffer->contents).array[fd->buffer->position] = (*p);
-                      fd->buffer->left -= 1;  /* reduce space  */
-                      fd->buffer->position += 1;  /* move onwards n byte  */
-                      total += 1;  /* move onwards n byte  */
-                      return total;
+                      if (nBytes == 1)
+                        {
+                          /* too expensive to call memcpy for 1 character  */
+                          p = a;
+                          (*fd->buffer->contents).array[fd->buffer->position] = (*p);
+                          fd->buffer->left -= 1;  /* reduce space  */
+                          fd->buffer->position += 1;  /* move onwards n byte  */
+                          total += 1;  /* move onwards n byte  */
+                          return total;
+                        }
+                      else
+                        {
+                          n = Min (fd->buffer->left, nBytes);
+                          t = fd->buffer->address;
+                          t += fd->buffer->position;
+                          p = libc_memcpy (a, t, (size_t) (unsigned int ) (n));
+                          fd->buffer->left -= n;  /* remove consumed bytes  */
+                          fd->buffer->position += n;  /* move onwards n bytes  */
+                          /* move ready for further writes  */
+                          a += n;
+                          nBytes -= n;  /* reduce the amount for future writes  */
+                          total += n;  /* reduce the amount for future writes  */
+                        }
                     }
                   else
                     {
-                      n = Min (fd->buffer->left, nBytes);
-                      t = fd->buffer->address;
-                      t += fd->buffer->position;
-                      p = libc_memcpy (a, t, (size_t) (unsigned int ) (n));
-                      fd->buffer->left -= n;  /* remove consumed bytes  */
-                      fd->buffer->position += n;  /* move onwards n bytes  */
-                      /* move ready for further writes  */
-                      a += n;
-                      nBytes -= n;  /* reduce the amount for future writes  */
-                      total += n;  /* reduce the amount for future writes  */
+                      FIO_FlushBuffer (f);
+                      if ((fd->state != successful) && (fd->state != endofline))
+                        {
+                          nBytes = 0;
+                        }
                     }
-                else
-                  {
-                    FIO_FlushBuffer (f);
-                    if ((fd->state != successful) && (fd->state != endofline))
-                      nBytes = 0;
-                  }
+                }
               return total;
             }
         }
@@ -1205,15 +1294,23 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
         {
           fe = Indexing_GetIndice (FileInfo, (unsigned int) FIO_StdErr);
           if (fe == NULL)
-            M2RTS_HALT (-1);
+            {
+              M2RTS_HALT (-1);
+            }
           else
-            fd->unixfd = fe->unixfd;  /* the error channel  */
+            {
+              fd->unixfd = fe->unixfd;  /* the error channel  */
+            }
         }
       else
-        fd->unixfd = osfd;
+        {
+          fd->unixfd = osfd;
+        }
     }
   else
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -1233,7 +1330,9 @@ static void Init (void)
   FIO_StdErr = 3;
   PreInitialize (FIO_StdErr, (char *) "<stderr>", 8, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, 2, MaxBufferLength);
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr})))
-    M2RTS_HALT (-1);
+    {
+      M2RTS_HALT (-1);
+    }
 }
 
 
@@ -1246,7 +1345,9 @@ unsigned int FIO_IsNoError (FIO_File f)
   FileDescriptor fd;
 
   if (f == Error)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
@@ -1262,9 +1363,13 @@ unsigned int FIO_IsNoError (FIO_File f)
 unsigned int FIO_IsActive (FIO_File f)
 {
   if (f == Error)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
-    return (Indexing_GetIndice (FileInfo, (unsigned int) f)) != NULL;
+    {
+      return (Indexing_GetIndice (FileInfo, (unsigned int) f)) != NULL;
+    }
 }
 
 unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
@@ -1331,17 +1436,23 @@ void FIO_Close (FIO_File f)
         {
           FIO_FlushBuffer (f);
           if (fd->unixfd >= 0)
-            if ((libc_close (fd->unixfd)) != 0)
-              {
-                FormatError1 ((char *) "failed to close file (%s)\\n", 27, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-                fd->state = failed;  /* --fixme-- too late to notify user (unless we return a BOOLEAN)  */
-              }
+            {
+              if ((libc_close (fd->unixfd)) != 0)
+                {
+                  FormatError1 ((char *) "failed to close file (%s)\\n", 27, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
+                  fd->state = failed;  /* --fixme-- too late to notify user (unless we return a BOOLEAN)  */
+                }
+            }
           if (fd->name.address != NULL)
-            Storage_DEALLOCATE (&fd->name.address, fd->name.size);
+            {
+              Storage_DEALLOCATE (&fd->name.address, fd->name.size);
+            }
           if (fd->buffer != NULL)
             {
               if (fd->buffer->address != NULL)
-                Storage_DEALLOCATE (&fd->buffer->address, fd->buffer->size);
+                {
+                  Storage_DEALLOCATE (&fd->buffer->address, fd->buffer->size);
+                }
               Storage_DEALLOCATE ((void **) &fd->buffer, sizeof (buf));
               fd->buffer = NULL;
             }
@@ -1387,7 +1498,9 @@ FIO_File FIO_openToRead (void * fname, unsigned int flength)
 
   f = GetNextFreeDescriptor ();
   if (f == Error)
-    SetState (f, (FileStatus) toomanyfilesopen);
+    {
+      SetState (f, (FileStatus) toomanyfilesopen);
+    }
   else
     {
       f = InitializeFile (f, fname, flength, (FileStatus) successful, (FileUsage) openedforread, FALSE, MaxBufferLength);
@@ -1410,7 +1523,9 @@ FIO_File FIO_openToWrite (void * fname, unsigned int flength)
 
   f = GetNextFreeDescriptor ();
   if (f == Error)
-    SetState (f, (FileStatus) toomanyfilesopen);
+    {
+      SetState (f, (FileStatus) toomanyfilesopen);
+    }
   else
     {
       f = InitializeFile (f, fname, flength, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, MaxBufferLength);
@@ -1435,7 +1550,9 @@ FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int tow
 
   f = GetNextFreeDescriptor ();
   if (f == Error)
-    SetState (f, (FileStatus) toomanyfilesopen);
+    {
+      SetState (f, (FileStatus) toomanyfilesopen);
+    }
   else
     {
       f = InitializeFile (f, fname, flength, (FileStatus) successful, (FileUsage) openedforrandom, towrite, MaxBufferLength);
@@ -1457,17 +1574,23 @@ void FIO_FlushBuffer (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        if (fd->output && (fd->buffer != NULL))
-          if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->position)) == ((int ) (fd->buffer->position))))
+        {
+          if (fd->output && (fd->buffer != NULL))
             {
-              fd->abspos += fd->buffer->position;
-              fd->buffer->bufstart = fd->abspos;
-              fd->buffer->position = 0;
-              fd->buffer->filled = 0;
-              fd->buffer->left = fd->buffer->size;
+              if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->position)) == ((int ) (fd->buffer->position))))
+                {
+                  fd->abspos += fd->buffer->position;
+                  fd->buffer->bufstart = fd->abspos;
+                  fd->buffer->position = 0;
+                  fd->buffer->filled = 0;
+                  fd->buffer->left = fd->buffer->size;
+                }
+              else
+                {
+                  fd->state = failed;
+                }
             }
-          else
-            fd->state = failed;
+        }
     }
 }
 
@@ -1489,7 +1612,9 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
       CheckAccess (f, (FileUsage) openedforread, FALSE);
       n = ReadFromBuffer (f, a, nBytes);
       if (n <= 0)
-        return 0;
+        {
+          return 0;
+        }
       else
         {
           p = a;
@@ -1499,7 +1624,9 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
         }
     }
   else
-    return 0;
+    {
+      return 0;
+    }
 }
 
 
@@ -1513,7 +1640,9 @@ void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if ((BufferedRead (f, _a_high, a)) == _a_high)
-    SetEndOfLine (f, (char) a[_a_high]);
+    {
+      SetEndOfLine (f, (char) a[_a_high]);
+    }
 }
 
 
@@ -1547,7 +1676,9 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
             {
               fd->abspos += (unsigned int ) (total);
               if (fd->buffer != NULL)
-                fd->buffer->bufstart = fd->abspos;
+                {
+                  fd->buffer->bufstart = fd->abspos;
+                }
               return (unsigned int ) (total);
             }
         }
@@ -1595,7 +1726,9 @@ unsigned int FIO_EOF (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        return fd->state == endoffile;
+        {
+          return fd->state == endoffile;
+        }
     }
   return TRUE;
 }
@@ -1620,13 +1753,17 @@ unsigned int FIO_EOLN (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        if ((fd->state == successful) || (fd->state == endofline))
-          {
-            ch = FIO_ReadChar (f);
-            if ((fd->state == successful) || (fd->state == endofline))
-              FIO_UnReadChar (f, ch);
-            return ch == ASCII_nl;
-          }
+        {
+          if ((fd->state == successful) || (fd->state == endofline))
+            {
+              ch = FIO_ReadChar (f);
+              if ((fd->state == successful) || (fd->state == endofline))
+                {
+                  FIO_UnReadChar (f, ch);
+                }
+              return ch == ASCII_nl;
+            }
+        }
     }
   return FALSE;
 }
@@ -1642,7 +1779,9 @@ unsigned int FIO_WasEOLN (FIO_File f)
 
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if (f == Error)
-    return FALSE;
+    {
+      return FALSE;
+    }
   else
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
@@ -1668,7 +1807,9 @@ char FIO_ReadChar (FIO_File f)
       return ch;
     }
   else
-    return ASCII_nul;
+    {
+      return ASCII_nul;
+    }
 }
 
 
@@ -1714,22 +1855,28 @@ void FIO_UnReadChar (FIO_File f, char ch)
                   (*fd->buffer->contents).array[fd->buffer->position] = ch;
                 }
               else
-                /* if possible make room and store ch  */
-                if (fd->buffer->filled == fd->buffer->size)
-                  FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, (sizeof (f)-1));
-                else
-                  {
-                    n = fd->buffer->filled-fd->buffer->position;
-                    b = &(*fd->buffer->contents).array[fd->buffer->position];
-                    a = &(*fd->buffer->contents).array[fd->buffer->position+1];
-                    a = libc_memcpy (a, b, (size_t) n);
-                    fd->buffer->filled += 1;
-                    (*fd->buffer->contents).array[fd->buffer->position] = ch;
-                  }
+                {
+                  /* if possible make room and store ch  */
+                  if (fd->buffer->filled == fd->buffer->size)
+                    {
+                      FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, (sizeof (f)-1));
+                    }
+                  else
+                    {
+                      n = fd->buffer->filled-fd->buffer->position;
+                      b = &(*fd->buffer->contents).array[fd->buffer->position];
+                      a = &(*fd->buffer->contents).array[fd->buffer->position+1];
+                      a = libc_memcpy (a, b, (size_t) n);
+                      fd->buffer->filled += 1;
+                      (*fd->buffer->contents).array[fd->buffer->position] = ch;
+                    }
+                }
             }
         }
       else
-        FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, (sizeof (f)-1));
+        {
+          FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, (sizeof (f)-1));
+        }
     }
 }
 
@@ -1836,7 +1983,9 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        return fd->unixfd;
+        {
+          return fd->unixfd;
+        }
     }
   FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, (sizeof (f)-1));
   return -1;
@@ -1856,34 +2005,42 @@ void FIO_SetPositionFromBeginning (FIO_File f, long int pos)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        /* always force the lseek, until we are confident that abspos is always correct,
+        {
+          /* always force the lseek, until we are confident that abspos is always correct,
                basically it needs some hard testing before we should remove the OR TRUE.  */
-        if ((fd->abspos != pos) || TRUE)
-          {
-            FIO_FlushBuffer (f);
-            if (fd->buffer != NULL)
-              {
-                if (fd->output)
-                  fd->buffer->left = fd->buffer->size;
-                else
-                  fd->buffer->left = 0;
-                fd->buffer->position = 0;
-                fd->buffer->filled = 0;
-              }
-            offset = libc_lseek (fd->unixfd, pos, SEEK_SET);
-            if ((offset >= 0) && (pos == offset))
-              fd->abspos = pos;
-            else
-              {
-                fd->state = failed;
-                fd->abspos = 0;
-              }
-            if (fd->buffer != NULL)
-              {
-                fd->buffer->valid = FALSE;
-                fd->buffer->bufstart = fd->abspos;
-              }
-          }
+          if ((fd->abspos != pos) || TRUE)
+            {
+              FIO_FlushBuffer (f);
+              if (fd->buffer != NULL)
+                {
+                  if (fd->output)
+                    {
+                      fd->buffer->left = fd->buffer->size;
+                    }
+                  else
+                    {
+                      fd->buffer->left = 0;
+                    }
+                  fd->buffer->position = 0;
+                  fd->buffer->filled = 0;
+                }
+              offset = libc_lseek (fd->unixfd, pos, SEEK_SET);
+              if ((offset >= 0) && (pos == offset))
+                {
+                  fd->abspos = pos;
+                }
+              else
+                {
+                  fd->state = failed;
+                  fd->abspos = 0;
+                }
+              if (fd->buffer != NULL)
+                {
+                  fd->buffer->valid = FALSE;
+                  fd->buffer->bufstart = fd->abspos;
+                }
+            }
+        }
     }
 }
 
@@ -1906,15 +2063,21 @@ void FIO_SetPositionFromEnd (FIO_File f, long int pos)
           if (fd->buffer != NULL)
             {
               if (fd->output)
-                fd->buffer->left = fd->buffer->size;
+                {
+                  fd->buffer->left = fd->buffer->size;
+                }
               else
-                fd->buffer->left = 0;
+                {
+                  fd->buffer->left = 0;
+                }
               fd->buffer->position = 0;
               fd->buffer->filled = 0;
             }
           offset = libc_lseek (fd->unixfd, pos, SEEK_END);
           if (offset >= 0)
-            fd->abspos = offset;
+            {
+              fd->abspos = offset;
+            }
           else
             {
               fd->state = failed;
@@ -1943,10 +2106,16 @@ long int FIO_FindPosition (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
-        if ((fd->buffer == NULL) || ! fd->buffer->valid)
-          return fd->abspos;
-        else
-          return fd->buffer->bufstart+((long int ) (fd->buffer->position));
+        {
+          if ((fd->buffer == NULL) || ! fd->buffer->valid)
+            {
+              return fd->abspos;
+            }
+          else
+            {
+              return fd->buffer->bufstart+((long int ) (fd->buffer->position));
+            }
+        }
     }
   return 0;
 }
@@ -1971,19 +2140,23 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
           M2RTS_HALT (-1);
         }
       else
-        if (fd->name.address == NULL)
-          StrLib_StrCopy ((char *) "", 0, (char *) a, _a_high);
-        else
-          {
-            p = fd->name.address;
-            i = 0;
-            while (((*p) != ASCII_nul) && (i <= _a_high))
-              {
-                a[i] = (*p);
-                p += 1;
-                i += 1;
-              }
-          }
+        {
+          if (fd->name.address == NULL)
+            {
+              StrLib_StrCopy ((char *) "", 0, (char *) a, _a_high);
+            }
+          else
+            {
+              p = fd->name.address;
+              i = 0;
+              while (((*p) != ASCII_nul) && (i <= _a_high))
+                {
+                  a[i] = (*p);
+                  p += 1;
+                  i += 1;
+                }
+            }
+        }
     }
 }
 
@@ -2005,7 +2178,9 @@ void * FIO_getFileName (FIO_File f)
           M2RTS_HALT (-1);
         }
       else
-        return fd->name.address;
+        {
+          return fd->name.address;
+        }
     }
 }
 
@@ -2027,7 +2202,9 @@ unsigned int FIO_getFileNameLength (FIO_File f)
           M2RTS_HALT (-1);
         }
       else
-        return fd->name.size;
+        {
+          return fd->name.size;
+        }
     }
 }
 
@@ -2042,9 +2219,13 @@ unsigned int FIO_getFileNameLength (FIO_File f)
 void FIO_FlushOutErr (void)
 {
   if (FIO_IsNoError (FIO_StdOut))
-    FIO_FlushBuffer (FIO_StdOut);
+    {
+      FIO_FlushBuffer (FIO_StdOut);
+    }
   if (FIO_IsNoError (FIO_StdErr))
-    FIO_FlushBuffer (FIO_StdErr);
+    {
+      FIO_FlushBuffer (FIO_StdErr);
+    }
 }
 
 void _M2_FIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

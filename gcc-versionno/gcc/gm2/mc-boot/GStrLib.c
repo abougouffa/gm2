@@ -116,7 +116,9 @@ void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b
       j += 1;
     }
   if (i <= Highc)
-    c[i] = ASCII_nul;
+    {
+      c[i] = ASCII_nul;
+    }
 }
 
 
@@ -143,9 +145,14 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
   while ((i < Higha) && (i < Highb))
     {
       if (a[i] < b[i])
-        return TRUE;
+        {
+          return TRUE;
+        }
       else if (a[i] > b[i])
-        return FALSE;
+        {
+          /* avoid dangling else.  */
+          return FALSE;
+        }
       /* must be equal, move on to next character  */
       i += 1;
     }
@@ -170,7 +177,9 @@ unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned
   while ((((i <= higha) && (i <= highb)) && (a[i] != ASCII_nul)) && (b[i] != ASCII_nul))
     {
       if (a[i] != b[i])
-        return FALSE;
+        {
+          return FALSE;
+        }
       i += 1;
     }
   return ! (((i <= higha) && (a[i] != ASCII_nul)) || ((i <= highb) && (b[i] != ASCII_nul)));
@@ -188,7 +197,9 @@ unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
   Len = 0;
   High = _a_high;
   while ((Len <= High) && (a[Len] != ASCII_nul))
-    Len += 1;
+    {
+      Len += 1;
+    }
   return Len;
 }
 
@@ -211,7 +222,9 @@ void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_hi
       n += 1;
     }
   if (n <= Highb)
-    b[n] = ASCII_nul;
+    {
+      b[n] = ASCII_nul;
+    }
 }
 
 
@@ -236,16 +249,24 @@ unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsig
   LengthB = StrLib_StrLen ((char *) b, _b_high);
   i = 0;
   if (LengthA > LengthB)
-    while (i <= (LengthA-LengthB))
-      {
-        j = 0;
-        while ((j < LengthB) && (a[i+j] == b[j]))
-          j += 1;
-        if (j == LengthB)
-          return TRUE;
-        else
-          i += 1;
-      }
+    {
+      while (i <= (LengthA-LengthB))
+        {
+          j = 0;
+          while ((j < LengthB) && (a[i+j] == b[j]))
+            {
+              j += 1;
+            }
+          if (j == LengthB)
+            {
+              return TRUE;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
+    }
   return FALSE;
 }
 
@@ -271,7 +292,9 @@ void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsig
   higha = StrLib_StrLen ((char *) a, _a_high);
   highb = _b_high;
   while ((i < higha) && (IsWhite (a[i])))
-    i += 1;
+    {
+      i += 1;
+    }
   while ((i < higha) && (j <= highb))
     {
       b[j] = a[i];
@@ -279,7 +302,9 @@ void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsig
       j += 1;
     }
   if (j <= highb)
-    b[j] = ASCII_nul;
+    {
+      b[j] = ASCII_nul;
+    }
 }
 
 void _M2_StrLib_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
