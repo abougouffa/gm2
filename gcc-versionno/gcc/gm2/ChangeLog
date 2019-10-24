@@ -1,3 +1,10 @@
+2019-10-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/isocoroutines/run/pass/coroutine.mod:  increase
+          workspace to 32MB.
+	* gm2/gm2-libs-pim/FileSystem.mod:  convert arguments to
+          LONGINT for lseek.
+
 2019-10-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  (BOOTGM2VERSION) to trunk for maintainer.

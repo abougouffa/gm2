@@ -24,7 +24,7 @@ FROM Storage IMPORT ALLOCATE ;
 FROM libc IMPORT printf ;
 
 CONST
-   Workspace = 8 * 1024 * 1024 ;
+   Workspace = 32 * 1024 * 1024 ;
 
 
 PROCEDURE first ;

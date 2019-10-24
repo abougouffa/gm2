@@ -439,10 +439,10 @@ BEGIN
          THEN
             fio := SFIO.OpenToWrite(name)
          END ;
-         INCL(flags, opened) ;
-         r := libc.lseek(fio,
-                         VAL(LONGCARD, lowpos) + VAL(LONGCARD, highpos)*VAL(LONGCARD, MAX(CARDINAL)),
-                         SEEK_SET)
+         INCL (flags, opened) ;
+         r := libc.lseek (fio,
+                          VAL (LONGINT, lowpos) + VAL (LONGINT, highpos) * VAL (LONGINT, MAX (CARDINAL)),
+                          SEEK_SET)
       END
    END
 END doModeChange ;
