@@ -33,14 +33,14 @@ VAR
 BEGIN
    x := 0 ;
    LOOP
-      printf("c1 is alive and well\n") ;
+      printf ("c1 is alive and well\n") ;
       IF x=100
       THEN
-         TRANSFER(c1, main)
+         TRANSFER (c1, main)
       ELSE
-         TRANSFER(c1, c2)
+         TRANSFER (c1, c2)
       END ;
-      INC(x)
+      INC (x)
    END
 END first ;
 
@@ -48,8 +48,8 @@ END first ;
 PROCEDURE second ;
 BEGIN
    LOOP
-      printf("c2 is alive and well\n") ;
-      TRANSFER(c2, c1)
+      printf ("c2 is alive and well\n") ;
+      TRANSFER (c2, c1)
    END
 END second ;
 
@@ -59,11 +59,11 @@ VAR
    c1, c2: COROUTINE ;
    w1, w2: ADDRESS ;
 BEGIN
-   ALLOCATE(w1, Workspace) ;
-   NEWCOROUTINE(first, w1, Workspace, c1) ;
-   ALLOCATE(w2, Workspace) ;
-   NEWCOROUTINE(second, w2, Workspace, c2) ;
-   printf("first context switch to c1\n") ;
-   TRANSFER(main, c1) ;
-   printf("back to main and all done\n") ;
+   ALLOCATE (w1, Workspace) ;
+   NEWCOROUTINE (first, w1, Workspace, c1) ;
+   ALLOCATE (w2, Workspace) ;
+   NEWCOROUTINE (second, w2, Workspace, c2) ;
+   printf ("first context switch to c1\n") ;
+   TRANSFER (main, c1) ;
+   printf ("back to main and all done\n") ;
 END coroutine.

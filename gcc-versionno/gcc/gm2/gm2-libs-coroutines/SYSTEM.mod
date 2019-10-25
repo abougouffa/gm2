@@ -31,6 +31,8 @@ FROM RTco IMPORT init, initThread, transfer, currentThread, turnInterrupts ;
 FROM RTint IMPORT Listen, AttachVector,
                   IncludeVector, ExcludeVector ;
 
+IMPORT RTint ;
+
 FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
 FROM libc IMPORT printf, memcpy, memcpy, memset ;
@@ -215,7 +217,7 @@ END Finished ;
 
 
 (*
-   localInit - checks to see whether we need to initialize libpth.
+   localInit - checks to see whether we need to initialize pthread
 *)
 
 PROCEDURE localInit ;
@@ -226,7 +228,8 @@ BEGIN
       IF init () # 0
       THEN
          Halt (__FILE__, __LINE__, __FUNCTION__, "gthr did not initialize")
-      END
+      END ;
+      RTint.Init
    END
 END localInit ;
 

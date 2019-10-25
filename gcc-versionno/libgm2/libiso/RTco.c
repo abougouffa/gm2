@@ -188,7 +188,7 @@ currentThread (void)
   for (tid = 0; tid < nThreads; tid++)
     if (pthread_self () == threadArray[tid].p)
       return tid;
-  return -1;
+  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "failed to find currentThread");
 }
 
 
@@ -345,8 +345,9 @@ RTco_init (void)
       threadArray[tid].tid = tid;
       threadArray[tid].execution = initSemaphore (0);
       threadArray[tid].p = pthread_self ();
-      signalSem (&lock) ;
+      threadArray[tid].interruptLevel = 0;
       initialized = TRUE;
+      signalSem (&lock) ;
     }
   return 0;
 }

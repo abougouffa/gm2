@@ -514,8 +514,8 @@ libiso_la_SOURCES = $(M2MODS) \
 
 libisodir = libiso
 libiso_la_DEPENDENCIES = SYSTEM.def
-libiso_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../ -I../../../gcc -I$(GCC_DIR) -I$(GCC_DIR)/../include -I../../libgcc -I$(GCC_DIR)/../libgcc
-libiso_la_M2FLAGS = -I. -Ilibiso -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -fiso -fextended-opaque
+libiso_la_CFLAGS = -I. -I.. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../ -I../../../gcc -I$(GCC_DIR) -I$(GCC_DIR)/../include -I../../libgcc -I$(GCC_DIR)/../libgcc
+libiso_la_M2FLAGS = -I. -Ilibiso -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -fiso -fextended-opaque -fm2-g -g
 libiso_la_LINK = $(LINK)
 CLEANFILES = SYSTEM.def
 BUILT_SOURCES = SYSTEM.def

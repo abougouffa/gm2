@@ -40,9 +40,9 @@ PROCEDURE (* __INLINE__ *) Max (a, b: CARDINAL) : CARDINAL ;
 BEGIN
    IF a>b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Max ;
 
@@ -55,9 +55,9 @@ PROCEDURE (* __INLINE__ *) Min (a, b: CARDINAL) : CARDINAL ;
 BEGIN
    IF a<b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Min ;
 

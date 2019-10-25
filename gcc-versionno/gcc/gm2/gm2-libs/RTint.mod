@@ -54,10 +54,11 @@ TYPE
                            END ;
 
 VAR
-   VecNo  : CARDINAL ;
-   Exists : Vector ;
-   Pending: ARRAY [MIN(PROTECTION)..MAX(PROTECTION)] OF Vector ;
-   lock   : INTEGER ;
+   VecNo      : CARDINAL ;
+   Exists     : Vector ;
+   Pending    : ARRAY [MIN(PROTECTION)..MAX(PROTECTION)] OF Vector ;
+   lock       : INTEGER ;
+   initialized: BOOLEAN ;
 
 
 (*
@@ -781,10 +782,10 @@ END Listen ;
 
 
 (*
-   Init -
+   init -
 *)
 
-PROCEDURE Init ;
+PROCEDURE init ;
 VAR
    p: PROTECTION ;
 BEGIN
@@ -794,7 +795,21 @@ BEGIN
    FOR p := MIN(PROTECTION) TO MAX(PROTECTION) DO
       Pending[p] := NIL
    END ;
+   initialized := TRUE ;
    signal (lock)
+END init ;
+
+
+(*
+   Init -
+*)
+
+PROCEDURE Init ;
+BEGIN
+   IF NOT initialized
+   THEN
+      init
+   END
 END Init ;
 
 

@@ -117,4 +117,11 @@ PROCEDURE Listen (untilInterrupt: BOOLEAN;
                   pri: CARDINAL) ;
 
 
+(*
+   Init - allows the user to force the initialize order.
+*)
+
+PROCEDURE Init ;
+
+
 END RTint.

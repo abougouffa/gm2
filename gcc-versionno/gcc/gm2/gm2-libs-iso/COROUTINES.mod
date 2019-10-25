@@ -42,9 +42,11 @@ FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
 FROM libc IMPORT printf ;
 
+IMPORT RTint ;
+
 
 CONST
-   MinStack = 8 * 16 * 1024 ;
+   MinStack = 16 * 1024 * 1024 ;
 
 TYPE
    Status = (suspended, ready, new, running) ;
@@ -193,6 +195,7 @@ BEGIN
          Halt (__FILE__, __LINE__, __FUNCTION__,
                'failed to initialize RTco')
       END ;
+      RTint.Init ;
       initCo := TRUE ;
    END ;
    localMain

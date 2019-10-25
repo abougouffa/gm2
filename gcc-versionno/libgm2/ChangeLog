@@ -1,3 +1,12 @@
+2019-10-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libcor/Makefile.am:  added -fm2-g -g.
+	* libgm2/libiso/Makefile.am:  added -fm2-g -g and include
+          path to include ../
+	* libgm2/libiso/RTco.c:  call HALT if the thread fails to
+          find itself.  Place initialized inside critical region.
+	* libgm2/libpim/Makefile.am:  added -fm2-g -g.
+
 2019-09-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libulm:  removed.
