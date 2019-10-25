@@ -34,8 +34,9 @@ BEGIN
    x := 0 ;
    LOOP
       printf ("c1 is alive and well\n") ;
-      IF x=100
+      IF x=1000
       THEN
+         printf ("finished!\n") ;
          TRANSFER (c1, main)
       ELSE
          TRANSFER (c1, c2)
@@ -65,5 +66,5 @@ BEGIN
    NEWCOROUTINE (second, w2, Workspace, c2) ;
    printf ("first context switch to c1\n") ;
    TRANSFER (main, c1) ;
-   printf ("back to main and all done\n") ;
+   printf ("back to main and all done\n\n")
 END coroutine.

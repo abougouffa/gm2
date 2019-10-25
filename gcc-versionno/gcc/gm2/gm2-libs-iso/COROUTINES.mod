@@ -100,8 +100,10 @@ PROCEDURE NEWCOROUTINE (procBody: PROC;
   *)
 VAR
    tp : INTEGER ;
+   old: PROTECTION ;
 BEGIN
    localInit ;
+   old := TurnInterrupts (MAX (PROTECTION)) ;
    IF initProtection = UnassignedPriority
    THEN
       initProtection := PROT ()
@@ -123,7 +125,8 @@ BEGIN
       attached   := NIL ;
       next       := head
    END ;
-   head := cr
+   head := cr ;
+   old := TurnInterrupts (old)
 END NEWCOROUTINE ;
 
 
@@ -131,8 +134,11 @@ PROCEDURE TRANSFER (VAR from: COROUTINE; to: COROUTINE);
   (* Returns the identity of the calling coroutine in from, and
      transfers control to the coroutine specified by to.
   *)
+VAR
+   old: PROTECTION ;
 BEGIN
    localInit ;
+   old := TurnInterrupts (MAX (PROTECTION)) ;
    wait (lock) ;
    from := currentCoRoutine ;
    IF to^.context = from^.context
@@ -145,8 +151,9 @@ BEGIN
    currentCoRoutine := to ;
    SetExceptionBlock (currentCoRoutine^.ehblock) ;
    SetExceptionSource (currentCoRoutine^.source) ;
+   signal (lock) ;
    transfer (from^.context, to^.context) ;
-   signal (lock)
+   old := TurnInterrupts (old)
 END TRANSFER ;
 
 
@@ -211,9 +218,11 @@ PROCEDURE IOTRANSFER (VAR from: COROUTINE; to: COROUTINE);
      must be associated with a source of interrupts.
   *)
 VAR
-   l: SourceList ;
+   l  : SourceList ;
+   old: PROTECTION ;
 BEGIN
    localInit ;
+   old := TurnInterrupts (MAX (PROTECTION)) ;
    wait (lock) ;
    l := currentCoRoutine^.attached ;
    IF l=NIL
@@ -235,7 +244,8 @@ BEGIN
       l := l^.next
    END ;
    TRANSFER(from, to) ;
-   signal (lock)
+   signal (lock) ;
+   old := TurnInterrupts (old)
 END IOTRANSFER ;
 
 

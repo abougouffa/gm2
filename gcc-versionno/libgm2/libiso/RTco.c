@@ -31,6 +31,12 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #include "libgcc_tm.h"
 
 extern void M2RTS_Halt (const char *, int, const char *, const char *);
+int RTco_init (void);
+
+// #define TRACEON
+#define POOL
+#define SEM_POOL    10000
+#define THREAD_POOL 10000
 
 #if 0
 #ifdef HAVE_PTHREAD_H
@@ -58,6 +64,13 @@ extern void M2RTS_Halt (const char *, int, const char *, const char *);
 #  define FALSE (1==0)
 #endif
 
+
+#if defined(TRACEON)
+#  define tprintf  printf
+#else
+/* sizeof is not evaluated.  */
+#  define tprintf  (void)sizeof
+#endif
 
 typedef struct threadCB_s {
   void (*proc)(void);
@@ -102,6 +115,8 @@ signalSem (__gthread_mutex_t *lock)
 void
 RTco_wait (int sid)
 {
+  RTco_init ();
+  tprintf ("wait %d\n", sid);
   waitSem (semArray[sid]);
 }
 
@@ -109,6 +124,8 @@ RTco_wait (int sid)
 void
 RTco_signal (int sid)
 {
+  RTco_init ();
+  tprintf ("signal %d\n", sid);
   signalSem (semArray[sid]);
 }
 
@@ -117,6 +134,12 @@ static
 int
 newSem (void)
 {
+#if defined(POOL)
+  semArray[nSemaphores] = (__gthread_mutex_t *) malloc (sizeof (__gthread_mutex_t));
+  nSemaphores += 1;
+  if (nSemaphores == SEM_POOL)
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "too many semaphores created");
+#else
   __gthread_mutex_t *sem = (__gthread_mutex_t *) malloc (sizeof (__gthread_mutex_t));
 
   /* we need to be careful when using realloc as the lock (semaphore) operators
@@ -132,6 +155,7 @@ newSem (void)
       semArray = (__gthread_mutex_t **) realloc (semArray, sizeof (sem) * nSemaphores);
     }
   semArray[nSemaphores-1] = sem;
+#endif
   return nSemaphores-1;
 }
 
@@ -147,6 +171,7 @@ initSemaphore (int value)
   else if (value != 1)
     M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
 		"semaphore must be initialized to 0 or 1");
+  tprintf ("%d = initSemaphore (%d)\n", sid, value);
   return sid;
 }
 
@@ -155,6 +180,8 @@ int
 RTco_initSemaphore (int value)
 {
   int sid;
+
+  RTco_init ();
   waitSem (&lock);
   sid = initSemaphore (value);
   signalSem (&lock);
@@ -167,7 +194,13 @@ RTco_initSemaphore (int value)
 void
 RTco_signalThread (int tid)
 {
-  RTco_signal (threadArray[tid].execution);
+  int sem;
+  RTco_init ();
+  tprintf ("signalThread %d\n", tid);
+  waitSem (&lock);
+  sem = threadArray[tid].execution;
+  signalSem (&lock);
+  RTco_signal (sem);
 }
 
 
@@ -176,6 +209,8 @@ RTco_signalThread (int tid)
 void
 RTco_waitThread (int tid)
 {
+  RTco_init ();
+  tprintf ("waitThread %d\n", tid);
   RTco_wait (threadArray[tid].execution);
 }
 
@@ -197,8 +232,10 @@ RTco_currentThread (void)
 {
   int tid;
 
+  RTco_init ();
   waitSem (&lock);
   tid = currentThread ();
+  tprintf ("currentThread %d\n", tid);
   signalSem (&lock);
   return tid;
 }
@@ -209,6 +246,8 @@ RTco_currentThread (void)
 unsigned int
 RTco_currentInterruptLevel (void)
 {
+  RTco_init ();
+  tprintf ("currentInterruptLevel %d\n", threadArray[RTco_currentThread ()].interruptLevel);
   return threadArray[RTco_currentThread ()].interruptLevel;
 }
 
@@ -221,6 +260,7 @@ RTco_turnInterrupts (unsigned int newLevel)
   int tid = RTco_currentThread ();
   unsigned int old = RTco_currentInterruptLevel ();
 
+  tprintf ("turnInterrupts from %d to %d\n", old, newLevel);
   waitSem (&lock);
   threadArray[tid].interruptLevel = newLevel;
   signalSem (&lock);
@@ -228,11 +268,21 @@ RTco_turnInterrupts (unsigned int newLevel)
 }
 
 
+static void
+never (void)
+{
+  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "the main thread should never call here");
+}
+
+
 static void *
 execThread (void *t)
 {
   threadCB *tp = (threadCB *) t;
-  RTco_wait (tp->execution);  /* forcing this thread to block, waiting to be scheduled.  */
+
+  tprintf ("exec thread tid = %d  function = 0x%p  arg = 0x%p\n", tp->tid, tp->proc, t);
+  RTco_waitThread (tp->tid);   /* forcing this thread to block, waiting to be scheduled.  */
+  tprintf ("  exec thread [%d]  function = 0x%p  arg = 0x%p\n", tp->tid, tp->proc, t);
   tp->proc ();  /* now execute user procedure.  */
 #if 0
   M2RTS_CoroutineException ( __FILE__, __LINE__, __COLUMN__, __FUNCTION__, "coroutine finishing");
@@ -245,6 +295,12 @@ static
 int
 newThread (void)
 {
+#if defined(POOL)
+  nThreads += 1;
+  if (nThreads == THREAD_POOL)
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "too many threads created");
+  return nThreads-1;
+#else
   if (nThreads == 0)
     {
       threadArray = (threadCB *) malloc (sizeof (threadCB));
@@ -256,6 +312,7 @@ newThread (void)
       threadArray = (threadCB *) realloc (threadArray, sizeof (threadCB) * nThreads);
     }
   return nThreads-1;
+#endif
 }
 
 
@@ -284,7 +341,11 @@ initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
 	M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "failed to set stack size attribute");
     }
 
-  pthread_create (&threadArray[tid].p, &attr, execThread, (void*)&threadArray[tid]);
+  tprintf ("initThread [%d]  function = 0x%p  (arg = 0x%p)\n", tid, proc, (void *)&threadArray[tid]);
+  result = pthread_create (&threadArray[tid].p, &attr, execThread, (void *)&threadArray[tid]);
+  if (result != 0)
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "thread_create failed");
+  tprintf ("  created thread [%d]  function = 0x%p  0x%p\n", tid, proc, (void *)&threadArray[tid]);
   return tid;
 }
 
@@ -293,6 +354,8 @@ int
 RTco_initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
 {
   int tid;
+
+  RTco_init ();
   waitSem (&lock);
   tid = initThread (proc, stackSize, interrupt);
   signalSem (&lock);
@@ -307,6 +370,9 @@ void
 RTco_transfer (int *p1, int p2)
 {
   int tid = currentThread ();
+
+  if (! initialized)
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "cannot transfer to a process before the process has been created");
   if (tid == p2)
     {
       /* error.  */
@@ -338,15 +404,22 @@ RTco_init (void)
     {
       int tid;
 
+      tprintf ("RTco initialized\n");
       initSem (&lock);
       /* create initial thread container.  */
       waitSem (&lock) ;
+#if defined(POOL)
+      threadArray = (threadCB *) malloc (sizeof (threadCB) * THREAD_POOL);
+      semArray = (__gthread_mutex_t **) malloc (sizeof (__gthread_mutex_t *) * SEM_POOL);
+#endif
       tid = newThread ();  /* for the current initial thread.  */
       threadArray[tid].tid = tid;
       threadArray[tid].execution = initSemaphore (0);
       threadArray[tid].p = pthread_self ();
       threadArray[tid].interruptLevel = 0;
+      threadArray[tid].proc = never;  /* this shouldn't happen as we are already running.  */
       initialized = TRUE;
+      tprintf ("RTco initialized completed\n");
       signalSem (&lock) ;
     }
   return 0;

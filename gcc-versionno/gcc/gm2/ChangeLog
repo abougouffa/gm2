@@ -6,6 +6,18 @@
           initialize RTint after RTco.
 	* gm2/gm2-libs/RTint.def:  (Init) exported.
 	* gm2/gm2-libs/RTint.mod:  (initialized) new boolean.
+	* gm2/gm2-libs-iso/COROUTINES.def:  (TurnInterrupts) defined
+          and exported.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  (TurnInterrupts) implemented.
+          (NEWCOROUTINE) protected by disabling interrupts.
+          (TRANSFER) protected by disabling interrupts.
+          (IOTRANSFER) protected by disabling interrupts.
+	* gm2/gm2-libs-iso/SYSTEM.mod:  tidied up formatting.
+	* gm2/isocoroutines/run/pass/coroutine.mod:  increased the number
+          of context switches required to complete the test.
+	* libgm2/libiso/RTco.c:  use a pool of semaphores and threads.
+	  Ensure initialization occurs before any exported function is
+          called.  Added debug tracing.
 
 2019-10-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -20,7 +20,7 @@ CONST
   UnassignedPriority = 0 ;
 
 TYPE
-  COROUTINE ; (* Values of this type are created dynamically by NEWCOROUTINE 
+  COROUTINE ; (* Values of this type are created dynamically by NEWCOROUTINE
                  and identify the coroutine in subsequent operations *)
   INTERRUPTSOURCE = CARDINAL ;
   PROTECTION = [UnassignedPriority..7] ;
@@ -53,7 +53,7 @@ PROCEDURE IOTRANSFER (VAR from: COROUTINE; to: COROUTINE);
      interrupted coroutine is returned in from.  The calling coroutine
      must be associated with a source of interrupts.
   *)
-    
+
 PROCEDURE ATTACH (source: INTERRUPTSOURCE);
   (* Associates the specified source of interrupts with the calling
      coroutine. *)
@@ -82,5 +82,14 @@ PROCEDURE LISTEN (p: PROTECTION);
 
 PROCEDURE PROT (): PROTECTION;
   (* Returns the protection of the calling coroutine. *)
+
+
+(*
+   TurnInterrupts - switches processor interrupts to the protection
+                    level, to.  It returns the old value.
+*)
+
+PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
+
 
 END COROUTINES.
