@@ -1,3 +1,7 @@
+2019-10-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs/RTint.mod:  tidied up spacing.
+
 2019-10-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-coroutines/SYSTEM.mod:  (localInit) initialize

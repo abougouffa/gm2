@@ -568,62 +568,62 @@ BEGIN
                      THEN
                         IF Debugging
                         THEN
-                           printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
+                           printf ('read (fd=%d) is ready (vec=%d)\n', File, no) ;
                            DumpPendingQueue
                         END ;
                         FdClr (File, i) ;  (* so we dont activate this again from our select.  *)
                         signal (lock) ;
-                        call(no, priority, arg) ;
+                        call (no, priority, arg) ;
                         RETURN TRUE
                      END |
             output:  IF (File < maxFd) AND (o#NIL) AND FdIsSet(File, o)
                      THEN
                         IF Debugging
                         THEN
-                           printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
+                           printf ('write (fd=%d) is ready (vec=%d)\n', File, no) ;
                            DumpPendingQueue
                         END ;
                         FdClr (File, o) ;  (* so we dont activate this again from our select.  *)
                         signal (lock) ;
-                        call(no, priority, arg) ;
+                        call (no, priority, arg) ;
                         RETURN TRUE
                      END |
             time  :  IF untilInterrupt AND (t # NIL)
                      THEN
-                        r := GetTimeOfDay(after) ;
-                        Assert(r=0) ;
+                        r := GetTimeOfDay (after) ;
+                        Assert (r=0) ;
                         IF Debugging
                         THEN
-                           GetTime(t, s, m) ;
-                           Assert(m<Microseconds) ;
-                           GetTime(after, afs, afm) ;
-                           Assert(afm<Microseconds) ;
-                           GetTime(b4, b4s, b4m) ;
-                           Assert(b4m<Microseconds) ;
-                           printf("waited %d.%d + %d.%d now is %d.%d\n",
-                                  s, m, b4s, b4m, afs, afm) ;
+                           GetTime (t, s, m) ;
+                           Assert (m<Microseconds) ;
+                           GetTime (after, afs, afm) ;
+                           Assert (afm<Microseconds) ;
+                           GetTime (b4, b4s, b4m) ;
+                           Assert (b4m<Microseconds) ;
+                           printf ("waited %d.%d + %d.%d now is %d.%d\n",
+                                   s, m, b4s, b4m, afs, afm) ;
                         END ;
-                        IF IsGreaterEqual(after, abs)
+                        IF IsGreaterEqual (after, abs)
                         THEN
                            IF Debugging
                            THEN
                               DumpPendingQueue ;
-                              printf("time has expired calling despatcher\n")
+                              printf ("time has expired calling despatcher\n")
                            END ;
-                           t := KillTime(t) ;  (* so we dont activate this again from our select.  *)
+                           t := KillTime (t) ;  (* so we dont activate this again from our select.  *)
                            signal (lock) ;
-                           call(no, priority, arg) ;
+                           call (no, priority, arg) ;
                            RETURN TRUE
                         ELSIF Debugging
                         THEN
-                           printf("must wait longer as time has not expired\n")
+                           printf ("must wait longer as time has not expired\n")
                         END
                      END
             END
          END ;
          v := v^.pending
       END ;
-      DEC(p)
+      DEC (p)
    END ;
    signal (lock) ;
    RETURN FALSE
@@ -696,7 +696,7 @@ BEGIN
             END ;
             v := v^.pending
          END ;
-         DEC(p)
+         DEC (p)
       END ;
       IF NOT untilInterrupt
       THEN
@@ -711,44 +711,45 @@ BEGIN
       (* printf('}\n') ; *)
       IF (NOT found) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
       THEN
-         t := KillTime(t) ;
+         (* no file descriptors to be selected upon.  *)
+         t := KillTime (t) ;
          signal (lock) ;
          RETURN
       ELSE
-         GetTime(t, s, m) ;
-         Assert(m<Microseconds) ;
-         b4 := InitTime(0, 0) ;
-         after := InitTime(0, 0) ;
-         r := GetTimeOfDay(b4) ;
-         Assert(r=0) ;
-         SubTime(s, m, t, b4) ;
-         SetTime(t, s, m) ;
+         GetTime (t, s, m) ;
+         Assert (m<Microseconds) ;
+         b4 := InitTime (0, 0) ;
+         after := InitTime (0, 0) ;
+         r := GetTimeOfDay (b4) ;
+         Assert (r=0) ;
+         SubTime (s, m, t, b4) ;
+         SetTime (t, s, m) ;
          IF Debugging
          THEN
-            printf("select waiting for %u.%6u seconds\n", s, m)
+            printf ("select waiting for %u.%6u seconds\n", s, m)
          END ;
          signal (lock) ;
          REPEAT
-            r := select(maxFd+1, i, o, NIL, t) ;
+            r := select (maxFd+1, i, o, NIL, t) ;
             IF r=-1
             THEN
-               perror("select") ;
+               perror ("select") ;
                r := select(maxFd+1, i, o, NIL, NIL) ;
                IF r=-1
                THEN
-                  perror("select timeout argument is faulty")
+                  perror ("select timeout argument is faulty")
                END ;
-               r := select(maxFd+1, i, NIL, NIL, t) ;
+               r := select (maxFd+1, i, NIL, NIL, t) ;
                IF r=-1
                THEN
-                  perror("select output fd argument is faulty")
+                  perror ("select output fd argument is faulty")
                END ;
-               r := select(maxFd+1, NIL, o, NIL, t) ;
+               r := select (maxFd+1, NIL, o, NIL, t) ;
                IF r=-1
                THEN
-                  perror("select input fd argument is faulty")
+                  perror ("select input fd argument is faulty")
                ELSE
-                  perror("select maxFD+1 argument is faulty")
+                  perror ("select maxFD+1 argument is faulty")
                END
             END
          UNTIL r#-1
@@ -758,23 +759,23 @@ BEGIN
       END ;
       IF t#NIL
       THEN
-         t := KillTime(t)
+         t := KillTime (t)
       END ;
       IF after#NIL
       THEN
-         t := KillTime(after)
+         t := KillTime (after)
       END ;
       IF b4#NIL
       THEN
-         t := KillTime(b4)
+         t := KillTime (b4)
       END ;
       IF i#NIL
       THEN
-         i := KillSet(i)
+         i := KillSet (i)
       END ;
       IF o#NIL
       THEN
-         o := KillSet(o)
+         o := KillSet (o)
       END
    END ;
    signal (lock)
