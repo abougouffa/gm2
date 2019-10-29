@@ -17,7 +17,13 @@
           spacing.
 	* testsuite/gm2/iso/run/pass/unbounded.mod:  added many
           more asserts.
-	* testsuite/lib/gm2.exp:  removed libulm from the list of libraries.
+	* testsuite/lib/gm2.exp:  removed libulm from the list of
+          libraries.
+	* gm2/Make-lang.in:  (gm2/gm2-gcc/%.o) added MCDEPS LIBDEPS.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)%.o) place C file into
+          gm2/gm2-pge-boot.  (gm2/gm2-pge-boot/%.o) place C file into
+	  gm2/gm2-pge-boot.
+
 
 2019-10-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

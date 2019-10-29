@@ -2169,14 +2169,14 @@ gm2/gm2-pge-boot/$(SRC_PREFIX)errno.o:  $(srcdir)/gm2/mc-boot-ch/Gerrno.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
 
 gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS) $(BUILD-BOOT-H)
-	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
-	$(CC) -Igm2/gm2-pg-boot	-I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
-              -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+	$(MCC) -o=gm2/gm2-pge-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
+	$(CC) -Igm2/gm2-pge-boot -I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
+              -g -c gm2/gm2-pge-boot/$(SRC_PREFIX)$*.c -o $@
 
 gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(MCDEPS) $(BUILD-BOOT-H)
-	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
+	$(MCC) -o=gm2/gm2-pge-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
-              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pge-boot/$(SRC_PREFIX)$*.c -o $@
 
 gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod $(MCDEPS) $(BUILD-BOOT-H)
 	$(MCC) -o=gm2/gm2-pge-boot/$(SRC_PREFIX)pge.c gm2/gm2-auto/pge.mod
