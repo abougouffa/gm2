@@ -23,7 +23,18 @@
           (gm2/gm2-pge-boot/$(SRC_PREFIX)%.o) place C file into
           gm2/gm2-pge-boot.  (gm2/gm2-pge-boot/%.o) place C file into
 	  gm2/gm2-pge-boot.
-
+	* gm2/examples/pge/MemStream.mod:  changed license from LGPL to
+          GPLv3.
+	* gm2/examples/pge/RTgen.mod:  changed license from LGPL to
+          GPLv3.
+	* gm2/examples/pge/RawIO.mod:  changed license from LGPL to
+          GPLv3.
+	* gm2/examples/pge/Storage.def:  changed license from LGPL to
+          GPLv3.
+	* gm2/examples/pge/Storage.mod:  changed license from LGPL to
+          GPLv3.
+	* gm2/gm2-libs/LegacyReal.mod:  changed license from LGPL to
+          GPLv3.
 
 2019-10-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
