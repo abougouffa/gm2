@@ -2808,7 +2808,7 @@ END CheckBecomesMeta ;
 
 PROCEDURE BuildAssignment (tokno: CARDINAL) ;
 BEGIN
-   doBuildAssignment(TRUE, TRUE, tokno)
+   doBuildAssignment (TRUE, TRUE, tokno)
 END BuildAssignment ;
 
 

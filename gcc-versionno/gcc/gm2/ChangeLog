@@ -1,3 +1,24 @@
+2019-10-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (gm2/gm2-gcc/%.o) added target dependencies.
+          (gm2/gm2-compiler-boot/m2flex.o) added target dependencies.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)libc.o) explicit rule.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)mcrts.o) explicit rule.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)UnixArgs.o) explicit rule.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)Selective.o) explicit rule.
+          (gm2/gm2-pge-boot/$(SRC_PREFIX)termios.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)SysExceptions.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)ldtoa.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)dtoa.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)wrapc.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)SYSTEM.o) explicit rule.
+          (gm2/gm2-pge/boot/$(SRC_PREFIX)errno.o) explicit rule.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildAssignment) tidied up
+          spacing.
+	* testsuite/gm2/iso/run/pass/unbounded.mod:  added many
+          more asserts.
+	* testsuite/lib/gm2.exp:  removed libulm from the list of libraries.
+
 2019-10-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs/RTint.mod:  tidied up spacing.

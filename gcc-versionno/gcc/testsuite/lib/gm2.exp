@@ -220,8 +220,8 @@ proc gm2_link_flags { paths } {
 	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
 	}
 
-	foreach d [list libmin libulm libpim libcor liblog libiso] {
-	    foreach l [list libmin libulm libgm2 libcor liblog libiso] {
+	foreach d [list libmin libpim libcor liblog libiso] {
+	    foreach l [list libmin libgm2 libcor liblog libiso] {
 		send_log "ld_library_path was ${ld_library_path}\n"
 		send_log "looking for ${gccpath}/${d}/.libs/${l}.a\n"
 		if [file exists "${gccpath}/libgm2/${d}/.libs/${l}.a"] {

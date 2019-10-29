@@ -20,12 +20,13 @@ MODULE unbounded ;
 FROM libc IMPORT exit, printf ;
 FROM SYSTEM IMPORT ADR ;
 
+
 PROCEDURE Assert (b: BOOLEAN; f: ARRAY OF CHAR; l: CARDINAL) ;
 BEGIN
    IF NOT b
    THEN
-      printf("%s:%d:failure\n", ADR(f), l) ;
-      exit(1)
+      printf ("%s:%d:failure\n", ADR (f), l) ;
+      exit (1)
    END
 END Assert ;
 
@@ -34,18 +35,35 @@ PROCEDURE test (VAR a: ARRAY OF ARRAY OF CHAR) ;
 VAR
    m, n: CARDINAL ;
 BEGIN
-   m := HIGH(a) ;
-   n := HIGH(a[0]) ;
-   printf("m = %d, n = %d\n", m, n);
+   m := HIGH (a) ;
+   n := HIGH (a[0]) ;
+   printf ("m = %d, n = %d\n", m, n);
    a[1, 2] := 'a' ;
    a[2, 1] := 'c'
 END test ;
 
 
 VAR
-   b: ARRAY [0..4], [0..5] OF CHAR ;
+   b   : ARRAY [0..4], [0..5] OF CHAR ;
+   i, j: CARDINAL ;
 BEGIN
-   test(b) ;
-   Assert(b[1, 2]='a', __FILE__, __LINE__) ;
-   Assert(b[2, 1]='c', __FILE__, __LINE__) ;
+   FOR i := 0 TO 4 DO
+      FOR j := 0 TO 5 DO
+         b[i, j] := 'z'
+      END
+   END ;
+   test (b) ;
+   FOR i := 0 TO 4 DO
+      FOR j := 0 TO 5 DO
+         IF (i = 1) AND (j = 2)
+         THEN
+            Assert (b[1, 2] = 'a', __FILE__, __LINE__)
+         ELSIF (i = 2) AND (j = 1)
+         THEN
+            Assert (b[2, 1] = 'c', __FILE__, __LINE__)
+         ELSE
+            Assert (b[i, j] = 'z', __FILE__, __LINE__)
+         END
+      END
+   END
 END unbounded.
