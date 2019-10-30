@@ -75,3 +75,32 @@ outputs=" \
          gm2/man/Makefile \
          gm2/www/Makefile \
         "
+
+mkdir -p gm2/gm2-compiler-boot
+mkdir -p gm2/gm2-libs-boot
+mkdir -p gm2/gm2-ppg-boot
+mkdir -p gm2/gm2-pge-boot
+mkdir -p gm2/gm2-pg-boot
+mkdir -p gm2/gm2-tools-boot
+mkdir -p gm2/gm2-tools
+mkdir -p gm2/gm2-libiberty
+mkdir -p gm2/gm2-gcc
+mkdir -p gm2/gm2-auto
+mkdir -p gm2/gm2-compiler
+mkdir -p gm2/gm2-libs
+mkdir -p gm2/gm2-libs-iso
+mkdir -p gm2/gm2-compiler-paranoid
+mkdir -p gm2/gm2-libs-paranoid
+mkdir -p gm2/gm2-compiler-verify
+mkdir -p gm2/boot-bin
+mkdir -p gm2/ulm-lib-gm2
+mkdir -p gm2/ulm-lib-gm2/sys
+mkdir -p gm2/ulm-lib-gm2/std
+mkdir -p gm2/gm2-libs-pim
+mkdir -p gm2/gm2-libs-coroutines
+mkdir -p gm2/gm2-libs-min
+mkdir -p gm2/mc-boot
+mkdir -p gm2/mc-boot-ch
+mkdir -p gm2/mc-boot-gen
+mkdir -p plugin
+mkdir -p stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2

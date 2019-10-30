@@ -1,3 +1,11 @@
+2019-10-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  pruned old comments.  (GM2_DIRS)
+	  removed.  All directory targets are tested before being created.
+	* gm2/config-lang.in:  directory creation moved into configure.
+          (fixes a bug reported by Matthias Klose) where make install
+	  would relink cc1gm2.
+
 2019-10-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  (gm2/gm2-gcc/%.o) added target dependencies.

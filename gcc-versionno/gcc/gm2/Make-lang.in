@@ -18,24 +18,6 @@
 #along with GCC; see the file COPYING3.  If not see
 #<http://www.gnu.org/licenses/>.
 
-# This file provides the language dependent support in the main Makefile.
-# Each language makefile fragment must provide the following targets:
-#
-# foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
-# foo.info, foo.dvi,
-# foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
-# foo.uninstall,
-# foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean,
-# foo.maintainer-clean, foo.stage1, foo.stage2, foo.stage3, foo.stage4
-#
-# where `foo' is the name of the language.
-#
-# It should also provide rules for:
-#
-# - making any compiler driver (eg: gm2)
-# - the compiler proper (eg: cc1gm2)
-# - define the names for selecting the language in LANGUAGES.
-
 # QUIAT=@
 GM2_MAKE_DEBUG=
 
@@ -148,7 +130,7 @@ GM2_OBJS = $(GCC_OBJS) gm2/gm2version.o version.o \
 
 # Create the compiler driver for xgm2.
 xgm2$(exeext): $(GM2_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a $(LIBDEPS) \
-    $(GM2_DIRS) gm2/gm2config.h
+    gm2/gm2config.h
 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
 	  $(GM2_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a \
 	  $(EXTRA_GCC_LIBS) $(LIBS)
@@ -167,42 +149,14 @@ GM2_LIB_DIR_LOG= $(DESTDIR)$(libsubdir)/gm2/logitech
 GM2_LIB_DIR_PCO= $(DESTDIR)$(libsubdir)/gm2/pim-coroutine
 GM2_LIB_DIR_ISO= $(DESTDIR)$(libsubdir)/gm2/iso
 GM2_LIB_DIR_MIN= $(DESTDIR)$(libsubdir)/gm2/min
-GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
-                 $(objdir)/gm2/gm2-libs-boot \
-                 $(objdir)/gm2/gm2-ppg-boot \
-                 $(objdir)/gm2/gm2-pge-boot \
-                 $(objdir)/gm2/gm2-pg-boot \
-                 $(objdir)/gm2/gm2-tools-boot \
-                 $(objdir)/gm2/gm2-tools \
-                 $(objdir)/gm2/gm2-libiberty \
-                 $(objdir)/gm2/gm2-gcc \
-                 $(objdir)/gm2/gm2-auto \
-                 $(objdir)/gm2/gm2-compiler \
-                 $(objdir)/gm2/gm2-libs \
-                 $(objdir)/gm2/gm2-libs-iso \
-                 $(objdir)/gm2/gm2-compiler-paranoid \
-                 $(objdir)/gm2/gm2-libs-paranoid \
-                 $(objdir)/gm2/gm2-compiler-verify \
-                 $(objdir)/gm2/boot-bin \
-                 $(objdir)/gm2/gm2-libs-pim \
-                 $(objdir)/gm2/gm2-libs-coroutines \
-                 $(objdir)/gm2/gm2-libs-min \
-                 $(objdir)/gm2/mc-boot \
-                 $(objdir)/gm2/mc-boot-ch \
-                 $(objdir)/gm2/mc-boot-gen \
-                 $(objdir)/plugin \
-                 stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 # Build hooks:
 
-gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS) \
-	plugin/m2rte$(exeext).so
+gm2.all.cross: xgm2-cross$(exeext) 
 
-gm2.start.encap: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS) \
-	plugin/m2rte$(exeext).so
+gm2.start.encap: xgm2$(exeext) $(GM2_LINK_TOOLS) plugin/m2rte$(exeext).so
 gm2.rest.encap:
+
 gm2.info: $(objdir)/gm2/gm2.info
 
 gm2.man: doc/gm2.1
@@ -235,7 +189,7 @@ $(objdir)/gm2/gm2.info: $(TEXISRC)
 	$(MAKEINFO) -I$(objdir)/gm2 -I$(srcdir)/doc/include -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
-	mkdir -p gm2/images
+	test -d gm2/images || mkdir -p gm2/images
 	if [ -f $(srcdir)/gm2/images/gnu.eps ] ; then \
            cp $(srcdir)/gm2/images/gnu.eps $@ ; \
         else \
@@ -279,76 +233,76 @@ gm2-version.texi-check:
 	$(STAMP) gm2-version.texi-check
 
 $(objdir)/gm2/gm2-tools:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-tools-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-compiler-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-ppg-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-pg-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-pge-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-boot:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libiberty:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-auto:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-gcc:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-compiler:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-iso:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-min:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-compiler-paranoid:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-paranoid:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-compiler-verify:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/boot-bin:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-pim:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 $(objdir)/gm2/gm2-libs-coroutines:
-	mkdir $@
+	test -d $@ || mkdir $@
 
 stage1/gm2:
-	-mkdir -p stage1/gm2
+	-test -d $@ || mkdir -p stage1/gm2
 
 stage2/gm2:
-	-mkdir -p stage2/gm2
+	-test -d $@ || mkdir -p stage2/gm2
 
 stage3/gm2:
-	-mkdir -p stage3/gm2
+	-test -d $@ || mkdir -p stage3/gm2
 
 stage4/gm2:
-	-mkdir -p stage4/gm2
+	-test -d $@ || mkdir -p stage4/gm2
 
 # No gm2-specific selftests
 selftest-gm2:
@@ -440,7 +394,7 @@ gm2.install-plugin: plugin/m2rte$(exeext).so
 	chmod a+x $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
 
 plugin/m2rte$(exeext).so: $(srcdir)/gm2/plugin/m2rte.c $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h
-	mkdir -p $(GM2_DIRS)
+	test -d plugin || mkdir plugin
 	$(PLUGINCC) $(PLUGINCFLAGS) -fno-rtti -I. -I$(srcdir) -I$(srcdir)/gm2 -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/../include -I$(srcdir)/../libcpp/include -Wall -Wno-literal-suffix -fPIC -c -o plugin/m2rte.o $(srcdir)/gm2/plugin/m2rte.c
 	$(PLUGINCC) $(PLUGINCFLAGS) $(PLUGINLIBS) -fno-rtti plugin/m2rte.o -shared -o $@
 
@@ -640,9 +594,10 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
                               $(BACKEND) $(LIBS) gm2/gm2-gcc/rtegraph.o \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
-stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
+stage1/gm2/cc1gm2$(exeext): xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                             $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) \
-                            $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/gm2-gcc/rtegraph.o plugin/m2rte$(exeext).so
+                            $(GM2_LIBS_BOOT) $(MC_LIBS) \
+                            gm2/gm2-gcc/rtegraph.o plugin/m2rte$(exeext).so
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
                              $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/gm2-gcc/rtegraph.o \
@@ -1440,7 +1395,7 @@ MCLINK=-g
 GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/pim
 GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso
 
-mc:  $(GM2_DIRS) mc-clean mc-devel
+mc:  mc-clean mc-devel
 
 
 #
@@ -1657,19 +1612,19 @@ BUILD-MC-BOOT-O =  $(MC-LIB-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o) \
 BUILD-MC-INTERFACE-O = $(MC-INTERFACE-C:%.c=gm2/mc-boot-ch/$(SRC_PREFIX)%.o)
 
 
-$(objdir)/plugin: force
-	mkdir -p $@
+$(objdir)/plugin:
+	test -d $@ || mkdir -p $@
 
-$(objdir)/gm2/mc-boot: force
-	mkdir -p $@
+$(objdir)/gm2/mc-boot:
+	test -d $@ || mkdir -p $@
 
-$(objdir)/gm2/mc-boot-ch: force
-	mkdir -p $@
+$(objdir)/gm2/mc-boot-ch:
+	test -d $@ || mkdir -p $@
 
-$(objdir)/gm2/mc-boot-gen: force
-	mkdir -p $@
+$(objdir)/gm2/mc-boot-gen:
+	test -d $@ || mkdir -p $@
 
-mc-autogen: $(GM2_DIRS) mc-clean mc-devel \
+mc-autogen: mc-clean mc-devel \
             $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
             $(BUILD-MC-BOOT-AUTO-C)
 	cd gm2/mc-boot-gen ; for i in *.c ; do gcc -g -c -I../../$(srcdir)/gm2/mc-boot-ch $$i ; done
@@ -1715,7 +1670,7 @@ gm2/mc-boot-ch/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 #                 files will be checked into git by the maintainer.
 #
 
-mc-bootstrap: $(GM2_DIRS) mc-clean gm2/boot-bin/mc$(exeext)
+mc-bootstrap: mc-clean gm2/boot-bin/mc$(exeext)
 
 gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/RTcodummy.o
 	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/RTcodummy.o -lm
@@ -2052,7 +2007,7 @@ gm2/gm2-ppg-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	$(CC) -g -c -o $@ gm2/gm2-ppg-boot/main.c
 
 gm2/gm2-auto:
-	mkdir gm2/gm2-auto
+	test -d $@ || mkdir -p $@
 
 #
 #  gm2/pg$(exext) is the 2nd generation parser generator built from ebnf
