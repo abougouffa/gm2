@@ -1,3 +1,10 @@
+2019-10-31      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/examples/svga/vga.def:  changed licence to GPL3 with
+	  extensions.
+	* gm2/examples/svga/DisplayBuffer.def:  changed licence to GPL3
+	  with extensions.
+
 2019-10-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  pruned old comments.  (GM2_DIRS)
