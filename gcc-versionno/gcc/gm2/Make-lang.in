@@ -152,7 +152,7 @@ GM2_LIB_DIR_MIN= $(DESTDIR)$(libsubdir)/gm2/min
 
 # Build hooks:
 
-gm2.all.cross: xgm2-cross$(exeext) 
+gm2.all.cross: xgm2-cross$(exeext) $(GM2_LINK_TOOLS) plugin/m2rte$(exeext).so
 
 gm2.start.encap: xgm2$(exeext) $(GM2_LINK_TOOLS) plugin/m2rte$(exeext).so
 gm2.rest.encap:

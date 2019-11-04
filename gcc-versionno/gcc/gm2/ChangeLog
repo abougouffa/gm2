@@ -2,6 +2,8 @@
 
 	* gm2/gm2-libs/config-host.in:  (AC_CHECK_HEADERS)
           quote all header files.
+	* gm2/Make-lang.in:  (gm2.all.cross) added
+          plugin/m2rte$(exeext).so as a dependency.
 
 2019-10-31      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
