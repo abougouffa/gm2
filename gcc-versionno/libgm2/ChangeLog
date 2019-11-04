@@ -1,3 +1,20 @@
+2019-11-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libcor/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libiso/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libpim/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/liblog/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libmin/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libulm/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libpth/Makefile.am: (MULTIOSSUBDIR) quote test.
+	* libgm2/libcor/Makefile.in: regenerated.
+	* libgm2/libiso/Makefile.in: regenerated.
+	* libgm2/libpim/Makefile.in: regenerated.
+	* libgm2/liblog/Makefile.in: regenerated.
+	* libgm2/libmin/Makefile.in: regenerated.
+	* libgm2/libulm/Makefile.in: regenerated.
+	* libgm2/libpth/Makefile.in: regenerated.
+
 2019-10-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libcor/Makefile.am:  added -fm2-g -g.

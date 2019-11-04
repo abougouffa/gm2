@@ -21,7 +21,7 @@ toolexecdir=@toolexecdir@
 MULTIDIR := $(shell $(CC) $(CFLAGS) -print-multi-directory)
 MULTIOSDIR := $(shell $(CC) $(CFLAGS) -print-multi-os-directory)
 
-MULTIOSSUBDIR := $(shell if test $(MULTIOSDIR) != .; then echo /$(MULTIOSDIR); fi)
+MULTIOSSUBDIR := $(shell if test x$(MULTIOSDIR) != x.; then echo /$(MULTIOSDIR); fi)
 inst_libdir = $(libsubdir)$(MULTISUBDIR)
 inst_slibdir = $(slibdir)$(MULTIOSSUBDIR)
 
