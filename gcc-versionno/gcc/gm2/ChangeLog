@@ -1,3 +1,23 @@
+2019-11-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (gm2/gm2-libs/gm2-libs-target.h)
+          removed.   (gm2/gm2-libs-iso/%.o) replaced gm2-libs-target
+          with gm2-libs-host.h.  (gm2/gm2-libs/gm2-libs-host.h)
+          pass --libdir, --libexecdir to configure.
+          (build-libs-min) removed.
+          (archive-libs-min) removed.
+          (build-libs) removed.
+          (archive-libs) removed.
+          (build-compiler) removed.
+          (gm2/gm2-libs/libgm2.a) removed.
+          (build-libs-iso) removed.
+          (archive-libs-iso) removed.
+          (build-libs-ulm) removed.
+          (archive-libs-ulm) removed.
+          (build-libs-pim) removed.
+          (archive-libs-pim) removed.
+          (build-libs-coroutines) removed.
+
 2019-11-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs/config-host.in:  (AC_CHECK_HEADERS)

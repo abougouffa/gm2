@@ -410,7 +410,7 @@ gm2.mostlyclean:
 gm2.clean:
 	-rm -f gm2/*.o
 	-rm -f gm2/gm2-libs/config.*
-	-rm gm2/gm2-libs/gm2-libs-host.h gm2/gm2-libs/gm2-libs-target.h gm2/gm2config.h
+	-rm gm2/gm2-libs/gm2-libs-host.h gm2/gm2config.h
 	-rm -f gm2/gm2-libs/autoscan.log
 	-rm -f gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	-rm -fr gm2/stage?
@@ -518,18 +518,7 @@ SO=-O0 -g -fPIC
 
 # Language-specific object files for the gm2 compiler.
 
-# rationale:
-#
-# we build gm2 twice. The first time the Modula-2 sources are
-# converted into C via mc. The resulting compiler and utilities are
-# placed into stage1/gm2 directories.  Then this stage1 compiler is
-# used to build the stage2 compiler which will be installed on the
-# host as part of `make install'.  Debugging the stage2 compiler is
-# much prefered as the executable contains debugging info relating
-# directly to the Modula-2 source.
-
-                  # the C implementation module bridging the Modula-2 -> GCC
-GM2_C_OBJS          = gm2/gm2-lang.o \
+GM2_C_OBJS        = gm2/gm2-lang.o \
                     gm2/stor-layout.o \
                     gm2/m2pp.o \
                     gm2/gm2-gcc/m2assert.o \
@@ -550,7 +539,6 @@ GM2_C_OBJS          = gm2/gm2-lang.o \
                     gm2/gm2-gcc/init.o
 GM2_LIBS          = gm2/gm2-compiler/gm2.a ../$(target_subdir)/libgm2/libpim/.libs/libgm2.a gm2/gm2-libs-boot/choosetemp.o
 
-# gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
                     gm2/gm2-libs-boot/libgm2.a
 GM2_LIBS_PARANOID = gm2/gm2-compiler-paranoid/gm2.a \
@@ -1154,7 +1142,7 @@ gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
 gm2/gm2-compiler/M2Version.mod:
 	cd gm2/gm2-compiler ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
-gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c gm2/gm2-libs/gm2-libs-target.h
+gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
@@ -1165,26 +1153,6 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
 #  itself.
 #
-
-gm2/gm2-libs/gm2-libs-target.h:
-	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
-            echo "Configuring to build libraries using cross compiler" ; \
-            CC="$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(ALL_CPPFLAGS) -I. -I$(srcdir) -isystem include -isystem ${SYSTEM_HEADER_DIR}"; \
-            export CC; \
-            $(SHELL) -c \
-               '$(srcdir)/gm2/gm2-libs/config-target \
-                  --srcdir=$(srcdir)/gm2/gm2-libs \
-                  --target=$(target) \
-                  --program-suffix=$(exeext) \
-                  --includedir=${gcc_tooldir}/include' ; \
-        else \
-            echo "Configuring to build libraries using native compiler" ; \
-            cd gm2/gm2-libs ; \
-            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/config-target \
-               --srcdir=../../$(srcdir)/gm2/gm2-libs \
-               --target=$(target) \
-               --program-suffix=$(exeext)' ; \
-        fi
 
 gm2/gm2-libs/gm2-libs-host.h:
 	echo "Configuring to build libraries using native compiler" ; \
@@ -1201,7 +1169,7 @@ gm2/gm2config.h:
             export AR ; \
             RANLIB=`echo $(RANLIB_FOR_TARGET) | sed -e "s/^ //"` ; \
             export RANLIB ; \
-            $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+            $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR) --libdir=$(libdir) --libexecdir=$(libexecdir)' ; \
         else \
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
@@ -1243,103 +1211,16 @@ build-system: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
               $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def
 endif
 
-build-libs-min: $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
-                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o) \
-                $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/O2/%.o) \
-                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/O2/%.o)
-
-archive-libs-min: build-libs-min
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a \
-        $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
-        $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-min/O2/libgm2min.a \
-        $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/O2/%.o) \
-        $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/O2/%.o)
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs-min/O2/libgm2min.a
-
-build-libs: gm2/gm2-libs/gm2-libs-host.h \
-            $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
-            $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
-
-archive-libs:  build-libs
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs/libgm2.a \
-            $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
-            $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs/libgm2.a
-
 build-compiler: $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                 $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o) \
                 gm2/gm2-compiler/M2Version.o \
                 gm2/gm2-compiler/m2flex.o
-
-gm2/gm2-libs/libgm2.a: build-libs
-	$(AR_FOR_TARGET) cr $@ $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
-                    $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
-	$(RANLIB) $@
 
 gm2/gm2-compiler/gm2.a: build-compiler xgm2$(exeext)
 	$(AR_FOR_TARGET) cr $@ $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                     gm2/gm2-compiler/M2Version.o \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
 	$(RANLIB) $@
-
-build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o) \
-                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/%.o)
-
-archive-libs-iso: build-libs-iso
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-iso/libgm2iso.a \
-                $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o) \
-                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/%.o)
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs-iso/libgm2iso.a
-
-build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
-                gm2/gm2-libs-pim/Break.o
-
-archive-libs-pim: build-libs-pim
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-pim/libgm2pim.a \
-                $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
-                gm2/gm2-libs-pim/Break.o
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs-pim/libgm2pim.a
-
-build-libs-coroutines: $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
-                       gm2/gm2-libs-coroutines/KeyBoardLEDs.o
-
-archive-libs-coroutines: build-libs-coroutines
-	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-coroutines/libgm2pco.a \
-                $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
-                gm2/gm2-libs-coroutines/KeyBoardLEDs.o
-	$(RANLIB_FOR_TARGET) gm2/gm2-libs-coroutines/libgm2pco.a
-
-gm2/gm2-libs-pim/Break.o: gm2/gm2-libs-pim/Break.c
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
-gm2/gm2-libs-coroutines/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
-gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
-gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(SO) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
-gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(SO_O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
-gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
-
-gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim:$(srcdir)/gm2/gm2-libs-iso $< -o $@
-
-gm2/gm2-libs-coroutines/O2/%.o: gm2/gm2-libs-coroutines/%.mod
-	$(XGM2_1) $(O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim:$(srcdir)/gm2/gm2-libs-iso $< -o $@
-
-gm2/gm2-libs-coroutines/SO/%.o: gm2/gm2-libs-coroutines/%.mod
-	$(XGM2_1) $(SO) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim:$(srcdir)/gm2/gm2-libs-iso $< -o $@
-
-gm2/gm2-libs-coroutines/SO_O2/%.o: gm2/gm2-libs-coroutines/%.mod
-	$(XGM2_1) $(SO_O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim:$(srcdir)/gm2/gm2-libs-iso $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/mc$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
