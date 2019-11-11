@@ -36,10 +36,10 @@ set output [exec ${XGPP} -B[file dirname $rootme]/gcc -g -c $srcdir/gm2/exceptio
 #  There are other exception tests which test exceptions with the ISO libraries.
 #
 
-set gm2src ${srcdir}/../gm2
+set gm2src ${srcdir}/../m2
 
 gm2_init_pim "${srcdir}/gm2/exceptions/run/pass"
-gm2_link_with "-lgm2 -liso -lpthread"
+gm2_link_with "-lm2pim -lm2iso -lpthread"
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.

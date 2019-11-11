@@ -34,12 +34,12 @@ gcc_version := $(shell cat $(top_srcdir)/../gcc/BASE-VER)
 TOP_GCCDIR := $(shell cd $(top_srcdir) && cd .. && pwd)
 
 GCC_DIR = $(TOP_GCCDIR)/gcc
-GM2_SRC = $(GCC_DIR)/gm2
+GM2_SRC = $(GCC_DIR)/m2
 
 toolexeclibdir=@toolexeclibdir@
 toolexecdir=@toolexecdir@
 
-SUBDIRS = libmin libpim liblog libcor libiso
+SUBDIRS = libm2min libm2pim libm2log libm2cor libm2iso
 GM2_BUILDDIR := $(shell pwd)
 
 

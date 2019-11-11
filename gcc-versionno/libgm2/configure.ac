@@ -1,19 +1,24 @@
 # Configure script for libgm2.
-#   Copyright 2013 Free Software Foundation, Inc.
-#
-# This file is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
+# Copyright (C) 2013-2019 Free Software Foundation, Inc.
+
+# This file is part of GCC.
+
+# GCC is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+
+# GCC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
 # You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING3.  If not see
+# along with GCC; see the file COPYING3.  If not see
 # <http://www.gnu.org/licenses/>.
+
+# Configure looks for the existence of this file to auto-config each language.
+# We define several parameters used by configure:
 
 # Process this file with autoreconf to produce a configure script.
 
@@ -312,8 +317,8 @@ AM_CONDITIONAL([BUILD_CORLIB], [test x$BUILD_CORLIB = xtrue])
 AM_CONDITIONAL([BUILD_LOGLIB], [test x$BUILD_LOGLIB = xtrue])
 
 AC_CONFIG_SRCDIR([Makefile.am])
-AC_CONFIG_FILES([Makefile libmin/Makefile libpim/Makefile libiso/Makefile
-                 libcor/Makefile liblog/Makefile])
+AC_CONFIG_FILES([Makefile libm2min/Makefile libm2pim/Makefile libm2iso/Makefile
+                 libm2cor/Makefile libm2log/Makefile])
 
 AC_MSG_NOTICE([libgm2 has been configured.])
 

@@ -23,13 +23,13 @@ if $tracelevel then {
 
 load_lib gm2-torture.exp
 
-set gm2src ${srcdir}/../gm2
+set gm2src ${srcdir}/../m2
 
 gm2_init_pim "${srcdir}/gm2/calling-c/datatypes/unbounded/run/pass"
 
 set XGCC [lookfor_file $rootme xgcc];
 
-gm2_link_with "c.o -lgm2 -liso -lpthread"
+gm2_link_with "c.o -lm2pim -lm2iso -lpthread"
 
 
 set output [exec rm -f c.o]

@@ -19659,7 +19659,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile libmin/Makefile libpim/Makefile libiso/Makefile libcor/Makefile liblog/Makefile"
+ac_config_files="$ac_config_files Makefile libm2min/Makefile libm2pim/Makefile libm2iso/Makefile libm2cor/Makefile libm2log/Makefile"
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: libgm2 has been configured." >&5
@@ -20805,11 +20805,11 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "libmin/Makefile") CONFIG_FILES="$CONFIG_FILES libmin/Makefile" ;;
-    "libpim/Makefile") CONFIG_FILES="$CONFIG_FILES libpim/Makefile" ;;
-    "libiso/Makefile") CONFIG_FILES="$CONFIG_FILES libiso/Makefile" ;;
-    "libcor/Makefile") CONFIG_FILES="$CONFIG_FILES libcor/Makefile" ;;
-    "liblog/Makefile") CONFIG_FILES="$CONFIG_FILES liblog/Makefile" ;;
+    "libm2min/Makefile") CONFIG_FILES="$CONFIG_FILES libm2min/Makefile" ;;
+    "libm2pim/Makefile") CONFIG_FILES="$CONFIG_FILES libm2pim/Makefile" ;;
+    "libm2iso/Makefile") CONFIG_FILES="$CONFIG_FILES libm2iso/Makefile" ;;
+    "libm2cor/Makefile") CONFIG_FILES="$CONFIG_FILES libm2cor/Makefile" ;;
+    "libm2log/Makefile") CONFIG_FILES="$CONFIG_FILES libm2log/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

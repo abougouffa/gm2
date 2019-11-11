@@ -220,17 +220,15 @@ proc gm2_link_flags { paths } {
 	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
 	}
 
-	foreach d [list libmin libpim libcor liblog libiso] {
-	    foreach l [list libmin libgm2 libcor liblog libiso] {
-		send_log "ld_library_path was ${ld_library_path}\n"
-		send_log "looking for ${gccpath}/${d}/.libs/${l}.a\n"
-		if [file exists "${gccpath}/libgm2/${d}/.libs/${l}.a"] {
-		    send_log "good found ${gccpath}/libgm2/${d}/.libs/${l}.a\n"
-		    append flags " -L${gccpath}/libgm2/${d}/.libs "
-		    append ld_library_path ":${gccpath}/libgm2/${d}/.libs"
-		}
-		send_log "ld_library_path is ${ld_library_path}\n"
+	foreach d [list libm2min libm2pim libm2cor libm2log libm2iso] {
+	    send_log "ld_library_path was ${ld_library_path}\n"
+	    send_log "looking for ${gccpath}/${d}/.libs/${d}.a\n"
+	    if [file exists "${gccpath}/libgm2/${d}/.libs/${d}.a"] {
+		send_log "good found ${gccpath}/libgm2/${d}/.libs/${d}.a\n"
+		append flags " -L${gccpath}/libgm2/${d}/.libs "
+		append ld_library_path ":${gccpath}/libgm2/${d}/.libs"
 	    }
+	    send_log "ld_library_path is ${ld_library_path}\n"
 	}
     }
 
@@ -250,17 +248,17 @@ proc gm2_init_pimx { dialect {path ""} args } {
     global srcdir;
     global gccpath;
 
-    set gm2src ${srcdir}/../gm2;
+    set gm2src ${srcdir}/../m2;
 
     send_log "srcdir is $srcdir\n"
     send_log "gccpath is $gccpath\n"
     send_log "gm2src is $gm2src\n"
 
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
+    set pimIpath "${gccpath}/libgm2/libm2pim:${gm2src}/gm2-libs";
+    set pimLpath "${gccpath}/libgm2/libm2pim/.libs";
 
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
+    set isoIpath "${gccpath}/libgm2/libm2iso:${gm2src}/gm2-libs-iso";
+    set isoLpath "${gccpath}/libgm2/libm2iso/.libs";
 
     set theIpath "-I${pimIpath} -I${isoIpath}";
     set theLpath "-L${pimLpath} -L${isoLpath}";
@@ -321,16 +319,16 @@ proc gm2_init_iso { {path ""} args } {
     global srcdir;
     global gccpath;
 
-    set gm2src ${srcdir}/../gm2;
+    set gm2src ${srcdir}/../m2;
 
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
+    set isoIpath "${gccpath}/libgm2/libm2iso:${gm2src}/gm2-libs-iso";
+    set pimIpath "${gccpath}/libgm2/libm2pim:${gm2src}/gm2-libs";
 
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
+    set isoLpath "${gccpath}/libgm2/libm2iso/.libs";
+    set pimLpath "${gccpath}/libgm2/libm2pim/.libs";
 
-    set corIpath "${gccpath}/libgm2/libcor:${gm2src}/gm2-libs-coroutines";
-    set corLpath "${gccpath}/libgm2/libcor/.libs";
+    set corIpath "${gccpath}/libgm2/libm2cor:${gm2src}/gm2-libs-coroutines";
+    set corLpath "${gccpath}/libgm2/libm2cor/.libs";
 
     set theIpath "-I${isoIpath} -I${corIpath} -I${pimIpath}";
     set theLpath "-L${isoLpath} -L${corLpath} -L${pimLpath}";
@@ -352,13 +350,13 @@ proc gm2_init_ulm { {path ""} args } {
     global srcdir;
     global gccpath;
 
-    set gm2src ${srcdir}/../gm2;
+    set gm2src ${srcdir}/../m2;
 
-    set ulmIpath "${gccpath}/libgm2/libulm:${gm2src}/ulm-lib-gm2/std:${gm2src}/ulm-lib-gm2/sys";
-    set ulmLpath "${gccpath}/libgm2/libulm/.libs";
+    set ulmIpath "${gccpath}/libgm2/libm2ulm:${gm2src}/ulm-lib-gm2/std:${gm2src}/ulm-lib-gm2/sys";
+    set ulmLpath "${gccpath}/libgm2/libm2ulm/.libs";
 
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
+    set pimIpath "${gccpath}/libgm2/libm2pim:${gm2src}/gm2-libs";
+    set pimLpath "${gccpath}/libgm2/libm2pim/.libs";
 
     set theIpath "-I${ulmIpath} -I${pimIpath}";
     set theLpath "-L${ulmLpath} -L${pimLpath}";
@@ -381,17 +379,17 @@ proc gm2_init_log { {path ""} args } {
     global srcdir;
     global gccpath;
 
-    set gm2src ${srcdir}/../gm2;
+    set gm2src ${srcdir}/../m2;
 
     send_log "srcdir is $srcdir\n"
     send_log "gccpath is $gccpath\n"
     send_log "gm2src is $gm2src\n"
 
-    set logIpath "${gccpath}/libgm2/liblog:${gm2src}/gm2-libs-pim";
-    set logLpath "${gccpath}/libgm2/liblog/.libs";
+    set logIpath "${gccpath}/libgm2/libm2log:${gm2src}/gm2-libs-pim";
+    set logLpath "${gccpath}/libgm2/libm2log/.libs";
 
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
+    set pimIpath "${gccpath}/libgm2/libm2pim:${gm2src}/gm2-libs";
+    set pimLpath "${gccpath}/libgm2/libm2pim/.libs";
 
     set theIpath "-I${logIpath} -I${pimIpath}";
     set theLpath "-L${logLpath} -L${pimLpath}";
@@ -413,23 +411,23 @@ proc gm2_init_cor { {path ""} args } {
     global srcdir;
     global gccpath;
 
-    set gm2src ${srcdir}/../gm2;
+    set gm2src ${srcdir}/../m2;
 
     send_log "srcdir is $srcdir\n"
     send_log "gccpath is $gccpath\n"
     send_log "gm2src is $gm2src\n"
 
-    set corIpath "${gccpath}/libgm2/libcor:${gm2src}/gm2-libs-coroutines";
-    set corLpath "${gccpath}/libgm2/libcor/.libs";
+    set corIpath "${gccpath}/libgm2/libm2cor:${gm2src}/gm2-libs-coroutines";
+    set corLpath "${gccpath}/libgm2/libm2cor/.libs";
 
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
+    set pimIpath "${gccpath}/libgm2/libm2pim:${gm2src}/gm2-libs";
+    set pimLpath "${gccpath}/libgm2/libm2pim/.libs";
 
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
+    set isoIpath "${gccpath}/libgm2/libm2iso:${gm2src}/gm2-libs-iso";
+    set isoLpath "${gccpath}/libgm2/libm2iso/.libs";
 
-    set logIpath "${gccpath}/libgm2/liblog:${gm2src}/gm2-libs-pim";
-    set logLpath "${gccpath}/libgm2/liblog/.libs";
+    set logIpath "${gccpath}/libgm2/libm2log:${gm2src}/gm2-libs-pim";
+    set logLpath "${gccpath}/libgm2/libm2log/.libs";
 
     set theIpath "-I${corIpath} -I${pimIpath} -I${logIpath} -I${isoIpath}";
     set theLpath "-L${corLpath} -L${pimLpath} -L${logLpath} -L${isoLpath}";

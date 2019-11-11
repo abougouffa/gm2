@@ -22,10 +22,10 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
-set gm2src ${srcdir}/../gm2
+set gm2src ${srcdir}/../m2
 
 gm2_init_iso "$srcdir/gm2/examples/callingC/run/pass"
-gm2_link_with "c.o -liso -lgm2 -lpthread"
+gm2_link_with "c.o -lm2iso -lm2pim -lpthread"
 
 set XGCC [lookfor_file $rootme xgcc];
 set output [exec rm -f c.o]
