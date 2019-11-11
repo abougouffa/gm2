@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.tpl	2019-09-25 16:16:35.200015621 +0100
-+++ gcc-versionno/Makefile.tpl	2019-09-25 16:01:38.495661230 +0100
+--- gcc-versionno-orig/Makefile.tpl	2019-10-31 21:47:28.301158274 +0000
++++ gcc-versionno/Makefile.tpl	2019-11-10 19:12:56.952220917 +0000
 @@ -13,12 +13,12 @@
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or
@@ -71,7 +71,15 @@
  	'LD=$(LD)' \
  	'LIPO=$(LIPO)' \
  	'NM=$(NM)' \
-@@ -707,6 +714,8 @@
+@@ -673,6 +680,7 @@
+ 	CC="$${CC}" CC_FOR_BUILD="$${CC_FOR_BUILD}" \
+ 	CXX="$${CXX}" CXX_FOR_BUILD="$${CXX_FOR_BUILD}" \
+ 	GDC="$${GDC}" GDC_FOR_BUILD="$${GDC_FOR_BUILD}" \
++	GM2="$${GM2}" GM2_FOR_BUILD="$${GM2_FOR_BUILD}" \
+ 	GNATBIND="$${GNATBIND}" \
+ 	LDFLAGS="$${LDFLAGS}" \
+ 	HOST_LIBS="$${HOST_LIBS}" \
+@@ -707,6 +715,8 @@
  	'GOCFLAGS=$$(GOCFLAGS_FOR_TARGET)' \
  	'GDC=$$(GDC_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
  	'GDCFLAGS=$$(GDCFLAGS_FOR_TARGET)' \
@@ -80,7 +88,15 @@
  	'LD=$(COMPILER_LD_FOR_TARGET)' \
  	'LDFLAGS=$$(LDFLAGS_FOR_TARGET)' \
  	'LIBCFLAGS=$$(LIBCFLAGS_FOR_TARGET)' \
-@@ -875,7 +884,7 @@
+@@ -733,6 +743,7 @@
+ # cross-building scheme.
+ EXTRA_GCC_FLAGS = \
+ 	"GCC_FOR_TARGET=$(GCC_FOR_TARGET)" \
++	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)" \
+ 	"`echo 'STMP_FIXPROTO=$(STMP_FIXPROTO)' | sed -e s'/[^=][^=]*=$$/XFOO=/'`" \
+ 	"`echo 'LIMITS_H_TEST=$(LIMITS_H_TEST)' | sed -e s'/[^=][^=]*=$$/XFOO=/'`"
+ 
+@@ -875,7 +886,7 @@
  clean: do-clean local-clean
  mostlyclean: do-mostlyclean local-clean
  distclean: do-distclean local-clean local-distclean
@@ -89,7 +105,7 @@
  maintainer-clean: local-distclean
  realclean: maintainer-clean
  
-@@ -1032,7 +1041,7 @@
+@@ -1032,7 +1043,7 @@
  
  dist:
  	@echo "Building a full distribution of this tree isn't done"
@@ -98,7 +114,7 @@
  
  etags tags: TAGS
  
-@@ -1405,9 +1414,9 @@
+@@ -1405,9 +1416,9 @@
  ENDIF raw_cxx +]
  	(cd $(TARGET_SUBDIR)/[+module+] && \
  	  $(MAKE) $(TARGET_FLAGS_TO_PASS) [+
@@ -111,7 +127,7 @@
  	  +] [+extra_make_flags+] check)
  [+ ENDIF no_check +]
  @endif target-[+module+]
-@@ -1600,7 +1609,7 @@
+@@ -1600,7 +1611,7 @@
  # reliable.
  
  # 'touch' doesn't work right on some platforms.
@@ -120,7 +136,7 @@
  
  # We only want to compare .o files, so set this!
  objext = .o
-@@ -1982,7 +1991,7 @@
+@@ -1982,7 +1993,7 @@
  install-gdb: $(INSTALL_GDB_TK)
  
  # Serialization dependencies.  Host configures don't work well in parallel to

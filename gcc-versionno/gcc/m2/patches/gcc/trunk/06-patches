@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/gcc.c	2019-09-25 16:05:32.782712923 +0100
-+++ gcc-versionno/gcc/gcc.c	2019-09-25 16:01:38.463661360 +0100
+--- gcc-versionno-orig/gcc/gcc.c	2019-10-31 21:17:01.369093088 +0000
++++ gcc-versionno/gcc/gcc.c	2019-11-09 15:44:38.909379681 +0000
 @@ -305,6 +305,10 @@
  static const char *cross_compile = "0";
  #endif
@@ -104,10 +104,10 @@
 +  add_infile (infile, lang);
 +}
 +
-+/* Remove an object file, name.  */
++/* Mark a file as compiled.  */
 +
 +void
-+fe_remove_infile (const char *name)
++fe_mark_compiled (const char *name)
 +{
 +  int max = n_infiles + lang_specific_extra_outfiles;
 +  int i;
@@ -120,7 +120,7 @@
  /* Handle an option DECODED that is unknown to the option-processing
     machinery.  */
  
-@@ -4204,33 +4289,7 @@
+@@ -4208,33 +4293,7 @@
        break;
  
      case OPT_B:
@@ -155,7 +155,7 @@
        validated = true;
        break;
  
-@@ -5992,7 +6051,7 @@
+@@ -5996,7 +6055,7 @@
  		     "%{foo=*:bar%*}%{foo=*:one%*two}"
  
  		   matches -foo=hello then it will produce:
@@ -164,7 +164,7 @@
  		     barhello onehellotwo
  		*/
  		if (*p == 0 || *p == '}')
-@@ -6069,6 +6128,33 @@
+@@ -6073,6 +6132,33 @@
    return 0;
  }
  
@@ -198,7 +198,7 @@
  /* Look up a spec function.  */
  
  static const struct spec_function *
-@@ -6080,6 +6166,11 @@
+@@ -6084,6 +6170,11 @@
      if (strcmp (sf->name, name) == 0)
        return sf;
  
@@ -210,7 +210,7 @@
    return NULL;
  }
  
-@@ -7568,6 +7659,8 @@
+@@ -7573,6 +7664,8 @@
  			   accel_dir_suffix, dir_separator_str, NULL);
    just_machine_suffix = concat (spec_machine, dir_separator_str, NULL);
  
@@ -219,7 +219,7 @@
    specs_file = find_a_file (&startfile_prefixes, "specs", R_OK, true);
    /* Read the specs file unless it is a default one.  */
    if (specs_file != 0 && strcmp (specs_file, "specs"))
-@@ -8264,7 +8357,8 @@
+@@ -8269,7 +8362,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
@@ -229,7 +229,7 @@
      {
        int tmp = execution_count;
  
-@@ -8333,7 +8427,7 @@
+@@ -8338,7 +8432,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  
@@ -238,7 +238,7 @@
      for (i = 0; (int) i < n_infiles; i++)
        if (explicit_link_files[i]
  	  && !(infiles[i].language && infiles[i].language[0] == '*'))
-@@ -9680,9 +9774,9 @@
+@@ -9685,9 +9779,9 @@
  get_random_number (void)
  {
    unsigned HOST_WIDE_INT ret = 0;
@@ -250,7 +250,7 @@
    if (fd >= 0)
      {
        read (fd, &ret, sizeof (HOST_WIDE_INT));
-@@ -10042,16 +10136,16 @@
+@@ -10047,16 +10141,16 @@
  }
  
  

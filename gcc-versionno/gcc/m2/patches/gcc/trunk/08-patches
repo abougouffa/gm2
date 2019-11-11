@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.def	2019-09-25 16:16:34.656017841 +0100
-+++ gcc-versionno/Makefile.def	2019-09-25 16:01:38.467661343 +0100
+--- gcc-versionno-orig/Makefile.def	2019-10-31 21:47:27.161165721 +0000
++++ gcc-versionno/Makefile.def	2019-11-09 18:41:27.324786713 +0000
 @@ -10,12 +10,12 @@
  // it under the terms of the GNU General Public License as published by
  // the Free Software Foundation; either version 3 of the License, or
@@ -90,7 +90,7 @@
  languages = { language=go;	gcc-check-target=check-go;
  				lib-check-target=check-target-libgo;
  				lib-check-target=check-gotools; };
-+languages = { language=gm2;	gcc-check-target=check-gm2; };
++languages = { language=m2;	gcc-check-target=check-m2; };
  languages = { language=brig;	gcc-check-target=check-brig;
  				lib-check-target=check-target-libhsail-rt; };
  languages = { language=d;	gcc-check-target=check-d;

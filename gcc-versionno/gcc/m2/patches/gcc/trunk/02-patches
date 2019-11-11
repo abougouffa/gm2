@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure.ac	2019-09-25 16:04:07.691057869 +0100
-+++ gcc-versionno/configure.ac	2019-09-25 16:01:38.459661376 +0100
+--- gcc-versionno-orig/configure.ac	2019-10-31 21:11:24.387294917 +0000
++++ gcc-versionno/configure.ac	2019-11-10 20:31:11.505747292 +0000
 @@ -111,11 +111,11 @@
  ### or a host dependent tool.  Then put it into the appropriate list
  ### (library or tools, host or target), doing a dependency sort.
@@ -232,7 +232,7 @@
  GCC_TARGET_TOOL(gdc, GDC_FOR_TARGET, GDC,
  		[gcc/gdc -B$$r/$(HOST_SUBDIR)/gcc/], d)
 +GCC_TARGET_TOOL(gm2, GM2_FOR_TARGET, GM2,
-+		[gcc/xgm2 -B$$r/$(HOST_SUBDIR)/gcc/], gm2)
++		[gcc/xgm2 -B$$r/$(HOST_SUBDIR)/gcc/], m2)
  GCC_TARGET_TOOL(ld, LD_FOR_TARGET, LD, [ld/ld-new])
  GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, LIPO)
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])

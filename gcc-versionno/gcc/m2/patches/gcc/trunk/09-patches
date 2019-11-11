@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.in	2019-09-25 16:01:58.023582378 +0100
-+++ gcc-versionno/Makefile.in	2019-09-25 16:01:38.475661310 +0100
+--- gcc-versionno-orig/Makefile.in	2019-10-31 20:57:14.628850532 +0000
++++ gcc-versionno/Makefile.in	2019-11-11 00:07:22.000000000 +0000
 @@ -10,12 +10,12 @@
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or
@@ -100,7 +100,15 @@
  	'LD=$(LD)' \
  	'LIPO=$(LIPO)' \
  	'NM=$(NM)' \
-@@ -952,6 +965,8 @@
+@@ -918,6 +931,7 @@
+ 	CC="$${CC}" CC_FOR_BUILD="$${CC_FOR_BUILD}" \
+ 	CXX="$${CXX}" CXX_FOR_BUILD="$${CXX_FOR_BUILD}" \
+ 	GDC="$${GDC}" GDC_FOR_BUILD="$${GDC_FOR_BUILD}" \
++	GM2="$${GM2}" GM2_FOR_BUILD="$${GM2_FOR_BUILD}" \
+ 	GNATBIND="$${GNATBIND}" \
+ 	LDFLAGS="$${LDFLAGS}" \
+ 	HOST_LIBS="$${HOST_LIBS}" \
+@@ -952,6 +966,8 @@
  	'GOCFLAGS=$$(GOCFLAGS_FOR_TARGET)' \
  	'GDC=$$(GDC_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
  	'GDCFLAGS=$$(GDCFLAGS_FOR_TARGET)' \
@@ -109,7 +117,15 @@
  	'LD=$(COMPILER_LD_FOR_TARGET)' \
  	'LDFLAGS=$$(LDFLAGS_FOR_TARGET)' \
  	'LIBCFLAGS=$$(LIBCFLAGS_FOR_TARGET)' \
-@@ -1063,6 +1078,7 @@
+@@ -978,6 +994,7 @@
+ # cross-building scheme.
+ EXTRA_GCC_FLAGS = \
+ 	"GCC_FOR_TARGET=$(GCC_FOR_TARGET)" \
++	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)" \
+ 	"`echo 'STMP_FIXPROTO=$(STMP_FIXPROTO)' | sed -e s'/[^=][^=]*=$$/XFOO=/'`" \
+ 	"`echo 'LIMITS_H_TEST=$(LIMITS_H_TEST)' | sed -e s'/[^=][^=]*=$$/XFOO=/'`"
+ 
+@@ -1063,6 +1080,7 @@
      maybe-configure-target-zlib \
      maybe-configure-target-rda \
      maybe-configure-target-libada \
@@ -117,7 +133,7 @@
      maybe-configure-target-libgomp \
      maybe-configure-target-libitm \
      maybe-configure-target-libatomic
-@@ -1230,6 +1246,7 @@
+@@ -1230,6 +1248,7 @@
  all-target: maybe-all-target-zlib
  all-target: maybe-all-target-rda
  all-target: maybe-all-target-libada
@@ -125,7 +141,7 @@
  @if target-libgomp-no-bootstrap
  all-target: maybe-all-target-libgomp
  @endif target-libgomp-no-bootstrap
-@@ -1324,6 +1341,7 @@
+@@ -1324,6 +1343,7 @@
  info-target: maybe-info-target-zlib
  info-target: maybe-info-target-rda
  info-target: maybe-info-target-libada
@@ -133,7 +149,7 @@
  info-target: maybe-info-target-libgomp
  info-target: maybe-info-target-libitm
  info-target: maybe-info-target-libatomic
-@@ -1411,6 +1429,7 @@
+@@ -1411,6 +1431,7 @@
  dvi-target: maybe-dvi-target-zlib
  dvi-target: maybe-dvi-target-rda
  dvi-target: maybe-dvi-target-libada
@@ -141,7 +157,7 @@
  dvi-target: maybe-dvi-target-libgomp
  dvi-target: maybe-dvi-target-libitm
  dvi-target: maybe-dvi-target-libatomic
-@@ -1498,6 +1517,7 @@
+@@ -1498,6 +1519,7 @@
  pdf-target: maybe-pdf-target-zlib
  pdf-target: maybe-pdf-target-rda
  pdf-target: maybe-pdf-target-libada
@@ -149,7 +165,7 @@
  pdf-target: maybe-pdf-target-libgomp
  pdf-target: maybe-pdf-target-libitm
  pdf-target: maybe-pdf-target-libatomic
-@@ -1585,6 +1605,7 @@
+@@ -1585,6 +1607,7 @@
  html-target: maybe-html-target-zlib
  html-target: maybe-html-target-rda
  html-target: maybe-html-target-libada
@@ -157,7 +173,7 @@
  html-target: maybe-html-target-libgomp
  html-target: maybe-html-target-libitm
  html-target: maybe-html-target-libatomic
-@@ -1672,6 +1693,7 @@
+@@ -1672,6 +1695,7 @@
  TAGS-target: maybe-TAGS-target-zlib
  TAGS-target: maybe-TAGS-target-rda
  TAGS-target: maybe-TAGS-target-libada
@@ -165,7 +181,7 @@
  TAGS-target: maybe-TAGS-target-libgomp
  TAGS-target: maybe-TAGS-target-libitm
  TAGS-target: maybe-TAGS-target-libatomic
-@@ -1759,6 +1781,7 @@
+@@ -1759,6 +1783,7 @@
  install-info-target: maybe-install-info-target-zlib
  install-info-target: maybe-install-info-target-rda
  install-info-target: maybe-install-info-target-libada
@@ -173,7 +189,7 @@
  install-info-target: maybe-install-info-target-libgomp
  install-info-target: maybe-install-info-target-libitm
  install-info-target: maybe-install-info-target-libatomic
-@@ -1846,6 +1869,7 @@
+@@ -1846,6 +1871,7 @@
  install-pdf-target: maybe-install-pdf-target-zlib
  install-pdf-target: maybe-install-pdf-target-rda
  install-pdf-target: maybe-install-pdf-target-libada
@@ -181,7 +197,7 @@
  install-pdf-target: maybe-install-pdf-target-libgomp
  install-pdf-target: maybe-install-pdf-target-libitm
  install-pdf-target: maybe-install-pdf-target-libatomic
-@@ -1933,6 +1957,7 @@
+@@ -1933,6 +1959,7 @@
  install-html-target: maybe-install-html-target-zlib
  install-html-target: maybe-install-html-target-rda
  install-html-target: maybe-install-html-target-libada
@@ -189,7 +205,7 @@
  install-html-target: maybe-install-html-target-libgomp
  install-html-target: maybe-install-html-target-libitm
  install-html-target: maybe-install-html-target-libatomic
-@@ -2020,6 +2045,7 @@
+@@ -2020,6 +2047,7 @@
  installcheck-target: maybe-installcheck-target-zlib
  installcheck-target: maybe-installcheck-target-rda
  installcheck-target: maybe-installcheck-target-libada
@@ -197,7 +213,7 @@
  installcheck-target: maybe-installcheck-target-libgomp
  installcheck-target: maybe-installcheck-target-libitm
  installcheck-target: maybe-installcheck-target-libatomic
-@@ -2107,6 +2133,7 @@
+@@ -2107,6 +2135,7 @@
  mostlyclean-target: maybe-mostlyclean-target-zlib
  mostlyclean-target: maybe-mostlyclean-target-rda
  mostlyclean-target: maybe-mostlyclean-target-libada
@@ -205,7 +221,7 @@
  mostlyclean-target: maybe-mostlyclean-target-libgomp
  mostlyclean-target: maybe-mostlyclean-target-libitm
  mostlyclean-target: maybe-mostlyclean-target-libatomic
-@@ -2194,6 +2221,7 @@
+@@ -2194,6 +2223,7 @@
  clean-target: maybe-clean-target-zlib
  clean-target: maybe-clean-target-rda
  clean-target: maybe-clean-target-libada
@@ -213,7 +229,7 @@
  clean-target: maybe-clean-target-libgomp
  clean-target: maybe-clean-target-libitm
  clean-target: maybe-clean-target-libatomic
-@@ -2281,6 +2309,7 @@
+@@ -2281,6 +2311,7 @@
  distclean-target: maybe-distclean-target-zlib
  distclean-target: maybe-distclean-target-rda
  distclean-target: maybe-distclean-target-libada
@@ -221,7 +237,7 @@
  distclean-target: maybe-distclean-target-libgomp
  distclean-target: maybe-distclean-target-libitm
  distclean-target: maybe-distclean-target-libatomic
-@@ -2368,6 +2397,7 @@
+@@ -2368,6 +2399,7 @@
  maintainer-clean-target: maybe-maintainer-clean-target-zlib
  maintainer-clean-target: maybe-maintainer-clean-target-rda
  maintainer-clean-target: maybe-maintainer-clean-target-libada
@@ -229,7 +245,7 @@
  maintainer-clean-target: maybe-maintainer-clean-target-libgomp
  maintainer-clean-target: maybe-maintainer-clean-target-libitm
  maintainer-clean-target: maybe-maintainer-clean-target-libatomic
-@@ -2427,7 +2457,7 @@
+@@ -2427,7 +2459,7 @@
  clean: do-clean local-clean
  mostlyclean: do-mostlyclean local-clean
  distclean: do-distclean local-clean local-distclean
@@ -238,7 +254,7 @@
  maintainer-clean: local-distclean
  realclean: maintainer-clean
  
-@@ -2511,6 +2541,7 @@
+@@ -2511,6 +2543,7 @@
      maybe-check-target-zlib \
      maybe-check-target-rda \
      maybe-check-target-libada \
@@ -246,7 +262,7 @@
      maybe-check-target-libgomp \
      maybe-check-target-libitm \
      maybe-check-target-libatomic
-@@ -2696,6 +2727,7 @@
+@@ -2696,6 +2729,7 @@
      maybe-install-target-zlib \
      maybe-install-target-rda \
      maybe-install-target-libada \
@@ -254,7 +270,7 @@
      maybe-install-target-libgomp \
      maybe-install-target-libitm \
      maybe-install-target-libatomic
-@@ -2803,6 +2835,7 @@
+@@ -2803,6 +2837,7 @@
      maybe-install-strip-target-zlib \
      maybe-install-strip-target-rda \
      maybe-install-strip-target-libada \
@@ -262,7 +278,7 @@
      maybe-install-strip-target-libgomp \
      maybe-install-strip-target-libitm \
      maybe-install-strip-target-libatomic
-@@ -2826,7 +2859,7 @@
+@@ -2826,7 +2861,7 @@
  
  dist:
  	@echo "Building a full distribution of this tree isn't done"
@@ -271,7 +287,7 @@
  
  etags tags: TAGS
  
-@@ -52366,6 +52399,464 @@
+@@ -52366,6 +52401,464 @@
  
  
  
@@ -736,22 +752,22 @@
  .PHONY: configure-target-libgomp maybe-configure-target-libgomp
  maybe-configure-target-libgomp:
  @if gcc-bootstrap
-@@ -54617,6 +55108,14 @@
+@@ -54617,6 +55110,14 @@
  	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-go);
  check-go: check-gcc-go check-target-libgo check-gotools
  
-+.PHONY: check-gcc-gm2 check-gm2
-+check-gcc-gm2:
++.PHONY: check-gcc-m2 check-m2
++check-gcc-m2:
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(HOST_EXPORTS) \
-+	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-gm2);
-+check-gm2: check-gcc-gm2
++	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-m2);
++check-m2: check-gcc-m2
 +
  .PHONY: check-gcc-brig check-brig
  check-gcc-brig:
  	r=`${PWD_COMMAND}`; export r; \
-@@ -54692,7 +55191,7 @@
+@@ -54692,7 +55193,7 @@
  # reliable.
  
  # 'touch' doesn't work right on some platforms.
@@ -760,7 +776,7 @@
  
  # We only want to compare .o files, so set this!
  objext = .o
-@@ -57939,6 +58438,7 @@
+@@ -57939,6 +58440,7 @@
  configure-target-zlib: stage_last
  configure-target-rda: stage_last
  configure-target-libada: stage_last
@@ -768,7 +784,7 @@
  configure-stage1-target-libgomp: maybe-all-stage1-gcc
  configure-stage2-target-libgomp: maybe-all-stage2-gcc
  configure-stage3-target-libgomp: maybe-all-stage3-gcc
-@@ -57974,6 +58474,7 @@
+@@ -57974,6 +58476,7 @@
  configure-target-zlib: maybe-all-gcc
  configure-target-rda: maybe-all-gcc
  configure-target-libada: maybe-all-gcc
@@ -776,7 +792,7 @@
  configure-target-libgomp: maybe-all-gcc
  configure-target-libitm: maybe-all-gcc
  configure-target-libatomic: maybe-all-gcc
-@@ -59225,6 +59726,7 @@
+@@ -59225,6 +59728,7 @@
  configure-target-zlib: maybe-all-target-libgcc
  configure-target-rda: maybe-all-target-libgcc
  configure-target-libada: maybe-all-target-libgcc
@@ -784,7 +800,7 @@
  configure-target-libgomp: maybe-all-target-libgcc
  configure-target-libitm: maybe-all-target-libgcc
  configure-target-libatomic: maybe-all-target-libgcc
-@@ -59272,6 +59774,8 @@
+@@ -59272,6 +59776,8 @@
  
  configure-target-libada: maybe-all-target-newlib maybe-all-target-libgloss
  
@@ -793,7 +809,7 @@
  configure-target-libgomp: maybe-all-target-newlib maybe-all-target-libgloss
  
  configure-target-libitm: maybe-all-target-newlib maybe-all-target-libgloss
-@@ -59288,7 +59792,7 @@
+@@ -59288,7 +59794,7 @@
  install-gdb: $(INSTALL_GDB_TK)
  
  # Serialization dependencies.  Host configures don't work well in parallel to

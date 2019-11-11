@@ -45,6 +45,16 @@
 	* m2/m2pp.c:  modified include path.
 	* m2/gm2.texi:  updated documentation surrounding -flibs= changes.
 	* m2/gm2version.h:  updated the GPLv3.
+	* m2/patches/gcc/trunk/01-patches:  (regenerated)
+	* m2/patches/gcc/trunk/02-patches:  (regenerated)
+	* m2/patches/gcc/trunk/03-patches:  (regenerated)
+	* m2/patches/gcc/trunk/04-patches:  (regenerated)
+	* m2/patches/gcc/trunk/05-patches:  (regenerated)
+	* m2/patches/gcc/trunk/06-patches:  (regenerated)
+	* m2/patches/gcc/trunk/07-patches:  (regenerated)
+	* m2/patches/gcc/trunk/08-patches:  (regenerated)
+	* m2/patches/gcc/trunk/09-patches:  (regenerated)
+	* m2/patches/gcc/trunk/10-patches:  (regenerated)
 
 2019-11-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
