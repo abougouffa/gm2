@@ -15,7 +15,17 @@
 	* m2/patches/gcc/trunk/09-patches:  (regenerated)
 	* m2/patches/gcc/trunk/10-patches:  (regenerated)
 	* m2/Make-lang.in:  updated the paths for mc bootstrap after
-	  stem directory name has changed.
+          stem directory name has changed.
+	* m2/Make-lang.in:  removed bootstrap references to 5.2.0
+          and use local files.
+	* m2/bnf/mc-5.bnf:  (DefinitionModule) call addCommentBody.
+	* m2/gm2spec.c:  replaced call to fe_save_switch to save_switch.
+          Pass booleans rather than ints.
+	* m2/init/mcinit:  RTint added.
+	* libgm2/libm2cor/Makefile.in:  regenerated.
+	* libgm2/libm2log/Makefile.in:  regenerated.
+	* libgm2/libm2min/Makefile.in:  regenerated.
+	* libgm2/libm2pim/Makefile.in:  regenerated.
 
 2019-11-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -60,6 +60,7 @@ RTExceptions
 # Initialization order
 #
 RTco
+RTint
 StrLib
 ASCII
 M2EXCEPTION

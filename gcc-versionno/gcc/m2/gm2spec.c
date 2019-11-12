@@ -153,9 +153,6 @@ static void print_option (const char *desc,
 #endif
 static const char *gen_link_path (const char *libpath, const char *dialect);
 
-void fe_save_switch (const char *opt, size_t n_args, const char *const *args,
-                     bool validated, bool known);
-
 typedef struct object_list
 {
   char *name;
@@ -179,7 +176,7 @@ static const char *B_path = NULL;
 #define TARGET_OBJECT_SUFFIX ".o"
 #endif
 
-/* fe_generate_option, wrap up arg and pass it to fe_save_switch.  */
+/* fe_generate_option, wrap up arg and pass it to save_switch.  */
 
 static void
 fe_generate_option (size_t opt_index, const char *arg, bool joined)
@@ -206,7 +203,7 @@ fe_generate_option (size_t opt_index, const char *arg, bool joined)
 #endif
 
   if (arg == NULL || joined)
-    fe_save_switch (opt, 0, NULL, 1, 0);
+    save_switch (opt, 0, NULL, true, false);
   else
     {
       const char **x = (const char **)XCNEWVEC (const char **, 2);
@@ -215,7 +212,7 @@ fe_generate_option (size_t opt_index, const char *arg, bool joined)
       x[1] = NULL;
 
       gcc_assert (opt_index != OPT_l);
-      fe_save_switch (opt, 1, x, 1, 0);
+      save_switch (opt, 1, x, true, false);
     }
 }
 

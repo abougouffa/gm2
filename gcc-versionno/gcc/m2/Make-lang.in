@@ -1396,12 +1396,16 @@ $(objdir)/m2/gm2-auto/mcp4.mod: $(srcdir)/m2/bnf/mc-4.bnf
 $(objdir)/m2/gm2-auto/mcp5.mod: $(srcdir)/m2/bnf/mc-5.bnf
 	$(PGE) -l $< > $@
 
+#	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs -I../../gcc-5.2.0/gcc/m2/gm2-compiler ../../gcc-5.2.0/gcc/m2/gm2-compiler/Lists.mod
+#	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs ../../gcc-5.2.0/gcc/m2/gm2-libs/Args.mod
+#	for i in $(srcdir)/m2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs $$i ; done
+#	for i in $(srcdir)/m2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
+#	for i in $(srcdir)/m2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
+
 gm2-bootstrap: mc-devel
-	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs -I../../gcc-5.2.0/gcc/m2/gm2-compiler ../../gcc-5.2.0/gcc/m2/gm2-compiler/Lists.mod
-	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs ../../gcc-5.2.0/gcc/m2/gm2-libs/Args.mod
-	for i in $(srcdir)/m2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs $$i ; done
-	for i in $(srcdir)/m2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
-	for i in $(srcdir)/m2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
+	for i in $(srcdir)/m2/gm2-libs/*.def ; do echo $$i ; ./mc -I$(srcdir)/m2/gm2-libs $$i ; done
+	for i in $(srcdir)/m2/gm2-compiler/*.def ; do echo $$i ; ./mc -I$(srcdir)/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
+	for i in $(srcdir)/m2/gm2-libs/*.mod ; do echo $$i ; ./mc -I$(srcdir)/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
 
 MC-LIB-DEFS = Args.def ASCII.def Assertion.def Break.def  \
               CmdArgs.def Debug.def \
