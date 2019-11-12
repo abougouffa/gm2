@@ -1,3 +1,12 @@
+2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libm2cor/KeyBoardLEDs.c:  GPLv3 and reformatted.
+	* libgm2/libm2iso/ChanConsts.h:  GPLv3 and reformatted.
+	* libgm2/libm2iso/ErrnoCategory.c:  GPLv3 and reformatted.
+	* libgm2/libm2iso/RTco.c:  GPLv3 and reformatted.
+	* libgm2/libm2iso/wrapsock.c:  GPLv3 and reformatted.
+	* libgm2/libm2iso/wraptime.c:  GPLv3 and reformatted.
+
 2019-11-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libcor/Makefile.am: (MULTIOSSUBDIR) quote test.

@@ -35,51 +35,43 @@ int RTco_init (void);
 
 // #define TRACEON
 #define POOL
-#define SEM_POOL    10000
+#define SEM_POOL 10000
 #define THREAD_POOL 10000
-
-#if 0
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
-#include <semaphore.h>
-#endif
 
 #include "gthr.h"
 
-/* Ensure that ANSI conform stdio is used. This needs to be set before
-   any system header file is included.  */
+/* Ensure that ANSI conform stdio is used.  This needs to be set
+   before any system header file is included.  */
 #if defined __MINGW32__
-#  define _POSIX 1
-#  define gm2_printf gnu_printf
+#define _POSIX 1
+#define gm2_printf gnu_printf
 #else
-#  define gm2_printf __printf__
+#define gm2_printf __printf__
 #endif
 
 #if !defined(TRUE)
-#  define TRUE (1==1)
+#define TRUE (1 == 1)
 #endif
 
 #if !defined(FALSE)
-#  define FALSE (1==0)
+#define FALSE (1 == 0)
 #endif
-
 
 #if defined(TRACEON)
-#  define tprintf  printf
+#define tprintf printf
 #else
 /* sizeof is not evaluated.  */
-#  define tprintf  (void)sizeof
+#define tprintf (void)sizeof
 #endif
 
-typedef struct threadCB_s {
-  void (*proc)(void);
+typedef struct threadCB_s
+{
+  void (*proc) (void);
   int execution;
   pthread_t p;
   int tid;
   unsigned int interruptLevel;
 } threadCB;
-
 
 static unsigned int nThreads = 0;
 static threadCB *threadArray = NULL;
@@ -90,13 +82,11 @@ static __gthread_mutex_t **semArray = NULL;
 static __gthread_mutex_t lock;
 static int initialized = FALSE;
 
-
 static void
 initSem (__gthread_mutex_t *lock)
 {
- __GTHREAD_MUTEX_INIT_FUNCTION (lock);
+  __GTHREAD_MUTEX_INIT_FUNCTION (lock);
 }
-
 
 static void
 waitSem (__gthread_mutex_t *lock)
@@ -104,13 +94,11 @@ waitSem (__gthread_mutex_t *lock)
   __gthread_mutex_lock (lock);
 }
 
-
 static void
 signalSem (__gthread_mutex_t *lock)
 {
   __gthread_mutex_unlock (lock);
 }
-
 
 void
 RTco_wait (int sid)
@@ -120,7 +108,6 @@ RTco_wait (int sid)
   waitSem (semArray[sid]);
 }
 
-
 void
 RTco_signal (int sid)
 {
@@ -129,52 +116,53 @@ RTco_signal (int sid)
   signalSem (semArray[sid]);
 }
 
-
-static
-int
+static int
 newSem (void)
 {
 #if defined(POOL)
-  semArray[nSemaphores] = (__gthread_mutex_t *) malloc (sizeof (__gthread_mutex_t));
+  semArray[nSemaphores]
+      = (__gthread_mutex_t *)malloc (sizeof (__gthread_mutex_t));
   nSemaphores += 1;
   if (nSemaphores == SEM_POOL)
-    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "too many semaphores created");
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
+                "too many semaphores created");
 #else
-  __gthread_mutex_t *sem = (__gthread_mutex_t *) malloc (sizeof (__gthread_mutex_t));
+  __gthread_mutex_t *sem
+      = (__gthread_mutex_t *)malloc (sizeof (__gthread_mutex_t));
 
-  /* we need to be careful when using realloc as the lock (semaphore) operators
-     use the semaphore address.  So we keep an array of pointer to semaphores.  */
+  /* we need to be careful when using realloc as the lock (semaphore)
+     operators use the semaphore address.  So we keep an array of pointer
+     to semaphores.  */
   if (nSemaphores == 0)
     {
-      semArray = (__gthread_mutex_t **) malloc (sizeof (sem));
+      semArray = (__gthread_mutex_t **)malloc (sizeof (sem));
       nSemaphores = 1;
     }
   else
     {
       nSemaphores += 1;
-      semArray = (__gthread_mutex_t **) realloc (semArray, sizeof (sem) * nSemaphores);
+      semArray = (__gthread_mutex_t **)realloc (semArray,
+                                                sizeof (sem) * nSemaphores);
     }
-  semArray[nSemaphores-1] = sem;
+  semArray[nSemaphores - 1] = sem;
 #endif
-  return nSemaphores-1;
+  return nSemaphores - 1;
 }
-
 
 static int
 initSemaphore (int value)
 {
   int sid = newSem ();
 
-  initSem (semArray[sid]);  /* convert lock into a binary semaphore.  */
+  initSem (semArray[sid]); /* convert lock into a binary semaphore.  */
   if (value == 0)
     waitSem (semArray[sid]);
   else if (value != 1)
     M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
-		"semaphore must be initialized to 0 or 1");
+                "semaphore must be initialized to 0 or 1");
   tprintf ("%d = initSemaphore (%d)\n", sid, value);
   return sid;
 }
-
 
 int
 RTco_initSemaphore (int value)
@@ -187,7 +175,6 @@ RTco_initSemaphore (int value)
   signalSem (&lock);
   return sid;
 }
-
 
 /* signalThread signal the semaphore associated with thread tid.  */
 
@@ -203,7 +190,6 @@ RTco_signalThread (int tid)
   RTco_signal (sem);
 }
 
-
 /* waitThread wait on the semaphore associated with thread tid.  */
 
 void
@@ -214,7 +200,6 @@ RTco_waitThread (int tid)
   RTco_wait (threadArray[tid].execution);
 }
 
-
 int
 currentThread (void)
 {
@@ -223,9 +208,9 @@ currentThread (void)
   for (tid = 0; tid < nThreads; tid++)
     if (pthread_self () == threadArray[tid].p)
       return tid;
-  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "failed to find currentThread");
+  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
+              "failed to find currentThread");
 }
-
 
 int
 RTco_currentThread (void)
@@ -240,19 +225,19 @@ RTco_currentThread (void)
   return tid;
 }
 
-
 /* currentInterruptLevel returns the interrupt level of the current thread.  */
 
 unsigned int
 RTco_currentInterruptLevel (void)
 {
   RTco_init ();
-  tprintf ("currentInterruptLevel %d\n", threadArray[RTco_currentThread ()].interruptLevel);
+  tprintf ("currentInterruptLevel %d\n",
+           threadArray[RTco_currentThread ()].interruptLevel);
   return threadArray[RTco_currentThread ()].interruptLevel;
 }
 
-/* turninterrupts returns the old interrupt level and assigns the interrupt level
-   to newLevel.  */
+/* turninterrupts returns the old interrupt level and assigns the
+   interrupt level to newLevel.  */
 
 unsigned int
 RTco_turnInterrupts (unsigned int newLevel)
@@ -267,58 +252,58 @@ RTco_turnInterrupts (unsigned int newLevel)
   return old;
 }
 
-
 static void
 never (void)
 {
-  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "the main thread should never call here");
+  M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
+              "the main thread should never call here");
 }
-
 
 static void *
 execThread (void *t)
 {
-  threadCB *tp = (threadCB *) t;
+  threadCB *tp = (threadCB *)t;
 
-  tprintf ("exec thread tid = %d  function = 0x%p  arg = 0x%p\n", tp->tid, tp->proc, t);
-  RTco_waitThread (tp->tid);   /* forcing this thread to block, waiting to be scheduled.  */
-  tprintf ("  exec thread [%d]  function = 0x%p  arg = 0x%p\n", tp->tid, tp->proc, t);
-  tp->proc ();  /* now execute user procedure.  */
+  tprintf ("exec thread tid = %d  function = 0x%p  arg = 0x%p\n", tp->tid,
+           tp->proc, t);
+  RTco_waitThread (
+      tp->tid); /* forcing this thread to block, waiting to be scheduled.  */
+  tprintf ("  exec thread [%d]  function = 0x%p  arg = 0x%p\n", tp->tid,
+           tp->proc, t);
+  tp->proc (); /* now execute user procedure.  */
 #if 0
   M2RTS_CoroutineException ( __FILE__, __LINE__, __COLUMN__, __FUNCTION__, "coroutine finishing");
 #endif
   return NULL;
 }
 
-
-static
-int
+static int
 newThread (void)
 {
 #if defined(POOL)
   nThreads += 1;
   if (nThreads == THREAD_POOL)
     M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "too many threads created");
-  return nThreads-1;
+  return nThreads - 1;
 #else
   if (nThreads == 0)
     {
-      threadArray = (threadCB *) malloc (sizeof (threadCB));
+      threadArray = (threadCB *)malloc (sizeof (threadCB));
       nThreads = 1;
     }
   else
     {
       nThreads += 1;
-      threadArray = (threadCB *) realloc (threadArray, sizeof (threadCB) * nThreads);
+      threadArray
+          = (threadCB *)realloc (threadArray, sizeof (threadCB) * nThreads);
     }
-  return nThreads-1;
+  return nThreads - 1;
 #endif
 }
 
-
-static
-int
-initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
+static int
+initThread (void (*proc) (void), unsigned int stackSize,
+            unsigned int interrupt)
 {
   int tid = newThread ();
   pthread_attr_t attr;
@@ -329,29 +314,34 @@ initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
   threadArray[tid].execution = initSemaphore (0);
   threadArray[tid].interruptLevel = interrupt;
 
-  /* set thread creation attributes */
+  /* set thread creation attributes.  */
   result = pthread_attr_init (&attr);
   if (result != 0)
-    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "failed to create thread attribute");
+    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
+                "failed to create thread attribute");
 
   if (stackSize > 0)
     {
-      result = pthread_attr_setstacksize(&attr, stackSize);
+      result = pthread_attr_setstacksize (&attr, stackSize);
       if (result != 0)
-	M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "failed to set stack size attribute");
+        M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__,
+                    "failed to set stack size attribute");
     }
 
-  tprintf ("initThread [%d]  function = 0x%p  (arg = 0x%p)\n", tid, proc, (void *)&threadArray[tid]);
-  result = pthread_create (&threadArray[tid].p, &attr, execThread, (void *)&threadArray[tid]);
+  tprintf ("initThread [%d]  function = 0x%p  (arg = 0x%p)\n", tid, proc,
+           (void *)&threadArray[tid]);
+  result = pthread_create (&threadArray[tid].p, &attr, execThread,
+                           (void *)&threadArray[tid]);
   if (result != 0)
     M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "thread_create failed");
-  tprintf ("  created thread [%d]  function = 0x%p  0x%p\n", tid, proc, (void *)&threadArray[tid]);
+  tprintf ("  created thread [%d]  function = 0x%p  0x%p\n", tid, proc,
+           (void *)&threadArray[tid]);
   return tid;
 }
 
-
 int
-RTco_initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
+RTco_initThread (void (*proc) (void), unsigned int stackSize,
+                 unsigned int interrupt)
 {
   int tid;
 
@@ -362,17 +352,18 @@ RTco_initThread (void (*proc)(void), unsigned int stackSize, unsigned int interr
   return tid;
 }
 
-
-/* transfer unlocks thread p2 and locks the current thread.  p1 is updated with
-   the current thread id.  */
+/* transfer unlocks thread p2 and locks the current thread.  p1 is
+   updated with the current thread id.  */
 
 void
 RTco_transfer (int *p1, int p2)
 {
   int tid = currentThread ();
 
-  if (! initialized)
-    M2RTS_Halt (__FILE__, __LINE__, __FUNCTION__, "cannot transfer to a process before the process has been created");
+  if (!initialized)
+    M2RTS_Halt (
+        __FILE__, __LINE__, __FUNCTION__,
+        "cannot transfer to a process before the process has been created");
   if (tid == p2)
     {
       /* error.  */
@@ -385,46 +376,41 @@ RTco_transfer (int *p1, int p2)
     }
 }
 
-
 int
-RTco_select (int p1,
-	     void *p2,
-	     void *p3,
-	     void *p4,
-	     void *p5)
+RTco_select (int p1, void *p2, void *p3, void *p4, void *p5)
 {
   return select (p1, p2, p3, p4, p5);
 }
 
-
 int
 RTco_init (void)
 {
-  if (! initialized)
+  if (!initialized)
     {
       int tid;
 
       tprintf ("RTco initialized\n");
       initSem (&lock);
       /* create initial thread container.  */
-      waitSem (&lock) ;
+      waitSem (&lock);
 #if defined(POOL)
-      threadArray = (threadCB *) malloc (sizeof (threadCB) * THREAD_POOL);
-      semArray = (__gthread_mutex_t **) malloc (sizeof (__gthread_mutex_t *) * SEM_POOL);
+      threadArray = (threadCB *)malloc (sizeof (threadCB) * THREAD_POOL);
+      semArray = (__gthread_mutex_t **)malloc (sizeof (__gthread_mutex_t *)
+                                               * SEM_POOL);
 #endif
-      tid = newThread ();  /* for the current initial thread.  */
+      tid = newThread (); /* for the current initial thread.  */
       threadArray[tid].tid = tid;
       threadArray[tid].execution = initSemaphore (0);
       threadArray[tid].p = pthread_self ();
       threadArray[tid].interruptLevel = 0;
-      threadArray[tid].proc = never;  /* this shouldn't happen as we are already running.  */
+      threadArray[tid].proc
+          = never; /* this shouldn't happen as we are already running.  */
       initialized = TRUE;
       tprintf ("RTco initialized completed\n");
-      signalSem (&lock) ;
+      signalSem (&lock);
     }
   return 0;
 }
-
 
 void
 _M2_RTco_init ()
@@ -435,93 +421,3 @@ void
 _M2_RTco_finish ()
 {
 }
-
-
-#if 0
-static struct sigaction action;
-static struct sigaction prev_action;
-
-
-static void
-suspendCurrentThread (void)
-{
-  RTco_waitThread (currentThread);
-}
-
-
-/* setupSignalHandler setup a signal handler so that a process can be forced to
-   wait on a semaphore and thus it can be forced off the runqueue.  */
-
-static void
-setupSignalHandler (void)
-{
-  memset (&action, 0, sizeof (action));
-  action.sa_sigaction = suspendCurrentThread;
-  action.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-  sigemptyset (&action.sa_mask);
-
-  if (sigaction (SIGURG, &action, &prev_action) == 0)
-    {
-
-    }
-}
-
-
-/* runThread sets up the thread tid signal handler and assigns
-   currentThread to tid.  The caller is expected to block
-   (on its per thread semaphore or by select in the case of the flih.  */
-
-static void
-RTco_runThread (int tid)
-{
-  currentThread = tid;
-  RTco_signalThread (currentThread);
-}
-
-
-
-/* flih sits outside the Modula-2 coroutines and can be thought of as an interrupt
-   handler.  It listens to all the interrupt sources and signals the thread which
-   has a interrupt.  */
-
-static void
-flih (void)
-{
-  fd_set *inputs = Selective_InitSet ();
-  fd_set *outputs = Selective_InitSet ();
-  struct timeval *timer = Selective_InitTime (0, 0);
-  int lastIn = 0;
-  int lastOut = 0;
-
-  setupSignalHandler ();
-  while (TRUE)
-    {
-      GetInterruptSets (inputs, outputs, events, timer);
-      select (inputs, outputs, events, timer);
-      /* at this point an interrupt has occurred, we have interrupted the thread
-         currentThread and so we need to block currentThread from being scheduled
-         again until we decide it can run.  However there is no point suspending it
-         if we are going to resume it.  */
-
-      /* now choose which thread should be allowed to run.  Look at all available
-         ready interrupts and choose one fairly.  */
-      nextThread = chooseSource (&lastIn, &lastOut);
-      if (nextThread != currentThread)
-	{
-	  suspendThread (currentThread);
-	  RTco_runThread (nextThread);
-	}
-    }
-}
-
-
-
-/* suspendThread is only called from flih and invokes the current thread
-   signal handler which will wait on the per thread semaphore.  */
-
-static void
-suspendThread (int tid)
-{
-  kill (tid, SIGURG);
-}
-#endif
