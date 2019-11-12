@@ -21,15 +21,9 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcSearch ;
 
-(*
-    Title      : mcSearch
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Wed Nov 25 23:20:51 2015
-    Revision   : $Version$
-    Description: mcSearch provides a mechanism to search selected directories
-                 in an attempt to locate and open a given source file.
-*)
+
+(* mcSearch provides a mechanism to search selected directories
+   in an attempt to locate and open a given source file.  *)
 
 FROM DynamicStrings IMPORT String ;
 

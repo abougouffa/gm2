@@ -1778,11 +1778,11 @@ static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
 
 /*
    DefinitionModule := 'DEFINITION' 'MODULE' [ 'FOR' string  ] 
-                       Ident ';' 
+                       Ident 
                        % curmodule := lookupDef (curident)  %
                        
                        % addCommentBody (curmodule)  %
-                       
+                       ';' 
                        % enterScope (curmodule)  %
                        
                        % resetConstExpPos (curmodule)  %
@@ -6773,11 +6773,11 @@ static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
 
 /*
    DefinitionModule := 'DEFINITION' 'MODULE' [ 'FOR' string  ] 
-                       Ident ';' 
+                       Ident 
                        % curmodule := lookupDef (curident)  %
                        
                        % addCommentBody (curmodule)  %
-                       
+                       ';' 
                        % enterScope (curmodule)  %
                        
                        % resetConstExpPos (curmodule)  %
@@ -6803,9 +6803,9 @@ static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
       string (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
     }
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
-  Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
   curmodule = decl_lookupDef (curident);
   decl_addCommentBody (curmodule);
+  Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
   decl_enterScope (curmodule);
   decl_resetConstExpPos (curmodule);
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))

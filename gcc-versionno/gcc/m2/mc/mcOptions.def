@@ -21,14 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcOptions ;
 
-(*
-    Title      : mcOptions
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Nov 17 13:43:00 2015
-    Revision   : $Version$
-    Description: handles the options for mc.
-*)
 
 FROM DynamicStrings IMPORT String ;
 FROM FIO IMPORT File ;

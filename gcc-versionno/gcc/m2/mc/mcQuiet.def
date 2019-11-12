@@ -21,16 +21,10 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcQuiet ;
 
-(*
-    Title      : mcQuiet
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Wed Nov 25 17:25:43 2015
-    Revision   : $Version$
-    Description: provides a wrapper to mcPrintf, each call is only passed
-                 to its corresponding mcPrintf routine providing the --quiet
-                 flag was not used.
-*)
+
+(* Provides a wrapper to mcPrintf, each call is only passed
+   to its corresponding mcPrintf routine providing the --quiet
+   flag was not used.  *)
 
 FROM SYSTEM IMPORT BYTE ;
 

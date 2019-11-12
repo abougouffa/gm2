@@ -1,4 +1,4 @@
-(* mcp2.def provides an interface to the pass 1 parser.
+(* mcp2.def provides an interface to the pass 2 parser.
 
 Copyright (C) 2015-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE mcp2 ;
-
-(*
-    Title      : mcp1
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Nov 19 17:41:35 2015
-    Revision   : $Version$
-    Description: provides an interface to the pass 1 parser.
-*)
 
 (*
    CompilationUnit - returns TRUE if the input was correct enough to parse

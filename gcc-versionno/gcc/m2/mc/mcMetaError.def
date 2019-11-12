@@ -21,17 +21,10 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcMetaError ;
 
-(*
-    Title      : mcMetaError
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Sat Dec 12 09:37:30 2015
-    Revision   : $Version$
-    Description: provides a set of high level error routines.  These
-                 routines utilise M2Error and provides the programmer
-                 with an easier method to obtain useful symbol table
-                 information.
-*)
+(* Provides a set of high level error routines.  These
+   routines utilise M2Error and provides the programmer
+   with an easier method to obtain useful symbol table
+   information.  *)
 
 FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;

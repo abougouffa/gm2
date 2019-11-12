@@ -21,14 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcp4 ;
 
-(*
-    Title      : mcp4
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Apr 11 16:17:36 2016
-    Revision   : $Version$
-    Description: provides an interface to the pass 4 parser.
-*)
 
 (*
    CompilationUnit - returns TRUE if the input was correct enough to parse

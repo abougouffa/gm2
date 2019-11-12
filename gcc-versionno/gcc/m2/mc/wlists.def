@@ -21,14 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE wlists ;
 
-(*
-    Title      : wlists
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Nov 23 19:13:18 2015
-    Revision   : $Version$
-    Description: Provides an unordered wlist manipulation package.
-*)
 
 FROM SYSTEM IMPORT WORD ;
 
