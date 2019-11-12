@@ -120,6 +120,7 @@
 	* m2/mc-boot/Gvarargs.h:  regenerated.
 	* m2/mc-boot/Gwlists.h:  regenerated.
 	* m2/mc-boot/Gwrapc.h:  regenerated.
+	* m2/mc/mcOptions.mod:  added --automatic option.
 
 2019-11-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

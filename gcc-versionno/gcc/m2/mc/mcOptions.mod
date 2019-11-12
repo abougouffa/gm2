@@ -90,7 +90,7 @@ BEGIN
    printf0 (" [--olang=c++] [--olang=m2] [--debug-top]") ;
    printf0 (' [--gpl-header] [--glpl-header] [--summary="foo"]') ;
    printf0 (' [--contributed="foo"] [--project="foo"]') ;
-   printf0 (" [--h-file-prefix=foo] [-o=foo] filename\n") ;
+   printf0 (" [--h-file-prefix=foo] [--automatic] [-o=foo] filename\n") ;
 
    printf0 ("  --cpp               preprocess through the C preprocessor\n") ;
    printf0 ("  -g                  emit debugging directives in the output language") ;
@@ -114,6 +114,7 @@ BEGIN
    printf0 ('  --summary="foo"     generate a one line summary comment at the top of the file\n') ;
    printf0 ('  --contributed="foo" generate a one line contribution comment near the top of the file\n') ;
    printf0 ('  --project="foo"     include the project name within the GPL3 or GLPL3 header\n') ;
+   printf0 ('  --automatic         generate a comment at the start of the file warning not to edit as it was automatically generated\n') ;
    printf0 ("  filename            the source file must be the last option\n") ;
    exit (0)
 END displayHelp ;
