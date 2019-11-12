@@ -6,6 +6,13 @@
 	* libgm2/libm2iso/RTco.c:  GPLv3 and reformatted.
 	* libgm2/libm2iso/wrapsock.c:  GPLv3 and reformatted.
 	* libgm2/libm2iso/wraptime.c:  GPLv3 and reformatted.
+	* libgm2/libm2cor/Makefile.am:  GPLv3.
+	* libgm2/libm2iso/Makefile.am:  GPLv3.
+	* libgm2/libm2log/Makefile.am:  GPLv3.
+	* libgm2/libm2min/Makefile.am:  GPLv3.
+	* libgm2/libm2pim/Makefile.am:  GPLv3.
+	* libgm2/libm2log/Break.c:  GPLv3 and reformatted.
+	* libgm2/libm2min/libc.c:  GPLv3 and reformatted.
 
 2019-11-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
