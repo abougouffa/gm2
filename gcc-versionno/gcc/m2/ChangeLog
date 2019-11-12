@@ -2,6 +2,7 @@
 
 	* m2/patches/gcc/trunk/01-patches:  (regenerated)
           (gm2version.o) is excluded from the stage difference test.
+	* m2/gm2-gcc/gcc-consolidation.h:  removed include params.h.
 
 2019-11-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

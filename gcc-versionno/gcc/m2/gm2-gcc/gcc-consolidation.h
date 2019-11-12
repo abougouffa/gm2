@@ -47,7 +47,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include "wide-int-print.h"
 #include "real.h"
 #include "float.h"
-#include "params.h"
 #include "spellcheck.h"
 #include "opt-suggestions.h"
 
