@@ -1,3 +1,8 @@
+2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/patches/gcc/trunk/01-patches:  (regenerated)
+          (gm2version.o) is excluded from the stage difference test.
+
 2019-11-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2 (renamed) m2.

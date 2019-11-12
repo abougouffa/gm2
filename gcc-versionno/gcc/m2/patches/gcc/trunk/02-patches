@@ -1,5 +1,5 @@
 --- gcc-versionno-orig/configure.ac	2019-10-31 21:11:24.387294917 +0000
-+++ gcc-versionno/configure.ac	2019-11-10 20:31:11.505747292 +0000
++++ gcc-versionno/configure.ac	2019-11-12 00:36:43.888339706 +0000
 @@ -111,11 +111,11 @@
  ### or a host dependent tool.  Then put it into the appropriate list
  ### (library or tools, host or target), doing a dependency sort.
@@ -244,4 +244,19 @@
 +fi
  MAINT=$MAINTAINER_MODE_TRUE
  AC_SUBST(MAINT)dnl
+ 
+@@ -3625,11 +3638,11 @@
+ 
+ # Specify what files to not compare during bootstrap.
+ 
+-compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/*"
++compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | gcc/m2/gm2version\$(objext) "
+ case "$target" in
+   hppa*64*-*-hpux*) ;;
+-  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o" ;;
+-  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext)" ;;
++  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o | gcc/m2/gm2version\$(objext)" ;;
++  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext) | gcc/m2/gm2version\$(objext)" ;;
+ esac
+ AC_SUBST(compare_exclusions)
  
