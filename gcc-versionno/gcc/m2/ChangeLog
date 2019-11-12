@@ -2,7 +2,18 @@
 
 	* m2/patches/gcc/trunk/01-patches:  (regenerated)
           (gm2version.o) is excluded from the stage difference test.
+	* remade patches without white space changes.
 	* m2/gm2-gcc/gcc-consolidation.h:  removed include params.h.
+	* m2/patches/gcc/trunk/01-patches:  (regenerated)
+	* m2/patches/gcc/trunk/02-patches:  (regenerated)
+	* m2/patches/gcc/trunk/03-patches:  (regenerated)
+	* m2/patches/gcc/trunk/04-patches:  (regenerated)
+	* m2/patches/gcc/trunk/05-patches:  (regenerated)
+	* m2/patches/gcc/trunk/06-patches:  (regenerated)
+	* m2/patches/gcc/trunk/07-patches:  (regenerated)
+	* m2/patches/gcc/trunk/08-patches:  (regenerated)
+	* m2/patches/gcc/trunk/09-patches:  (regenerated)
+	* m2/patches/gcc/trunk/10-patches:  (regenerated)
 
 2019-11-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

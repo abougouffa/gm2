@@ -1,20 +1,5 @@
 --- gcc-versionno-orig/Makefile.in	2019-10-31 20:57:14.628850532 +0000
 +++ gcc-versionno/Makefile.in	2019-11-11 00:07:22.000000000 +0000
-@@ -10,12 +10,12 @@
- # it under the terms of the GNU General Public License as published by
- # the Free Software Foundation; either version 3 of the License, or
- # (at your option) any later version.
--# 
-+#
- # This program is distributed in the hope that it will be useful,
- # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- # GNU General Public License for more details.
--# 
-+#
- # You should have received a copy of the GNU General Public License
- # along with this program; see the file COPYING3.  If not see
- # <http://www.gnu.org/licenses/>.
 @@ -158,6 +158,7 @@
  	GOCFLAGS="$(GOCFLAGS_FOR_BUILD)"; export GOCFLAGS; \
  	GDC="$(GDC_FOR_BUILD)"; export GDC; \
@@ -245,15 +230,6 @@
  maintainer-clean-target: maybe-maintainer-clean-target-libgomp
  maintainer-clean-target: maybe-maintainer-clean-target-libitm
  maintainer-clean-target: maybe-maintainer-clean-target-libatomic
-@@ -2427,7 +2459,7 @@
- clean: do-clean local-clean
- mostlyclean: do-mostlyclean local-clean
- distclean: do-distclean local-clean local-distclean
--maintainer-clean: local-maintainer-clean do-maintainer-clean local-clean 
-+maintainer-clean: local-maintainer-clean do-maintainer-clean local-clean
- maintainer-clean: local-distclean
- realclean: maintainer-clean
- 
 @@ -2511,6 +2543,7 @@
      maybe-check-target-zlib \
      maybe-check-target-rda \
@@ -278,15 +254,6 @@
      maybe-install-strip-target-libgomp \
      maybe-install-strip-target-libitm \
      maybe-install-strip-target-libatomic
-@@ -2826,7 +2861,7 @@
- 
- dist:
- 	@echo "Building a full distribution of this tree isn't done"
--	@echo "via 'make dist'.  Check out the etc/ subdirectory" 
-+	@echo "via 'make dist'.  Check out the etc/ subdirectory"
- 
- etags tags: TAGS
- 
 @@ -52366,6 +52401,464 @@
  
  
@@ -767,15 +734,6 @@
  .PHONY: check-gcc-brig check-brig
  check-gcc-brig:
  	r=`${PWD_COMMAND}`; export r; \
-@@ -54692,7 +55193,7 @@
- # reliable.
- 
- # 'touch' doesn't work right on some platforms.
--STAMP = echo timestamp > 
-+STAMP = echo timestamp >
- 
- # We only want to compare .o files, so set this!
- objext = .o
 @@ -57939,6 +58440,7 @@
  configure-target-zlib: stage_last
  configure-target-rda: stage_last
@@ -809,12 +767,3 @@
  configure-target-libgomp: maybe-all-target-newlib maybe-all-target-libgloss
  
  configure-target-libitm: maybe-all-target-newlib maybe-all-target-libgloss
-@@ -59288,7 +59794,7 @@
- install-gdb: $(INSTALL_GDB_TK)
- 
- # Serialization dependencies.  Host configures don't work well in parallel to
--# each other, due to contention over config.cache.  Target configures and 
-+# each other, due to contention over config.cache.  Target configures and
- # build configures are similar.
- @serialization_dependencies@
- 
