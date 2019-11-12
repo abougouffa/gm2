@@ -1250,16 +1250,16 @@ m2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/m2/gm2-compiler-boot/%.def $(MC
 #  replaced by mc-bootstrap.
 #
 BOOTGM2VERSION=svn-trunc
-BOOTGM2VERSION=9.2.0
 BOOTGM2VERSION=trunk
-PGE=${HOME}/M2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/m2/pge
+PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/m2/pge
 BOOTGM2=gm2
 
 MCOPTIONS=-g -c -fsources -fcpp -fsoft-check-all -fm2-g
 MCLINK=-g -fmodules -c
 MCLINK=-g
 # GM2SYS=/opt/m2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
-GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/pim
+# GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/m2pim
+GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/10.0.0/m2/m2pim
 GM2PATH=$(srcdir)/m2/mc:$(GM2SYS):$(srcdir)/m2:m2/gm2-auto:$(srcdir)/m2/gm2-libs:$(srcdir)/m2/gm2-libs-iso
 
 mc:  mc-clean mc-devel
@@ -1399,7 +1399,6 @@ $(objdir)/m2/gm2-auto/mcp5.mod: $(srcdir)/m2/bnf/mc-5.bnf
 gm2-bootstrap: mc-devel
 	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs -I../../gcc-5.2.0/gcc/m2/gm2-compiler ../../gcc-5.2.0/gcc/m2/gm2-compiler/Lists.mod
 	./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs ../../gcc-5.2.0/gcc/m2/gm2-libs/Args.mod
-	for i in $(HOME)/M2/graft-5.2.0/ds-examples/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs $$i ; done
 	for i in $(srcdir)/m2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs $$i ; done
 	for i in $(srcdir)/m2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
 	for i in $(srcdir)/m2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/m2/gm2-libs:$(srcdir)/m2/gm2-compiler:$(srcdir)/m2/gm2-gcc $$i ; done
