@@ -1,3 +1,11 @@
+/* 
+    Title      : Debug
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Sat Aug 13 19:41:57 1994
+    Last edit  : Sat Aug 13 19:41:57 1994
+    Description: provides some simple debugging routines.
+  */
 
 
 #if !defined (_Debug_H)

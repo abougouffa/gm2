@@ -1,3 +1,13 @@
+/* 
+    Title      : mcQuiet
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 17:25:43 2015
+    Revision   : $Version$
+    Description: provides a wrapper to mcPrintf, each call is only passed
+                 to its corresponding mcPrintf routine providing the --quiet
+                 flag was not used.
+  */
 
 
 #if !defined (_mcQuiet_H)

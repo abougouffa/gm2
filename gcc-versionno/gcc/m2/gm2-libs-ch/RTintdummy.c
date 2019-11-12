@@ -1,6 +1,6 @@
-/* Assertion.def provides an assert procedure.
+/* RTint.c provides dummy access to interrupt primitives.
 
-Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Copyright (C) 2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
@@ -25,34 +25,17 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 <http://www.gnu.org/licenses/>.  */
 
 
-#if !defined (_Assertion_H)
-#   define _Assertion_H
-
-#   ifdef __cplusplus
-extern "C" {
-#   endif
-#   if !defined (PROC_D)
-#      define PROC_D
-       typedef void (*PROC_t) (void);
-       typedef struct { PROC_t proc; } PROC;
-#   endif
-
-
-#   if defined (_Assertion_C)
-#      define EXTERN
-#   else
-#      define EXTERN extern
-#   endif
-
-
-/*
-   Assert - tests the boolean Condition, if it fails then HALT is called.
-*/
-
-EXTERN void Assertion_Assert (unsigned int Condition);
-#   ifdef __cplusplus
+void
+RTint_Init (void)
+{
 }
-#   endif
 
-#   undef EXTERN
-#endif
+void
+_M2_RTint_init (void)
+{
+}
+
+void
+_M2_RTint_finish (void)
+{
+}

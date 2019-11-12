@@ -1,3 +1,11 @@
+/* 
+    Title      : varargs
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Dec 12 15:57:39 2015
+    Revision   : $Version$
+    Description: provides a basic vararg facility for GNU Modula-2.
+  */
 
 
 #if !defined (_varargs_H)

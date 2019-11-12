@@ -1,3 +1,12 @@
+/* 
+    Title      : symbolKey
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Nov 23 19:27:52 2015
+    Revision   : $Version$
+    Description: Provides binary tree operations for storing symbols.
+                 Used by the decl module to provide scoping of symbols.
+  */
 
 
 #if !defined (_symbolKey_H)

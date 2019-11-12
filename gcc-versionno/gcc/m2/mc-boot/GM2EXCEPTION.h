@@ -1,3 +1,5 @@
+/* This enumerated list of exceptions must match the exceptions in gm2-libs-iso to
+   allow mixed module dialect projects.  */
 
 
 #if !defined (_M2EXCEPTION_H)

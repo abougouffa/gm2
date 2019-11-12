@@ -1,3 +1,7 @@
+/* 
+   assert - tests the boolean, q. If false then an error is reported
+            and the execution is terminated.
+  */
 
 
 #if !defined (_mcDebug_H)

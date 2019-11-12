@@ -1,3 +1,6 @@
+/* Provides users of the COROUTINES library with the
+   ability to create interrupt sources based on
+   file descriptors and timeouts.  */
 
 
 #if !defined (_RTint_H)
@@ -95,6 +98,12 @@ EXTERN void RTint_ExcludeVector (unsigned int vec);
 */
 
 EXTERN void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsigned int pri);
+
+/*
+   Init - allows the user to force the initialize order.
+*/
+
+EXTERN void RTint_Init (void);
 #   ifdef __cplusplus
 }
 #   endif

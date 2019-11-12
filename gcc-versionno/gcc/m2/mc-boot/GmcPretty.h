@@ -1,3 +1,11 @@
+/* 
+    Title      : mcPretty
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Mar 26 08:33:19 2016
+    Revision   : $Version$
+    Description: provides an interface to the pretty printing of output code.
+  */
 
 
 #if !defined (_mcPretty_H)

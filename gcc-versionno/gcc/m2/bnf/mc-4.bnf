@@ -82,6 +82,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 getNextConstExp, fixupConstExp, makeFuncCall,
 		 makeExpList, putExpList, isExpList,
 		 makeSetValue, putSetValue, includeSetValue,
+                 addCommentBody,
 		 resetConstExpPos ;
 
 
@@ -1160,6 +1161,7 @@ WithoutFromImport := "IMPORT" ImportModuleList ";"
 Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
+                                                                       % addCommentBody (curmodule) %
     		                                                       % enterScope (curmodule) %
                                                                        % resetConstExpPos (curmodule) %
                       { Import } [ Export ]

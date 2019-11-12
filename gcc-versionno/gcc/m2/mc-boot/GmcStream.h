@@ -1,3 +1,12 @@
+/* 
+    Title      : mcStream
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Aug 17 12:00:59 2016
+    Revision   : $Version$
+    Description: provides an interface to create a file from multiple
+                 file fragments.
+  */
 
 
 #if !defined (_mcStream_H)

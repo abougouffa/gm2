@@ -1,3 +1,11 @@
+/* 
+    Title      : mcComp
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Nov 17 16:22:34 2015
+    Revision   : $Version$
+    Description: provides a procedure which coordinates all passes of mc.
+  */
 
 
 #if !defined (_mcComp_H)

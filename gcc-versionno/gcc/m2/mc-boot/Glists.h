@@ -1,3 +1,11 @@
+/* 
+    Title      : lists
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Nov 23 19:13:18 2015
+    Revision   : $Version$
+    Description: Provides an unordered list manipulation package.
+  */
 
 
 #if !defined (_lists_H)

@@ -909,6 +909,9 @@ m2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/m2/gm2-libs/%.def $(MCDEPS)
 m2/gm2-libs-boot/RTcodummy.o: $(srcdir)/m2/gm2-libs-ch/RTcodummy.c m2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Im2/gm2-libs -I$(srcdir)/m2 -Im2 -I. -Im2/gm2-libs-boot $(INCLUDES) $< -o $@
 
+m2/gm2-libs-boot/RTintdummy.o: $(srcdir)/m2/gm2-libs-ch/RTintdummy.c m2/gm2-libs/gm2-libs-host.h
+	$(CC) -c -DIN_GCC $(CFLAGS) -Im2/gm2-libs -I$(srcdir)/m2 -Im2 -I. -Im2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 m2/gm2-libs-boot/wrapc.o: $(srcdir)/m2/gm2-libs-ch/wrapc.c m2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h m2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Im2/gm2-libs -I$(srcdir)/m2 -Im2 -I. -Im2/gm2-libs-boot $(INCLUDES) $< -o $@
 
@@ -1331,7 +1334,8 @@ m2/boot-bin/mc-devel$(exeext): $(objdir)/m2/gm2-auto/mcp1.mod \
                                 $(objdir)/m2/gm2-auto/mcp3.mod \
                                 $(objdir)/m2/gm2-auto/mcp4.mod \
                                 $(objdir)/m2/gm2-auto/mcp5.mod \
-                                mcflex.c
+                                mcflex.c \
+                                m2/gm2-libs-boot/RTintdummy.o
 	gcc -I$(srcdir)/m2/mc -c -g mcflex.c
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/decl.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/mcStream.mod
@@ -1364,7 +1368,7 @@ m2/boot-bin/mc-devel$(exeext): $(objdir)/m2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/keyc.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/mcComment.mod
 	cp $(srcdir)/m2/init/mcinit top.lst
-	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/m2/mc/top.mod -o mc m2/gm2-libs-boot/RTcodummy.o
+	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/m2/mc/top.mod -o mc m2/gm2-libs-boot/RTcodummy.o m2/gm2-libs-boot/RTintdummy.o
 
 m2/boot-bin/mc-opt$(exeext): $(objdir)/m2/gm2-auto/mcp1.mod \
                                 $(objdir)/m2/gm2-auto/mcp2.mod \

@@ -1,3 +1,11 @@
+/* 
+    Title      : mcComment
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Jan  6 11:57:52 2017
+    Revision   : $Version$
+    Description: provides a module to remember the comments.
+  */
 
 
 #if !defined (_mcComment_H)

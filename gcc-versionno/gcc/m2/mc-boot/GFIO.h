@@ -1,3 +1,4 @@
+/* Provides a simple buffered file input/output library.  */
 
 
 #if !defined (_FIO_H)

@@ -1,3 +1,7 @@
+/* Runtime exception handler routines.  This should
+   be considered as a system module for GNU Modula-2
+   and allow the compiler to interface with exception
+   handling.  */
 
 
 #if !defined (_RTExceptions_H)

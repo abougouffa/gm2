@@ -1,3 +1,11 @@
+/* 
+    Title      : mcStack
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Dec 17 18:49:05 2015
+    Revision   : $Version$
+    Description: provides a stack data type and associated procedures.
+  */
 
 
 #if !defined (_mcStack_H)

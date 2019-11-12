@@ -1,3 +1,11 @@
+/* 
+    Title      : Indexing
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Feb 23 17:04:45 2004
+    Revision   : $Version$
+    Description: provides a dynamic indexing mechanism.
+  */
 
 
 #if !defined (_Indexing_H)

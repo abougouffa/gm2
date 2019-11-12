@@ -1,3 +1,11 @@
+/* 
+    Title      : mcOptions
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Nov 17 13:43:00 2015
+    Revision   : $Version$
+    Description: handles the options for mc.
+  */
 
 
 #if !defined (_mcOptions_H)

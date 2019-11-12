@@ -1,3 +1,8 @@
+/* Provides a mechanism for the underlying libraries to
+   configure the exception routines.  This mechanism
+   is used by both the ISO and PIM libraries.
+   It is written to be ISO compliant and this also
+   allows for mixed dialect projects.  */
 
 
 #if !defined (_SysExceptions_H)

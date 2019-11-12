@@ -1,3 +1,11 @@
+/* 
+    Title      : mcFileName
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Nov 26 12:59:30 2015
+    Revision   : $Version$
+    Description: Provides a procedure to calculate a system file name.
+  */
 
 
 #if !defined (_mcFileName_H)

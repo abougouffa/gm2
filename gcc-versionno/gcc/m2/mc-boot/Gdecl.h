@@ -1,3 +1,11 @@
+/* 
+    Title      : decl
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Nov 19 17:16:13 2015
+    Revision   : $Version$
+    Description: provides an interface to decl.
+  */
 
 
 #if !defined (_decl_H)

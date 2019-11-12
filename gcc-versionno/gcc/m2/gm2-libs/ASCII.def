@@ -26,10 +26,6 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 
 DEFINITION MODULE ASCII ;
 
-(*
-   Note that lf, eof and EOL are added.
-*)
-
 EXPORT QUALIFIED
      nul, soh, stx, etx, eot, enq, ack, bel,
      bs , ht , nl , vt , np , cr , so , si ,
@@ -37,6 +33,10 @@ EXPORT QUALIFIED
      can, em , sub, esc, fs , gs , rs , us ,
      sp ,  (* All the above are in order *)
      lf, ff, eof, del, tab, EOL ;
+
+(*
+   Note that lf, eof and EOL are added.
+*)
 
 CONST
      nul=000C; soh=001C; stx=002C; etx=003C;

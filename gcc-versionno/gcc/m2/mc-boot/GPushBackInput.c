@@ -259,7 +259,7 @@ char PushBackInput_PutCh (FIO_File f, char ch)
     }
   else
     {
-      Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 130, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+      Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 130, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/PushBackInput.mod", 53);
     }
   return ch;
 }
@@ -283,7 +283,7 @@ void PushBackInput_PutString (FIO_File f, char *a_, unsigned int _a_high)
       l -= 1;
       if ((PushBackInput_PutCh (f, a[l])) != a[l])
         {
-          Debug_Halt ((char *) "assert failed", 13, 112, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.mod", 54);
+          Debug_Halt ((char *) "assert failed", 13, 112, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/PushBackInput.mod", 53);
         }
     }
 }

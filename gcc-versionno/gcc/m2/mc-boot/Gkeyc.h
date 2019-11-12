@@ -1,3 +1,12 @@
+/* 
+    Title      : keyc
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Jul  7 16:56:33 2016
+    Revision   : $Version$
+    Description: provides an interface to emitting symbols which
+                 avoid C namespace clashes.
+  */
 
 
 #if !defined (_keyc_H)

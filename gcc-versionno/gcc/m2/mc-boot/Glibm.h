@@ -1,3 +1,7 @@
+/* Users are strongly advised to use MathLib0 or RealMath as calls
+   to functions within these modules will generate inline code.
+   This module is used by MathLib0 and RealMath when inline code cannot
+   be generated.  */
 
 
 #if !defined (_libm_H)

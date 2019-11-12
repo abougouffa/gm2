@@ -546,7 +546,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;  /* create new slot  */
       }
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/FIO.def", 25, 1);
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 25, 1);
 }
 
 

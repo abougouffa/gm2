@@ -1,3 +1,12 @@
+/* 
+    Title      : mcSearch
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 23:20:51 2015
+    Revision   : $Version$
+    Description: mcSearch provides a mechanism to search selected directories
+                 in an attempt to locate and open a given source file.
+  */
 
 
 #if !defined (_mcSearch_H)

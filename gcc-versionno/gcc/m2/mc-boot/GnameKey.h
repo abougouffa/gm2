@@ -1,3 +1,12 @@
+/* 
+    Title      : nameKey
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 17:55:32 2015
+    Revision   : $Version$
+    Description: nameKey provides a dynamic binary tree name to key
+                 interface for the Modula-2 compiler.
+  */
 
 
 #if !defined (_nameKey_H)

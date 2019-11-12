@@ -1,3 +1,6 @@
+/* Provides dynamic allocation for the system components.
+    This allows the application to use the traditional Storage module
+    which can be handled differently.  */
 
 
 #if !defined (_SysStorage_H)

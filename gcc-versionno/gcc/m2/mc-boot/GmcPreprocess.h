@@ -1,3 +1,11 @@
+/* 
+    Title      : mcPreprocess
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Nov 26 16:11:34 2015
+    Revision   : $Version$
+    Description: provides a mechanism to invoke the C preprocessor.
+  */
 
 
 #if !defined (_mcPreprocess_H)

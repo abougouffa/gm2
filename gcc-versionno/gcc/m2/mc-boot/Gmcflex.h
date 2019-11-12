@@ -1,3 +1,12 @@
+/* 
+    Title      : mcflex
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 17:34:23 2015
+    Revision   : $Version$
+    Description: provides a Modula-2 definition module for the C lexical
+                 analysis flex file mc.flex
+  */
 
 
 #if !defined (_mcflex_H)

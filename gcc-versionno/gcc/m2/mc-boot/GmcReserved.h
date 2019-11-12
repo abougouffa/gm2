@@ -1,3 +1,11 @@
+/* 
+    Title      : mcReserved
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 15:56:54 2015
+    Revision   : $Version$
+    Description: defines the toktype.
+  */
 
 
 #if !defined (_mcReserved_H)

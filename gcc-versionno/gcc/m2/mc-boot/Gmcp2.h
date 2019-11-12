@@ -1,3 +1,7 @@
+/* 
+   CompilationUnit - returns TRUE if the input was correct enough to parse
+                     in future passes.
+  */
 
 
 #if !defined (_mcp2_H)

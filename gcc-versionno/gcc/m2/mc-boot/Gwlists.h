@@ -1,3 +1,11 @@
+/* 
+    Title      : wlists
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Nov 23 19:13:18 2015
+    Revision   : $Version$
+    Description: Provides an unordered wlist manipulation package.
+  */
 
 
 #if !defined (_wlists_H)

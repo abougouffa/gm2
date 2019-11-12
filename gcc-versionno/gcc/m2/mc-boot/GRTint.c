@@ -82,6 +82,7 @@ static unsigned int VecNo;
 static Vector Exists;
 static _T2 Pending;
 static int lock;
+static unsigned int initialized;
 
 /*
    InitInputVector - returns an interrupt vector which is associated
@@ -154,6 +155,12 @@ void RTint_ExcludeVector (unsigned int vec);
 void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsigned int pri);
 
 /*
+   Init -
+*/
+
+void RTint_Init (void);
+
+/*
    Max - returns the maximum: i or j.
 */
 
@@ -222,10 +229,10 @@ static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Sele
 static unsigned int activatePending (unsigned int untilInterrupt, RTint_DespatchVector call, unsigned int pri, int maxFd, Selective_SetOfFd *i, Selective_SetOfFd *o, Selective_Timeval *t, Selective_Timeval b4, Selective_Timeval after);
 
 /*
-   Init -
+   init -
 */
 
-static void Init (void);
+static void init (void);
 
 
 /*
@@ -562,7 +569,7 @@ static unsigned int activatePending (unsigned int untilInterrupt, RTint_Despatch
 
 
               default:
-                CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
+                CaseException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 25, 1);
             }
           v = v->pending;
         }
@@ -574,10 +581,10 @@ static unsigned int activatePending (unsigned int untilInterrupt, RTint_Despatch
 
 
 /*
-   Init -
+   init -
 */
 
-static void Init (void)
+static void init (void)
 {
   COROUTINES_PROTECTION p;
 
@@ -588,6 +595,7 @@ static void Init (void)
     {
       Pending.array[p-(COROUTINES_UnassignedPriority)] = NULL;
     }
+  initialized = TRUE;
   RTco_signal (lock);
 }
 
@@ -706,7 +714,7 @@ void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int s
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 270, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 271, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -731,7 +739,7 @@ void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *s
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 296, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 297, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -757,7 +765,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 323, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 324, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -766,7 +774,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
       RTco_signal (lock);
       return l;
     }
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 25, 1);
 }
 
 
@@ -790,7 +798,7 @@ void RTint_IncludeVector (unsigned int vec)
       v = FindVectorNo (vec);
       if (v == NULL)
         {
-          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 351, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
+          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 352, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
         }
       else
         {
@@ -837,7 +845,7 @@ void RTint_ExcludeVector (unsigned int vec)
   v = FindPendingVector (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 394, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
+      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 395, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
     }
   else
     {
@@ -938,7 +946,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
+                    CaseException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 25, 1);
                 }
               v = v->pending;
             }
@@ -950,12 +958,13 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
         }
       if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
         {
-          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 706, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
+          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 707, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
         }
       /* printf('}
       ') ;  */
       if (((! found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
         {
+          /* no file descriptors to be selected upon.  */
           t = Selective_KillTime (t);
           RTco_signal (lock);
           return;
@@ -1028,9 +1037,22 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
   RTco_signal (lock);
 }
 
+
+/*
+   Init -
+*/
+
+void RTint_Init (void)
+{
+  if (! initialized)
+    {
+      init ();
+    }
+}
+
 void _M2_RTint_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
-  Init ();
+  RTint_Init ();
 }
 
 void _M2_RTint_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

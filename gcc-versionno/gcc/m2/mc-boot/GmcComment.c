@@ -245,7 +245,7 @@ static void dumpComment (mcComment_commentDesc cd)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/mcComment.def", 20, 1);
+        CaseException ("../../gcc-versionno/gcc/m2/mc/mcComment.def", 20, 1);
     }
   if (cd->used)
     {

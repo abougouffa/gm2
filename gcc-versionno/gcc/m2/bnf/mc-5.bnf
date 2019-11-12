@@ -1475,7 +1475,6 @@ WithoutFromImport := "IMPORT" ImportModuleList ";"
 Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"    % curmodule := lookupDef (curident) %
-                                                                        % addCommentBody (curmodule) %
      		                                                        % enterScope (curmodule) %
                       { Import } [ Export ]
                       { Definition }

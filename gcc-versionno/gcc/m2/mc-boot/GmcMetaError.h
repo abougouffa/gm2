@@ -1,3 +1,14 @@
+/* 
+    Title      : mcMetaError
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Dec 12 09:37:30 2015
+    Revision   : $Version$
+    Description: provides a set of high level error routines.  These
+                 routines utilise M2Error and provides the programmer
+                 with an easier method to obtain useful symbol table
+                 information.
+  */
 
 
 #if !defined (_mcMetaError_H)

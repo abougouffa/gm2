@@ -1,3 +1,14 @@
+/* 
+   Author     : Gaius Mulley
+   Title      : IO
+   Date       : 3/4/86  [$Date: 2010/10/03 19:01:10 $]
+   SYSTEM     : GNU Modula-2
+   Description: provides Read, Write, Errors procedures that map onto UNIX
+                file descriptors 0, 1 and 2. This is achieved by using
+                FIO if we are in buffered mode and using libc.write
+                if not.
+   Version    : $Revision: 1.6 $
+  */
 
 
 #if !defined (_IO_H)

@@ -1,3 +1,12 @@
+/* 
+    Title      : mcError
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Nov 26 16:33:31 2015
+    Revision   : $Version$
+    Description: provides an interface between the string handling modules
+                 and the compiler.
+  */
 
 
 #if !defined (_mcError_H)

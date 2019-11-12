@@ -1,3 +1,11 @@
+/* 
+    Title      : mcLexBuf
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Nov 20 11:05:05 2015
+    Revision   : $Version$
+    Description: provides a buffer for the all the tokens created by m2.lex.
+  */
 
 
 #if !defined (_mcLexBuf_H)

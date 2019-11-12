@@ -1,3 +1,13 @@
+/* 
+    Title      : mcPrintf
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 25 17:25:04 2015
+    Revision   : $Version$
+    Description: provides a poor mans printf capability. It requires NameKey
+                 as it will translate %a into a namekey.
+                 It supports %a, %d, %c and %s.
+  */
 
 
 #if !defined (_mcPrintf_H)
