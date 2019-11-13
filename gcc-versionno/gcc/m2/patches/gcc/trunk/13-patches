@@ -1,0 +1,13 @@
+--- gcc-versionno-orig/gcc/d/d-spec.cc	2019-11-13 15:40:48.000000000 +0000
++++ gcc-versionno/gcc/d/d-spec.cc	2019-11-13 22:44:03.335565684 +0000
+@@ -514,3 +514,10 @@
+ 
+ int lang_specific_extra_outfiles = 0;  /* Not used for D.  */
+ 
++/* lang_register_spec_functions register the D associated spec
++   functions.  Not used for D.  */
++
++void
++lang_register_spec_functions (void)
++{
++}

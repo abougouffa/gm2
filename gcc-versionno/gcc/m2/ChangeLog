@@ -16,6 +16,9 @@
           extra parameter.  (do_max_real) get_max_float
           extra parameter.
 	* m2/gm2spec.c:  (DEBUGGING) #undef.
+	* m2/patches/gcc/trunk/11-patches:  (New file)
+	* m2/patches/gcc/trunk/12-patches:  (New file)
+	* m2/patches/gcc/trunk/13-patches:  (New file)
 
 2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
