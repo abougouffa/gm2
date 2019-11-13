@@ -92,8 +92,8 @@ along with GCC; see the file COPYING3.  If not see
 
 int lang_specific_extra_outfiles = 0;
 
-#define DEBUGGING
 #undef DEBUGGING
+#define DEBUGGING
 
 #define DEBUGOPTIONS
 #undef DEBUGOPTIONS
@@ -1227,7 +1227,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       size_t opt = (*in_decoded_options)[i].opt_index;
 
 #if defined(DEBUGGING)
-      printf ("argument: %s, %d\n", arg, opt);
+      printf ("argument: %s, %ld\n", arg, opt);
 #endif
       if ((opt == OPT_c) || (opt == OPT_S))
         linking = false;
