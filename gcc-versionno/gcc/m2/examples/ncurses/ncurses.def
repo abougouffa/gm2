@@ -1,28 +1,30 @@
-(* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* ncurses provides a partial interface to the ncurses library.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2004-2019 Free Software Foundation, Inc.
+Derived from the ncurses header file.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" ncurses ;
-
-(*
-    Title      : ncurses
-    System     : GNU Modula-2
-    Description: provides an interface file to the ncurses library.
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -115,7 +117,7 @@ PROCEDURE   def_prog_mode ();			 : INTEGER ;
 PROCEDURE   def_shell_mode ();			 : INTEGER ;
 PROCEDURE   delay_output (INTEGER);				 : INTEGER ;
 PROCEDURE   delch ();				 : INTEGER ;
-PROCEDURE   delscreen (SCREEN * );			 
+PROCEDURE   delscreen (SCREEN * );
 
 PROCEDURE   deleteln ();				 : INTEGER ;
 PROCEDURE   derwin (w: WINDOW,INTEGER;INTEGER;INTEGER;INTEGER)            : WINDOW ;
@@ -171,14 +173,14 @@ PROCEDURE   insnstr (char *, INTEGER);			 : INTEGER ;
 PROCEDURE   insstr (char * );			 : INTEGER ;
 PROCEDURE   instr (char * );				 : INTEGER ;
 PROCEDURE   intrflush (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
-extern    NCURSES_BOOL      isendwin ();				 
-extern    NCURSES_BOOL      is_linetouched (w: WINDOW,INTEGER);		 
-extern    NCURSES_BOOL      is_wintouched (w: WINDOW);			 
-extern     char *     keyname (INTEGER);		 
+extern    NCURSES_BOOL      isendwin ();
+extern    NCURSES_BOOL      is_linetouched (w: WINDOW,INTEGER);
+extern    NCURSES_BOOL      is_wintouched (w: WINDOW);
+extern     char *     keyname (INTEGER);
 PROCEDURE   keypad (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
 PROCEDURE   killchar ()                                          : CHAR ;
 PROCEDURE   leaveok (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
-extern    char *     longname ();				 
+extern    char *     longname ();
 PROCEDURE   meta (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
 PROCEDURE   move (INTEGER; INTEGER);				 : INTEGER ;
 PROCEDURE   mvaddch (INTEGER; INTEGER; chtype);		 : INTEGER ;
@@ -194,7 +196,7 @@ PROCEDURE   mvgetch (INTEGER; INTEGER);				 : INTEGER ;
 PROCEDURE   mvgetnstr (INTEGER; INTEGER; char *, INTEGER);		 : INTEGER ;
 PROCEDURE   mvgetstr (INTEGER; INTEGER; char * );			 : INTEGER ;
 PROCEDURE   mvhline (INTEGER; INTEGER; chtype, INTEGER);		 : INTEGER ;
-extern    chtype     mvinch (INTEGER; INTEGER);			 
+extern    chtype     mvinch (INTEGER; INTEGER);
 PROCEDURE   mvinchnstr (INTEGER; INTEGER; s: chstring, INTEGER);	 : INTEGER ;
 PROCEDURE   mvinchstr (INTEGER; INTEGER; s: chstring);		 : INTEGER ;
 PROCEDURE   mvinnstr (INTEGER; INTEGER; char *, INTEGER);		 : INTEGER ;
@@ -218,7 +220,7 @@ PROCEDURE   mvwgetnstr (w: WINDOW, INTEGER; INTEGER; char *, INTEGER);	 : INTEGE
 PROCEDURE   mvwgetstr (w: WINDOW, INTEGER; INTEGER; char * );	 : INTEGER ;
 PROCEDURE   mvwhline (w: WINDOW, INTEGER; INTEGER; chtype, INTEGER);	 : INTEGER ;
 PROCEDURE   mvwin (w: WINDOW,INTEGER;INTEGER);			 : INTEGER ;
-extern    chtype     mvwinch (w: WINDOW, INTEGER; INTEGER);			 
+extern    chtype     mvwinch (w: WINDOW, INTEGER; INTEGER);
 PROCEDURE   mvwinchnstr (w: WINDOW, INTEGER; INTEGER; s: chstring, INTEGER);	 : INTEGER ;
 PROCEDURE   mvwinchstr (w: WINDOW, INTEGER; INTEGER; s: chstring);		 : INTEGER ;
 PROCEDURE   mvwinnstr (w: WINDOW, INTEGER; INTEGER; char *, INTEGER);		 : INTEGER ;
@@ -247,7 +249,7 @@ PROCEDURE   printw ( char *,...)		 : INTEGER ;
 		 ;
 PROCEDURE   putp (char * );				 : INTEGER ;
 PROCEDURE   putwin (w: WINDOW, FILE * );			 : INTEGER ;
-extern    void     qiflush ();				 
+extern    void     qiflush ();
 PROCEDURE   raw ();					 : INTEGER ;
 PROCEDURE   redrawwin (w: WINDOW);			 : INTEGER ;
 PROCEDURE   refresh ();				 : INTEGER ;
@@ -266,36 +268,36 @@ PROCEDURE   scrollok (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
 PROCEDURE   scr_restore (char * );			 : INTEGER ;
 PROCEDURE   scr_set (char * );			 : INTEGER ;
 PROCEDURE   setscrreg (INTEGER;INTEGER);				 : INTEGER ;
-extern    SCREEN *     set_term (SCREEN * );			 
+extern    SCREEN *     set_term (SCREEN * );
 PROCEDURE   slk_attroff (chtype);			 : INTEGER ;
 PROCEDURE   slk_attr_off (attr_t, void * );		 : INTEGER ;
 PROCEDURE   slk_attron (chtype);			 : INTEGER ;
 PROCEDURE   slk_attr_on (attr_t,void* );			 : INTEGER ;
 PROCEDURE   slk_attrset (chtype);			 : INTEGER ;
-extern    attr_t     slk_attr ();				 
+extern    attr_t     slk_attr ();
 PROCEDURE   slk_attr_set (attr_t,short,void* );	 : INTEGER ;
 PROCEDURE   slk_clear ();				 : INTEGER ;
 PROCEDURE   slk_color (short);				 : INTEGER ;
 PROCEDURE   slk_init (INTEGER);				 : INTEGER ;
-extern    char *     slk_label (INTEGER);				 
+extern    char *     slk_label (INTEGER);
 PROCEDURE   slk_noutrefresh ();			 : INTEGER ;
 PROCEDURE   subpad (w: WINDOW, INTEGER; INTEGER; INTEGER; INTEGER);	         : WINDOW ;
 PROCEDURE   subwin (w: WINDOW,INTEGER;INTEGER;INTEGER;INTEGER);	         : WINDOW ;
 PROCEDURE   syncok (w: WINDOW, NCURSES_BOOL );			 : INTEGER ;
-extern    chtype     termattrs ();				 
-extern    attr_t     term_attrs ();			 
-extern    char *     termname ();				 
+extern    chtype     termattrs ();
+extern    attr_t     term_attrs ();
+extern    char *     termname ();
 PROCEDURE   tigetflag ( char * );		 : INTEGER ;
 PROCEDURE   tigetnum ( char * );		 : INTEGER ;
-extern    char *     tigetstr ( char * );		 
-PROCEDURE   timeout (INTEGER);				 
+extern    char *     tigetstr ( char * );
+PROCEDURE   timeout (INTEGER);
 PROCEDURE   touchline (w: WINDOW, INTEGER; INTEGER);		 : INTEGER ;
 PROCEDURE   touchwin (w: WINDOW);				 : INTEGER ;
-extern    char *     tparm ( char *, ...);	 
+extern    char *     tparm ( char *, ...);
 PROCEDURE   typeahead (INTEGER);				 : INTEGER ;
 PROCEDURE   ungetch (INTEGER);				 : INTEGER ;
 PROCEDURE   untouchwin (w: WINDOW);			 : INTEGER ;
-PROCEDURE   use_env (NCURSES_BOOL );				 
+PROCEDURE   use_env (NCURSES_BOOL );
 PROCEDURE   vidattr (chtype);				 : INTEGER ;
 PROCEDURE   vid_attr (attr_t, short, void * );		 : INTEGER ;
 PROCEDURE   vidputs (chtype, int ( * )(INTEGER));		 : INTEGER ;
@@ -317,13 +319,13 @@ PROCEDURE   wattr_on (w: WINDOW,  attr_t, void * );	 : INTEGER ;
 PROCEDURE   wattr_off (w: WINDOW,  attr_t, void * );	 : INTEGER ;
 PROCEDURE   wattr_set (w: WINDOW, attr_t, short, void * );		 : INTEGER ;
 PROCEDURE   wbkgd (w: WINDOW,chtype);		 : INTEGER ;
-PROCEDURE   wbkgdset (w: WINDOW,chtype);			 
+PROCEDURE   wbkgdset (w: WINDOW,chtype);
 PROCEDURE   wborder (w: WINDOW,chtype,chtype,chtype,chtype,chtype,chtype,chtype,chtype);	 : INTEGER ;
 PROCEDURE   wchgat (w: WINDOW, INTEGER; attr_t, short, void * ); : INTEGER ;
 PROCEDURE   wclrtobot (w: WINDOW);			 : INTEGER ;
 PROCEDURE   wclrtoeol (w: WINDOW);			 : INTEGER ;
 PROCEDURE   wcolor_set (WINDOW*,short,void* );		 : INTEGER ;
-PROCEDURE   wcursyncup (w: WINDOW);			 
+PROCEDURE   wcursyncup (w: WINDOW);
 PROCEDURE   wdelch (w: WINDOW);				 : INTEGER ;
 PROCEDURE   wdeleteln (w: WINDOW);			 : INTEGER ;
 PROCEDURE   wechochar (w: WINDOW, chtype);		 : INTEGER ;
@@ -332,7 +334,7 @@ PROCEDURE   wgetch (w: WINDOW);				 : INTEGER ;
 PROCEDURE   wgetnstr (w: WINDOW,char *,INTEGER);		 : INTEGER ;
 PROCEDURE   wgetstr (w: WINDOW, char * );			 : INTEGER ;
 PROCEDURE   whline (w: WINDOW, chtype, INTEGER);		 : INTEGER ;
-extern    chtype     winch (w: WINDOW);				 
+extern    chtype     winch (w: WINDOW);
 PROCEDURE   winchnstr (w: WINDOW, s: chstring, INTEGER);		 : INTEGER ;
 PROCEDURE   winchstr (w: WINDOW, s: chstring);		 : INTEGER ;
 PROCEDURE   winnstr (w: WINDOW, char *, INTEGER);		 : INTEGER ;
@@ -351,9 +353,9 @@ PROCEDURE   wscrl (w: WINDOW,INTEGER);			 : INTEGER ;
 PROCEDURE   wsetscrreg (w: WINDOW,INTEGER;INTEGER);		 : INTEGER ;
 PROCEDURE   wstandout (w: WINDOW);			 : INTEGER ;
 PROCEDURE   wstandend (w: WINDOW);			 : INTEGER ;
-PROCEDURE   wsyncdown (w: WINDOW);			 
-PROCEDURE   wsyncup (w: WINDOW);				 
-PROCEDURE   wtimeout (w: WINDOW,INTEGER);			 
+PROCEDURE   wsyncdown (w: WINDOW);
+PROCEDURE   wsyncup (w: WINDOW);
+PROCEDURE   wtimeout (w: WINDOW,INTEGER);
 PROCEDURE   wtouchln (w: WINDOW,INTEGER;INTEGER;INTEGER);		 : INTEGER ;
 PROCEDURE   wvline (w: WINDOW; ch: chtype; INTEGER);		 : INTEGER ;
 ********************)
@@ -362,4 +364,3 @@ PROCEDURE   trace (d: INTEGER);
 
 
 END ncurses.
-

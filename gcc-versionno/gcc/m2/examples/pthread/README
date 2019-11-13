@@ -1,3 +1,0 @@
-this example was taken from the GNU pth library. (test_select.c and translated
-into GNU Modula-2). pth.def was translated using h2def from modified_pth.h.
-It has also been modified by hand.

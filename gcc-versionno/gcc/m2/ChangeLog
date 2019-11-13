@@ -19,6 +19,14 @@
 	* m2/patches/gcc/trunk/11-patches:  (New file)
 	* m2/patches/gcc/trunk/12-patches:  (New file)
 	* m2/patches/gcc/trunk/13-patches:  (New file)
+	* m2/examples/ncurses/ColorText.def:  changed copyright to GPL3+.
+	* m2/examples/ncurses/ColorText.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/Makefile.in:  changed copyright to GPL3.
+	* m2/examples/ncurses/ncurses.def:  changed copyright to GPL3+.
+	* m2/examples/ncurses/shortc.c:  changed copyright to GPL3+.
+	* m2/examples/ncurses/shortc.def:  changed copyright to GPL3+.
+	* m2/examples/ncurses/test.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/testcolor.mod:  changed copyright to GPL3+.
 
 2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
