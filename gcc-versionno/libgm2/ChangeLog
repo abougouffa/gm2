@@ -1,3 +1,28 @@
+2019-11-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libm2pim/Selective.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/SysExceptions.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/UnixArgs.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/dtoa.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/errno.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/getopt.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/ldtoa.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/sckt.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/target.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/termios.c:  changed to GPL3+ and fixed
+	  formatting.
+	* libgm2/libm2pim/wrapc.c:  changed to GPL3+ and fixed
+	  formatting.
+
 2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libm2cor/KeyBoardLEDs.c:  GPLv3 and reformatted.

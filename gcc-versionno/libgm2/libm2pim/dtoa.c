@@ -1,95 +1,96 @@
-/* Copyright (C) 2009, 2010
- *               Free Software Foundation, Inc. */
-/* This file is part of GNU Modula-2.
+/* dtoa.c convert double to ascii and visa versa.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2009-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA */
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
 
-/*
- *   dtoa.c -
- */
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  */
 
 #define GM2
 
 #include <config.h>
 
-
 #if defined(HAVE_STRINGS)
-#  include <strings.h>
+#include <strings.h>
 #endif
 
 #if defined(HAVE_STRING)
-#  include <string.h>
+#include <string.h>
 #endif
 
 #if defined(HAVE_STDDEF_H)
 /* to obtain a definition for NULL */
-# include <stddef.h>
+#include <stddef.h>
 #endif
 
 #if defined(HAVE_STDIO_H)
 /* to obtain a definition for NULL */
-# include <stdio.h>
+#include <stdio.h>
 #endif
 
 #if defined(HAVE_TIME_H)
 /* to obtain a definition for NULL */
-# include <time.h>
+#include <time.h>
 #endif
 
 #if defined(HAVE_STRING_H)
 /* to obtain a definition for NULL */
-# include <string.h>
+#include <string.h>
 #endif
 
 #if defined(HAVE_WCHAR_H)
 /* to obtain a definition for NULL */
-# include <wchar.h>
+#include <wchar.h>
 #endif
 
 #if defined(HAVE_STDLIB_H)
 /* to obtain a prototype for free and malloc */
-# include <stdlib.h>
+#include <stdlib.h>
 #endif
 
 #if !defined(NULL)
-# define NULL (void *)0
+#define NULL (void *)0
 #endif
 
 #if !defined(TRUE)
-#  define TRUE (1==1)
+#define TRUE (1 == 1)
 #endif
 #if !defined(FALSE)
-#  define FALSE (1==0)
+#define FALSE (1 == 0)
 #endif
 
 #if defined(HAVE_STDLIB_H)
-#  if !defined(_ISOC99_SOURCE)
-#     define _ISOC99_SOURCE
-#  endif
-#  include <stdlib.h>
+#if !defined(_ISOC99_SOURCE)
+#define _ISOC99_SOURCE
+#endif
+#include <stdlib.h>
 #endif
 
 #if defined(HAVE_ERRNO_H)
-#  include <errno.h>
+#include <errno.h>
 #endif
 
 #if defined(HAVE_SYS_ERRNO_H)
-#  include <sys/errno.h>
+#include <sys/errno.h>
 #endif
-
 
 #if defined(HAVE_STRING_H)
 
@@ -106,7 +107,8 @@ typedef enum Mode { maxsignicant, decimaldigits } Mode;
  *                 (ndigits may be negative).
  */
 
-double dtoa_strtod (const char *s, int *error)
+double
+dtoa_strtod (const char *s, int *error)
 {
   char *endp;
   double d;
@@ -132,7 +134,8 @@ double dtoa_strtod (const char *s, int *error)
  *                    from string, p.
  */
 
-int dtoa_calcmaxsig (char *p, int ndigits)
+int
+dtoa_calcmaxsig (char *p, int ndigits)
 {
   char *e;
   char *o;
@@ -141,18 +144,20 @@ int dtoa_calcmaxsig (char *p, int ndigits)
   e = index (p, 'E');
   if (e == NULL)
     x = 0;
-  else {
-    *e = (char)0;
-    x = atoi (e+1);
-  }
+  else
+    {
+      *e = (char)0;
+      x = atoi (e + 1);
+    }
 
   o = index (p, '.');
   if (o == NULL)
     return strlen (p) + x;
-  else {
-    memmove (o, o+1, ndigits - (o - p));
-    return o - p + x;
-  }
+  else
+    {
+      memmove (o, o + 1, ndigits - (o - p));
+      return o - p + x;
+    }
 }
 
 /*
@@ -163,7 +168,8 @@ int dtoa_calcmaxsig (char *p, int ndigits)
  *                     number of digits after the '.'
  */
 
-int dtoa_calcdecimal (char *p, int str_size, int ndigits)
+int
+dtoa_calcdecimal (char *p, int str_size, int ndigits)
 {
   char *e;
   char *o;
@@ -173,61 +179,68 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
   e = index (p, 'E');
   if (e == NULL)
     x = 0;
-  else {
-    *e = (char)0;
-    x = atoi(e+1);
-  }
+  else
+    {
+      *e = (char)0;
+      x = atoi (e + 1);
+    }
 
   l = strlen (p);
   o = index (p, '.');
   if (o == NULL)
-    x += strlen(p);
-  else {
-    int m = strlen(o);
-    memmove(o, o+1, l-(o-p));
-    if (m>0)
-      o[m-1] = '0';
-    x += o-p;
-  }
-  if ((x+ndigits >= 0) && (x+ndigits < str_size))
-    p[x+ndigits] = (char)0;
+    x += strlen (p);
+  else
+    {
+      int m = strlen (o);
+      memmove (o, o + 1, l - (o - p));
+      if (m > 0)
+        o[m - 1] = '0';
+      x += o - p;
+    }
+  if ((x + ndigits >= 0) && (x + ndigits < str_size))
+    p[x + ndigits] = (char)0;
   return x;
 }
 
-int dtoa_calcsign (char *p, int str_size)
+int
+dtoa_calcsign (char *p, int str_size)
 {
-  if (p[0] == '-') {
-    memmove (p, p+1, str_size-1);
-    return TRUE;
-  } else
+  if (p[0] == '-')
+    {
+      memmove (p, p + 1, str_size - 1);
+      return TRUE;
+    }
+  else
     return FALSE;
 }
 
-char *dtoa_dtoa (double d, int mode, int ndigits, int *decpt, int *sign)
+char *
+dtoa_dtoa (double d, int mode, int ndigits, int *decpt, int *sign)
 {
   char format[50];
   char *p;
   int r;
-  switch (mode) {
+  switch (mode)
+    {
 
-  case maxsignicant:
-    ndigits += 20;   /* enough for exponent */
-    p = malloc (ndigits);
-    snprintf(format, 50, "%s%d%s", "%.", ndigits-20, "E");
-    snprintf(p, ndigits, format, d);
-    *sign = dtoa_calcsign(p, ndigits);
-    *decpt = dtoa_calcmaxsig(p, ndigits);
-    return p;
-  case decimaldigits:
-    p = malloc (MAX_FP_DIGITS+20);
-    snprintf(format, 50, "%s%d%s", "%.", MAX_FP_DIGITS, "E");
-    snprintf(p, MAX_FP_DIGITS+20, format, d);
-    *sign = dtoa_calcsign(p, MAX_FP_DIGITS+20);
-    *decpt = dtoa_calcdecimal(p, MAX_FP_DIGITS+20, ndigits);
-    return p;
-  default:
-    abort();
-  }
+    case maxsignicant:
+      ndigits += 20; /* enough for exponent */
+      p = malloc (ndigits);
+      snprintf (format, 50, "%s%d%s", "%.", ndigits - 20, "E");
+      snprintf (p, ndigits, format, d);
+      *sign = dtoa_calcsign (p, ndigits);
+      *decpt = dtoa_calcmaxsig (p, ndigits);
+      return p;
+    case decimaldigits:
+      p = malloc (MAX_FP_DIGITS + 20);
+      snprintf (format, 50, "%s%d%s", "%.", MAX_FP_DIGITS, "E");
+      snprintf (p, MAX_FP_DIGITS + 20, format, d);
+      *sign = dtoa_calcsign (p, MAX_FP_DIGITS + 20);
+      *decpt = dtoa_calcdecimal (p, MAX_FP_DIGITS + 20, ndigits);
+      return p;
+    default:
+      abort ();
+    }
 }
 
 #endif
@@ -237,6 +250,12 @@ char *dtoa_dtoa (double d, int mode, int ndigits, int *decpt, int *sign)
  *  GNU Modula-2 hooks
  */
 
-void _M2_dtoa_init (void) {}
-void _M2_dtoa_finish (void) {}
+void
+_M2_dtoa_init (void)
+{
+}
+void
+_M2_dtoa_finish (void)
+{
+}
 #endif

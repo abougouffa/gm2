@@ -1,22 +1,28 @@
 /* wrapc.c provide access to miscellaneous C library functions.
 
-Copyright (C) 2005-2018 Free Software Foundation, Inc.
-Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+Copyright (C) 2005-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 
-GNU Modula-2 is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  */
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -39,7 +45,7 @@ along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Define FALSE if one hasn't already been defined.  */
 
 #if !defined(FALSE)
-#define FALSE (1==0)
+#define FALSE (1 == 0)
 #endif
 
 /* Define a generic NULL if one hasn't already been defined.  */
@@ -224,7 +230,7 @@ wrapc_signbitf (float r)
 int
 wrapc_isfinite (double x)
 {
-#if defined(FP_NAN) && defined (FP_INFINITE)
+#if defined(FP_NAN) && defined(FP_INFINITE)
   return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
 #else
   return FALSE;
@@ -237,7 +243,7 @@ wrapc_isfinite (double x)
 int
 wrapc_isfinitel (long double x)
 {
-#if defined(FP_NAN) && defined (FP_INFINITE)
+#if defined(FP_NAN) && defined(FP_INFINITE)
   return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
 #else
   return FALSE;
@@ -250,7 +256,7 @@ wrapc_isfinitel (long double x)
 int
 wrapc_isfinitef (float x)
 {
-#if defined(FP_NAN) && defined (FP_INFINITE)
+#if defined(FP_NAN) && defined(FP_INFINITE)
   return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
 #else
   return FALSE;
