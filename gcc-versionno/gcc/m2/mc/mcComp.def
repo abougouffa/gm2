@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcComp ;
 
-(*
-    Title      : mcComp
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Nov 17 16:22:34 2015
-    Revision   : $Version$
-    Description: provides a procedure which coordinates all passes of mc.
-*)
-
 FROM DynamicStrings IMPORT String ;
 
 

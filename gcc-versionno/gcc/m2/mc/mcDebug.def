@@ -21,14 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcDebug ;
 
-(*
-    Title      : mcDebug
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Nov 24 13:47:44 2015
-    Revision   : $Version$
-    Description: provides simple assert and writeDebug facility.
-*)
 
 (*
    assert - tests the boolean, q. If false then an error is reported

@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE lists ;
 
-(*
-    Title      : lists
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Nov 23 19:13:18 2015
-    Revision   : $Version$
-    Description: Provides an unordered list manipulation package.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 FROM symbolKey IMPORT performOperation ;
 

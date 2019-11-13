@@ -21,17 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE m2flex ;
 
-(*
-    Title      : m2flex
-    Author     : Gaius Mulley
-    System     : UNIX (GNU Modula-2)
-    Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2013/02/11 14:45:17 $
-    Revision   : $Version$
-    Description: provides a Modula-2 definition module for the C lexical
-                 analysis flex file m2.flex
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 

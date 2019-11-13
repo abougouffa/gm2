@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE Indexing ;
 
-(*
-    Title      : Indexing
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Feb 23 17:04:45 2004
-    Revision   : $Version$
-    Description: provides a dynamic indexing mechanism.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED Index, InitIndex, KillIndex, GetIndice, PutIndice,
                  HighIndice, LowIndice, InBounds, IsIndiceInIndex,

@@ -21,16 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE keyc ;
 
-(*
-    Title      : keyc
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Jul  7 16:56:33 2016
-    Revision   : $Version$
-    Description: provides an interface to emitting symbols which
-                 avoid C namespace clashes.
-*)
-
 FROM mcPretty IMPORT pretty ;
 FROM DynamicStrings IMPORT String ;
 FROM decl IMPORT node ;

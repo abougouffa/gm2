@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE mcComment ;  (*!m2pim*)
 
-(*
-    Title      : mcComment
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Jan  6 11:57:52 2017
-    Revision   : $Version$
-    Description: provides a module to remember the comments.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 FROM nameKey IMPORT Name ;
