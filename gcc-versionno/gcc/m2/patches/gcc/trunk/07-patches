@@ -1,11 +1,12 @@
---- gcc-versionno-orig/gcc/gcc.h	2019-10-31 21:17:01.369093088 +0000
-+++ gcc-versionno/gcc/gcc.h	2019-10-31 20:56:53.668987692 +0000
-@@ -73,9 +73,17 @@
+--- gcc-versionno-orig/gcc/gcc.h	2019-11-13 15:40:50.000000000 +0000
++++ gcc-versionno/gcc/gcc.h	2019-11-13 16:01:40.575098416 +0000
+@@ -73,9 +73,18 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);
  extern void set_input (const char *);
-+extern void fe_save_switch (const char *opt, size_t n_args,
-+			    const char *const *args, bool validated);
++extern void save_switch (const char *opt, size_t n_args,
++			 const char *const *args,
++			 bool validated, bool known);
 +extern void fe_B_prefix (const char *arg);
 +extern void fe_add_infile (const char *infile, const char *lang);
 +extern void fe_add_linker_option (const char *option);
@@ -18,7 +19,7 @@
  /* Called before processing to change/add/remove arguments.  */
  extern void lang_specific_driver (struct cl_decoded_option **,
  				  unsigned int *, int *);
-@@ -97,4 +105,8 @@
+@@ -97,4 +106,8 @@
  					      void *user_data),
  				   void *user_data);
  

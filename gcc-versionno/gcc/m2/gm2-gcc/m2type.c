@@ -1895,7 +1895,7 @@ do_min_real (tree type)
   char buf[128];
   enum machine_mode mode = TYPE_MODE (type);
 
-  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf));
+  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf), false);
   real_from_string (&r, buf);
   return build1 (NEGATE_EXPR, type, build_real (type, r));
 }
@@ -1927,7 +1927,7 @@ do_max_real (tree type)
   char buf[128];
   enum machine_mode mode = TYPE_MODE (type);
 
-  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf));
+  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf), false);
   real_from_string (&r, buf);
   return build_real (type, r);
 }

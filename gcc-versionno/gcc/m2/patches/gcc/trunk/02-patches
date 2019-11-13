@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure.ac	2019-10-31 21:11:24.387294917 +0000
-+++ gcc-versionno/configure.ac	2019-11-12 00:36:43.888339706 +0000
+--- gcc-versionno-orig/configure.ac	2019-11-13 15:40:18.000000000 +0000
++++ gcc-versionno/configure.ac	2019-11-13 15:48:15.428378624 +0000
 @@ -162,6 +162,7 @@
  		target-libffi \
  		target-libobjc \

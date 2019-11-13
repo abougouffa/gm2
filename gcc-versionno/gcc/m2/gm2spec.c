@@ -92,8 +92,8 @@ along with GCC; see the file COPYING3.  If not see
 
 int lang_specific_extra_outfiles = 0;
 
-#undef DEBUGGING
 #define DEBUGGING
+#undef DEBUGGING
 
 #define DEBUGOPTIONS
 #undef DEBUGOPTIONS

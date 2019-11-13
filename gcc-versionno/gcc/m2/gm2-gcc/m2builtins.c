@@ -657,7 +657,7 @@ computeLarge (tree type)
   /* Since, for the supported formats, B is always a power of 2, we
   construct the following numbers directly as a hexadecimal constants.  */
 
-  get_max_float (fmt, buf, sizeof (buf));
+  get_max_float (fmt, buf, sizeof (buf), false);
   real_from_string (&real, buf);
   return build_real (type, real);
 }

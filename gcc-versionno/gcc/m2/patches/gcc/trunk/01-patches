@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure	2019-10-31 21:13:10.814599485 +0000
-+++ gcc-versionno/configure	2019-11-10 20:31:22.693675139 +0000
+--- gcc-versionno-orig/configure	2019-11-13 15:40:39.000000000 +0000
++++ gcc-versionno/configure	2019-11-13 16:17:57.157127224 +0000
 @@ -612,6 +612,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -314,16 +314,10 @@
  cat > conftest.c << \EOF
  #ifdef __GNUC__
    gcc_yay;
-@@ -14873,6 +15066,51 @@
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
- $as_echo "host tool" >&6; }
-   else
-+    # We need a cross tool
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
-+$as_echo "pre-installed" >&6; }
-+  fi
-+fi
-+
+@@ -14879,6 +15072,51 @@
+   fi
+ fi
+ 
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: checking where to find the target gm2" >&5
 +$as_echo_n "checking where to find the target gm2... " >&6; }
 +if test "x${build}" != "x${host}" ; then
@@ -363,6 +357,27 @@
 +    { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
 +$as_echo "host tool" >&6; }
 +  else
-     # We need a cross tool
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
- $as_echo "pre-installed" >&6; }
++    # We need a cross tool
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
++$as_echo "pre-installed" >&6; }
++  fi
++fi
++
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking where to find the target ld" >&5
+ $as_echo_n "checking where to find the target ld... " >&6; }
+ if test "x${build}" != "x${host}" ; then
+@@ -15439,11 +15677,11 @@
+ 
+ # Specify what files to not compare during bootstrap.
+ 
+-compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/*"
++compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | gcc/m2/gm2version\$(objext) "
+ case "$target" in
+   hppa*64*-*-hpux*) ;;
+-  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o" ;;
+-  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext)" ;;
++  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o | gcc/m2/gm2version\$(objext)" ;;
++  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext) | gcc/m2/gm2version\$(objext)" ;;
+ esac
+ 
+ 
