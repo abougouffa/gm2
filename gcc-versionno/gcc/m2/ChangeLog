@@ -32,6 +32,9 @@
 	* m2/examples/ncurses/testmove.mod:  changed copyright to GPL3+.
 	* m2/examples/ncurses/testshort.mod:  changed copyright to GPL3+.
 	* m2/examples/ncurses/testwin.mod:  changed copyright to GPL3+.
+	* m2/examples/executive/testexecutive.mod:  changed copyright to GPL3+.
+	* m2/examples/executive/testtime.mod:  changed copyright to GPL3+.
+	* m2/examples/executive/winexec.mod:  changed copyright to GPL3+.
 
 2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
