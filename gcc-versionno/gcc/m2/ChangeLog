@@ -27,6 +27,11 @@
 	* m2/examples/ncurses/shortc.def:  changed copyright to GPL3+.
 	* m2/examples/ncurses/test.mod:  changed copyright to GPL3+.
 	* m2/examples/ncurses/testcolor.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/WindowDevice.def:  changed copyright to GPL3+.
+	* m2/examples/ncurses/WindowDevice.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/testmove.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/testshort.mod:  changed copyright to GPL3+.
+	* m2/examples/ncurses/testwin.mod:  changed copyright to GPL3+.
 
 2019-11-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
