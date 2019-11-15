@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.def	2019-11-13 15:47:42.000000000 +0000
-+++ gcc-versionno/Makefile.def	2019-11-13 15:48:15.628377241 +0000
+--- gcc-versionno-orig/Makefile.def	2019-11-14 21:23:46.000000000 +0000
++++ gcc-versionno/Makefile.def	2019-11-14 21:27:29.707106131 +0000
 @@ -169,6 +169,7 @@
  target_modules = { module= zlib; };
  target_modules = { module= rda; };

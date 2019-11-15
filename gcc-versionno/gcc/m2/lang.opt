@@ -30,7 +30,15 @@ I
 Modula-2 Joined Separate
 ; Documented in c.opt
 
+L
+Modula-2 Joined Separate
+; Not documented
+
 M
+Modula-2
+; Documented in c.opt
+
+O
 Modula-2
 ; Documented in c.opt
 
@@ -120,11 +128,11 @@ use ordered list of modules when linking
 
 fmakelist
 Modula-2
-created ordered list of modules
+create a topologically ordered list of modules
 
 fmodules
 Modula-2
-display list of modules and location
+display the list of modules and their location
 
 fclean
 Modula-2
@@ -295,10 +303,6 @@ Modula-2
 ; Documented in c.opt
 
 version
-Modula-2
-; Documented in c.opt
-
-O
 Modula-2
 ; Documented in c.opt
 

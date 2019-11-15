@@ -1,0 +1,14 @@
+--- gcc-versionno-orig/gcc/go/gospec.c	2019-11-14 21:03:49.000000000 +0000
++++ gcc-versionno/gcc/go/gospec.c	2019-11-15 17:43:00.886271758 +0000
+@@ -440,3 +440,11 @@
+ 
+ /* Number of extra output files that lang_specific_pre_link may generate.  */
+ int lang_specific_extra_outfiles = 0;  /* Not used for Go.  */
++
++/* lang_register_spec_functions register the Go associated spec
++   functions.  Not used for Go.  */
++
++void
++lang_register_spec_functions (void)
++{
++}

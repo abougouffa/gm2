@@ -164,7 +164,7 @@ along with GCC; see the file COPYING3.  If not see
              "%:exit()"
 
 /* MAKEALL invoke GM2M if the user requested -fmakeall, -fmakeall0 is
-   interanlly added by gm2m and thus recursive calls using -fmakeall
+   internally added by gm2m and thus recursive calls using -fmakeall
    from make are dismissed.  */
 
 #define MAKEALL "%{fmakeall:%{!fmakeall0:" GM2M "}}"

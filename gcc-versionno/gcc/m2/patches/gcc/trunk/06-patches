@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/gcc.c	2019-11-13 15:40:50.000000000 +0000
-+++ gcc-versionno/gcc/gcc.c	2019-11-13 16:33:46.244082832 +0000
+--- gcc-versionno-orig/gcc/gcc.c	2019-11-14 20:41:54.000000000 +0000
++++ gcc-versionno/gcc/gcc.c	2019-11-15 15:16:01.675796079 +0000
 @@ -304,6 +304,10 @@
  static const char *cross_compile = "0";
  #endif
@@ -11,15 +11,15 @@
  /* Greatest exit code of sub-processes that has been encountered up to
     now.  */
  static int greatest_status = 1;
-@@ -409,6 +413,7 @@
- static const char *debug_level_greater_than_spec_func (int, const char **);
- static const char *find_fortran_preinclude_file (int, const char **);
- static char *convert_white_space (char *);
-+static void handle_OPT_B (const char *arg);
- 
- /* The Specs Language
- 
-@@ -1031,6 +1036,7 @@
+@@ -332,7 +336,6 @@
+ static struct compiler *lookup_compiler (const char *, size_t, const char *);
+ static char *build_search_list (const struct path_prefix *, const char *,
+ 				bool, bool);
+-static void xputenv (const char *);
+ static void putenv_from_prefixes (const struct path_prefix *, const char *,
+ 				  bool);
+ static int access_check (const char *, int);
+@@ -1031,6 +1034,7 @@
  /* We pass any -flto flags on to the linker, which is expected
     to understand them.  In practice, this means it had better be collect2.  */
  /* %{e*} includes -export-dynamic; see comment in common.opt.  */
@@ -27,7 +27,7 @@
  #ifndef LINK_COMMAND_SPEC
  #define LINK_COMMAND_SPEC "\
  %{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
-@@ -1654,6 +1660,10 @@
+@@ -1654,6 +1658,10 @@
    { 0, 0 }
  };
  
@@ -38,7 +38,29 @@
  static int processing_spec_function;
  
  /* Add appropriate libgcc specs to OBSTACK, taking into account
-@@ -3679,7 +3689,7 @@
+@@ -2745,12 +2753,20 @@
+ 
+ /* Add or change the value of an environment variable, outputting the
+    change to standard error if in verbose mode.  */
+-static void
++void
+ xputenv (const char *string)
+ {
+   env.xput (string);
+ }
+ 
++/* Get the environment variable through the managed env.  */
++
++const char *
++xgetenv (const char *key)
++{
++  return env.get (key);
++}
++
+ /* Build a list of search directories from PATHS.
+    PREFIX is a string to prepend to the list.
+    If CHECK_DIR_P is true we ensure the directory exists.
+@@ -3679,7 +3695,7 @@
  /* Save an option OPT with N_ARGS arguments in array ARGS, marking it
     as validated if VALIDATED and KNOWN if it is an internal switch.  */
  
@@ -47,36 +69,21 @@
  save_switch (const char *opt, size_t n_args, const char *const *args,
  	     bool validated, bool known)
  {
-@@ -3724,6 +3734,81 @@
+@@ -3724,6 +3740,66 @@
    setenv ("SOURCE_DATE_EPOCH", source_date_epoch, 0);
  }
  
-+/* Save an option OPT with N_ARGS arguments in array ARGS, marking it
-+   as validated if VALIDATED.  */
-+
-+void
-+fe_save_switch (const char *opt, size_t n_args, const char *const *args,
-+		bool validated, bool known)
-+{
-+  save_switch (opt, n_args, args, validated, known);
-+}
-+
-+void fe_B_prefix (const char *arg)
-+{
-+  handle_OPT_B (arg);
-+}
-+
 +void
 +fe_add_linker_option (const char *option)
 +{
 +  add_linker_option (option, strlen (option));
 +}
 +
-+/*  Handle the -B option by adding the prefix to exec, startfile and
-+    include search paths.  */
++/* Handle the -B option by adding the prefix to exec, startfile and
++   include search paths.  */
 +
-+static
-+void handle_OPT_B (const char *arg)
++void
++handle_OPT_B (const char *arg)
 +{
 +  size_t len = strlen (arg);
 +
@@ -129,7 +136,7 @@
  /* Handle an option DECODED that is unknown to the option-processing
     machinery.  */
  
-@@ -4207,33 +4292,7 @@
+@@ -4207,33 +4283,7 @@
        break;
  
      case OPT_B:
@@ -164,7 +171,76 @@
        validated = true;
        break;
  
-@@ -6072,6 +6131,33 @@
+@@ -4319,6 +4369,68 @@
+   handlers->handlers[2].mask = CL_TARGET;
+ }
+ 
++/* print_option a debugging routine to display option i with a leading desc
++   string.  */
++
++void
++print_option (const char *desc, unsigned int i,
++	      struct cl_decoded_option *in_decoded_options)
++{
++  printf (desc);
++  printf (" [%d]", i);
++  switch (in_decoded_options[i].opt_index)
++    {
++
++    case N_OPTS:
++      break;
++    case OPT_SPECIAL_unknown:
++      printf (" flag <unknown>");
++      break;
++    case OPT_SPECIAL_ignore:
++      printf (" flag <ignore>");
++      break;
++    case OPT_SPECIAL_program_name:
++      printf (" flag <program name>");
++      break;
++    case OPT_SPECIAL_input_file:
++      printf (" flag <input file name>");
++      break;
++    default:
++      printf (" flag [%s]",
++              cl_options[in_decoded_options[i].opt_index].opt_text);
++    }
++
++  if (in_decoded_options[i].arg == NULL)
++    printf (" no arg");
++  else
++    printf (" arg [%s]", in_decoded_options[i].arg);
++  printf (" orig text [%s]",
++          in_decoded_options[i].orig_option_with_args_text);
++  printf (" value [%ld]", in_decoded_options[i].value);
++  printf (" error [%d]\n", in_decoded_options[i].errors);
++}
++
++/* print_options display all options with a leading string desc.  */
++
++void
++print_options (const char *desc,
++	       unsigned int in_decoded_options_count,
++	       struct cl_decoded_option *in_decoded_options)
++{
++  for (unsigned int i = 0; i < in_decoded_options_count; i++)
++    print_option (desc, i, in_decoded_options);
++}
++
++/* dbg_options display all options.  */
++
++void
++dbg_options (unsigned int in_decoded_options_count,
++	     struct cl_decoded_option *in_decoded_options)
++{
++  print_options ("dbg_options", in_decoded_options_count,
++		 in_decoded_options);
++}
++
+ /* Create the vector `switches' and its contents.
+    Store its length in `n_switches'.  */
+ 
+@@ -6072,6 +6184,33 @@
    return 0;
  }
  
@@ -198,7 +274,7 @@
  /* Look up a spec function.  */
  
  static const struct spec_function *
-@@ -6083,6 +6169,11 @@
+@@ -6083,6 +6222,11 @@
      if (strcmp (sf->name, name) == 0)
        return sf;
  
@@ -210,7 +286,7 @@
    return NULL;
  }
  
-@@ -7568,6 +7659,8 @@
+@@ -7568,6 +7712,8 @@
  			   accel_dir_suffix, dir_separator_str, NULL);
    just_machine_suffix = concat (spec_machine, dir_separator_str, NULL);
  
@@ -219,7 +295,7 @@
    specs_file = find_a_file (&startfile_prefixes, "specs", R_OK, true);
    /* Read the specs file unless it is a default one.  */
    if (specs_file != 0 && strcmp (specs_file, "specs"))
-@@ -8264,7 +8357,8 @@
+@@ -8264,7 +8410,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
@@ -229,7 +305,7 @@
      {
        int tmp = execution_count;
  
-@@ -8333,7 +8427,7 @@
+@@ -8333,7 +8480,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  

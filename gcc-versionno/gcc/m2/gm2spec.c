@@ -61,8 +61,19 @@ along with GCC; see the file COPYING3.  If not see
 #endif
 #endif
 
+/* This bit is set if we saw a `-xfoo' language specification.  */
+#define LANGSPEC	(1<<1)
+/* This bit is set if they did `-lm' or `-lmath'.  */
+#define MATHLIB		(1<<2)
+/* This bit is set if they did `-lpthread'.  */
+#define THREADLIB	(1<<3)
+
 #ifndef MATH_LIBRARY
 #define MATH_LIBRARY "m"
+#endif
+
+#ifndef LIBSTDCXX
+#define LIBSTDCXX "stdc++"
 #endif
 
 #ifndef DIR_SEPARATOR
@@ -92,11 +103,19 @@ along with GCC; see the file COPYING3.  If not see
 
 int lang_specific_extra_outfiles = 0;
 
+/* DEBUGGING will print all the options at various stages with their
+   error code, full name etc.  */
 #define DEBUGGING
 #undef DEBUGGING
 
-#define DEBUGOPTIONS
-#undef DEBUGOPTIONS
+/* LOCAL_DEBUGGING allows the compiler driver to automatically set a -B
+   prefix (assuming one it not user supplied).  It sets the -Bprefix with
+   the given path to argv[0].  This allows subprograms to be found in the
+   build tree (without having to be installed).  It is only meant as an
+   aid to development, not a user feature :-).  It allows developers to
+   lazily type:  ./xgm2 -c hello.c rather than ./xgm2 -B./ -c hello.c
+   or /somedirectory/development/build/gcc/xgm2 -c hello.c.  */
+#undef LOCAL_DEBUGGING
 
 #define DEFAULT_DIALECT "pim"
 
@@ -112,9 +131,9 @@ static const char *library_name[maxlib]
 /* They match the installed archive name for example libm2iso.a,
    libm2pim.a, libm2min.a, libm2log.a and libm2cor.a.  They also match a
    subdirectory name where the definition modules are kept.  The driver
-   checks the argument to -flibs= for an entry in library_name or alternatively
-   the existance of the subdirectory (to allow for third party libraries
-   to coexist).  */
+   checks the argument to -flibs= for an entry in library_name or
+   alternatively the existance of the subdirectory (to allow for third
+   party libraries to coexist).  */
 
 static const char *library_abbrev[maxlib]
     = { "iso", "pim", "min", "log", "cor" };
@@ -125,8 +144,10 @@ static const char *library_abbrev[maxlib]
 
 int lang_specific_pre_link (void);
 static void add_exec_prefix (void);
+#if defined(LOCAL_DEBUGGING)
 static void add_B_prefix (unsigned int *in_decoded_options_count,
                           struct cl_decoded_option **in_decoded_options);
+#endif
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
@@ -147,10 +168,6 @@ static const char *get_libexec (void);
 static void insert_option (unsigned int *in_decoded_options_count,
                            struct cl_decoded_option **in_decoded_options,
                            unsigned int position);
-#if defined(DEBUGGING)
-static void print_option (const char *desc,
-			  struct cl_decoded_option **in_decoded_options, int i);
-#endif
 static const char *gen_link_path (const char *libpath, const char *dialect);
 
 typedef struct object_list
@@ -176,6 +193,7 @@ static const char *B_path = NULL;
 #define TARGET_OBJECT_SUFFIX ".o"
 #endif
 
+
 /* fe_generate_option, wrap up arg and pass it to save_switch.  */
 
 static void
@@ -183,10 +201,6 @@ fe_generate_option (size_t opt_index, const char *arg, bool joined)
 {
   const struct cl_option *option = &cl_options[opt_index];
   char *opt;
-
-#if defined(DEBUGOPTIONS)
-  fprintf (stderr, "fe_generate_option: arg = %s\n", arg);
-#endif
 
   if (joined)
     {
@@ -197,10 +211,6 @@ fe_generate_option (size_t opt_index, const char *arg, bool joined)
     }
   else
     opt = xstrdup (option->opt_text);
-
-#if defined(DEBUGOPTIONS)
-  fprintf (stderr, "fe_generate_option: opt = %s\n", opt);
-#endif
 
   if (arg == NULL || joined)
     save_switch (opt, 0, NULL, true, false);
@@ -216,6 +226,7 @@ fe_generate_option (size_t opt_index, const char *arg, bool joined)
     }
 }
 
+#if defined(LOCAL_DEBUGGING)
 /* Find_executable_path, if argv0 references an executable filename
    then use this path.  */
 
@@ -261,19 +272,19 @@ add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
 
           printf ("going to add -B%s\n", path);
           for (i = 0; i < *in_decoded_options_count; i++)
-            print_option ("before add -B", in_decoded_options, i);
+            print_option ("before add -B", i, *in_decoded_options);
 #endif
-
-          fe_B_prefix (xstrdup (path));
+          handle_OPT_B (xstrdup (path));
           fe_generate_option (OPT_B, xstrdup (path), 1);
 
 #if defined(DEBUGGING)
           for (i = 0; i < *in_decoded_options_count; i++)
-            print_option ("after add -B", in_decoded_options, i);
+            print_option ("after add -B", i, *in_decoded_options);
 #endif
         }
     }
 }
+#endif
 
 /* add_exec_prefix, adds the -ftarget-ar= option so that we can tell
    gm2lcc where to pick up the `ar' utility.  */
@@ -354,49 +365,6 @@ add_lib (size_t opt_index, const char *lib, int joined)
   fe_generate_option (opt_index, lib, joined);
 }
 
-#if defined(DEBUGGING)
-static void
-print_option (const char *desc, struct cl_decoded_option **in_decoded_options,
-	      int i)
-{
-  printf ("lang_specific_driver ");
-  printf (desc);
-  printf (" [%d]", i);
-
-  switch ((*in_decoded_options)[i].opt_index)
-    {
-
-    case N_OPTS:
-      break;
-    case OPT_SPECIAL_unknown:
-      printf (" flag <unknown>");
-      break;
-    case OPT_SPECIAL_ignore:
-      printf (" flag <ignore>");
-      break;
-    case OPT_SPECIAL_program_name:
-      printf (" flag <program name>");
-      break;
-    case OPT_SPECIAL_input_file:
-      printf (" flag <input file name>");
-      break;
-
-    default:
-      printf (" flag [%s]",
-              cl_options[(*in_decoded_options)[i].opt_index].opt_text);
-    }
-
-  if ((*in_decoded_options)[i].arg == NULL)
-    printf (" no arg");
-  else
-    printf (" arg [%s]", (*in_decoded_options)[i].arg);
-  printf (" orig text [%s]",
-          (*in_decoded_options)[i].orig_option_with_args_text);
-  printf (" value [%ld]", (*in_decoded_options)[i].value);
-  printf (" error [%d]\n", (*in_decoded_options)[i].errors);
-}
-#endif
-
 /* insert_option, inserts an option at position on the command line.  */
 
 static void
@@ -438,26 +406,16 @@ add_library (const char *libraryname, unsigned int *in_decoded_options_count,
   insert_option (in_decoded_options_count, in_decoded_options, position);
 
 #if defined(DEBUGGING)
-  {
-    unsigned int i;
-
-    printf ("going to add -l%s at position=%d  count=%d\n", libraryname,
+  printf ("going to add -l%s at position=%d  count=%d\n", libraryname,
             position, *in_decoded_options_count);
-    for (i = 0; i < *in_decoded_options_count; i++)
-      print_option ("before add_library", in_decoded_options, i);
-  }
+  print_options ("before add_library", *in_decoded_options_count, *in_decoded_options);
 #endif
 
   generate_option (OPT_l, libraryname, 1, CL_DRIVER,
                    &(*in_decoded_options)[position]);
 
 #if defined(DEBUGGING)
-  {
-    unsigned int i;
-
-    for (i = 0; i < *in_decoded_options_count; i++)
-      print_option ("after add_library", in_decoded_options, i);
-  }
+  print_options ("after add_library", *in_decoded_options_count, *in_decoded_options);
 #endif
   return 1;
 }
@@ -619,11 +577,6 @@ add_default_includes (const char *libpath, const char *libraries)
   const char *c;
   const char *path;
 
-#if defined(DEBUGOPTIONS)
-  fprintf (stderr, "add_default_includes:  libpath = %s, libraries = %s\n",
-           libpath, libraries);
-#endif
-
   do
     {
       e = index (l, ',');
@@ -634,9 +587,6 @@ add_default_includes (const char *libpath, const char *libraries)
         }
       else
         {
-#if defined(DEBUGOPTIONS)
-          fprintf (stderr, "l = %s  %d\n", l, e - l);
-#endif
           c = xstrndup (l, e - l);
           l = e + 1;
         }
@@ -788,7 +738,7 @@ convert_include_into_link (struct cl_decoded_option **in_decoded_options,
 /* build_path, implements export PATH=$(prefix)/bin:$PATH.  */
 
 static void
-build_path (char *prefix)
+build_path (const char *prefix)
 {
   int l = strlen ("PATH=") + strlen (prefix) + 1 + strlen ("bin") + 1;
   char *s;
@@ -811,7 +761,7 @@ build_path (char *prefix)
       strcat (s, ":");
       strcat (s, path);
     }
-  putenv (s);
+  xputenv (s);
 }
 
 /* gen_gm2_prefix, return the prefix string.  */
@@ -876,7 +826,7 @@ build_library_path (const char *prefix)
 
   strcpy (s, "LIBRARY_PATH=");
   strcat (s, path);
-  putenv (s);
+  xputenv (s);
 }
 
 /* build_compiler_path, implements export
@@ -892,7 +842,7 @@ build_compiler_path (const char *path)
 
   strcpy (s, "COMPILER_PATH=");
   strcat (s, libexec);
-  putenv (s);
+  xputenv (s);
 }
 
 /* check_gm2_root, checks to see whether GM2_PREFIX or GM2_LIBEXEC
@@ -905,13 +855,13 @@ check_gm2_root (void)
 {
   const char *library_path;
   const char *compiler_path;
-  char *gm2_prefix;
-  char *gm2_libexec;
+  const char *gm2_prefix;
+  const char *gm2_libexec;
 
-  library_path = getenv (LIBRARY_PATH_ENV);
-  compiler_path = getenv ("COMPILER_PATH");
-  gm2_prefix = getenv (GM2_PREFIX_ENV);
-  gm2_libexec = getenv (GM2_LIBEXEC_ENV);
+  library_path = xgetenv (LIBRARY_PATH_ENV);
+  compiler_path = xgetenv ("COMPILER_PATH");
+  gm2_prefix = xgetenv (GM2_PREFIX_ENV);
+  gm2_libexec = xgetenv (GM2_LIBEXEC_ENV);
 
   if ((library_path == NULL || (strcmp (library_path, "") == 0))
       && (compiler_path == NULL || (strcmp (compiler_path, "") == 0)))
@@ -1152,7 +1102,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   const char *gm2ipath;
   const char *gm2opath;
 
-  /* By default, we add on the math library if we have one.  */
+  /* By default, we add the math library if we have one.  */
   bool need_math = (strcmp (MATH_LIBRARY, "") == 0);
 
   /* True if we should add -lpthread to the command-line.  */
@@ -1165,18 +1115,19 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   bool shared_libgcc = true;
 
   /* The total number of arguments with the new stuff.  */
-  unsigned int argc;
-
-  argc = *in_decoded_options_count;
+  unsigned int argc = *in_decoded_options_count;
 
   /* Initially scan the options for key values.  */
   for (i = 1; i < argc; i++)
     {
       if ((*in_decoded_options)[i].errors & CL_ERR_MISSING_ARG)
         continue;  /* Avoid examining arguments of options missing them.  */
-
       switch ((*in_decoded_options)[i].opt_index)
         {
+	case OPT_fuselist:
+	  /* Modula-2 link time option, which is used to direct the specs.  */
+	  (*in_decoded_options)[i].errors = 0;
+	  break;
         case OPT_fexceptions:
           seen_fexceptions = ((*in_decoded_options)[i].value);
           break;
@@ -1209,16 +1160,15 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     fe_generate_option (OPT_fonlylink, NULL, false);
 
   check_gm2_root ();
-  libpath = getenv (LIBRARY_PATH_ENV);
+  libpath = xgetenv (LIBRARY_PATH_ENV);
   if (libpath == NULL || (strcmp (libpath, "") == 0))
     libpath = LIBSUBDIR;
 
-  gm2ipath = getenv (GM2IPATH_ENV);
-  gm2opath = getenv (GM2OPATH_ENV);
+  gm2ipath = xgetenv (GM2IPATH_ENV);
+  gm2opath = xgetenv (GM2OPATH_ENV);
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("at beginning", in_decoded_options, i);
+  print_options ("at beginning", *in_decoded_options_count, *in_decoded_options);
 #endif
   i = 1;
   for (i = 1; i < *in_decoded_options_count; i++)
@@ -1227,6 +1177,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       size_t opt = (*in_decoded_options)[i].opt_index;
 
 #if defined(DEBUGGING)
+      print_option ("in for", i, *in_decoded_options);
       printf ("argument: %s, %ld\n", arg, opt);
 #endif
       if ((opt == OPT_c) || (opt == OPT_S))
@@ -1266,7 +1217,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
           if (is_object (arg))
             remember_object (arg);
           else
-            seen_source = true;
+	    seen_source = true;
         }
     }
   if (linking && (!seen_source))
@@ -1275,8 +1226,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   if (language != NULL && (strcmp (language, "modula-2") != 0))
     return;
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("in the middle", in_decoded_options, i);
+  print_options ("in the middle", *in_decoded_options_count, *in_decoded_options);
 #endif
 
   /* If the libraries have not been specified by the user and the
@@ -1306,12 +1256,13 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   add_default_includes (libpath, libraries);
   add_exec_prefix ();
 
+#if defined(LOCAL_DEBUGGING)
   if (!seen_B)
     add_B_prefix (in_decoded_options_count, in_decoded_options);
+#endif
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("after B prefix", in_decoded_options, i);
+  print_options ("after B prefix", *in_decoded_options_count, *in_decoded_options);
 #endif
 
   if (linkPos == -1)
@@ -1353,9 +1304,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
       if (seen_fexceptions)
         (*in_added_libraries)
-            += add_library ("stdc++", in_decoded_options_count,
+            += add_library (LIBSTDCXX, in_decoded_options_count,
                             in_decoded_options, *in_decoded_options_count);
-
 
       /* There is no point adding -shared-libgcc if we don't have a shared
 	 libgcc.  */
@@ -1373,18 +1323,15 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   scan_for_link_args (in_decoded_options_count, in_decoded_options);
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("before include purge", in_decoded_options, i);
+  print_options ("before include purge", *in_decoded_options_count, *in_decoded_options);
 #endif
   purge_include_options (in_decoded_options_count, in_decoded_options);
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("after include purge", in_decoded_options, i);
+  print_options ("after include purge", *in_decoded_options_count, *in_decoded_options);
 #endif
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    print_option ("at end", in_decoded_options, i);
+  print_option ("at end", *in_decoded_options_count, *in_decoded_options);
 #endif
 }
 

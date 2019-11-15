@@ -1,6 +1,6 @@
 /* Language-dependent hooks for GNU Modula-2.
 
-Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Copyright (C) 2002-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
@@ -112,8 +112,8 @@ gm2_langhook_init (void)
   build_common_builtin_nodes ();
 
   /* The default precision for floating point numbers.  This is used
-  for floating point constants with abstract type.  This may eventually
-  be controllable by a command line option.  */
+     for floating point constants with abstract type.  This may eventually
+     be controllable by a command line option.  */
   mpfr_set_default_prec (256);
 
   /* GNU Modula-2 uses exceptions.  */
@@ -153,7 +153,7 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
 /* Infrastructure for a VEC of bool values.  */
 
 /* This array determines whether the filename is associated with the
-C preprocessor.  */
+   C preprocessor.  */
 
 static vec<bool> filename_cpp;
 
@@ -190,24 +190,6 @@ is_cpp_filename (unsigned int i)
   gcc_assert (i < filename_cpp.length ());
   return filename_cpp[i];
 }
-
-#if 0
-/* Infrastructure for a vector of char * pointers.  */
-
-typedef const char *gm2_char_p;
-
-
-
-/* The list of directories to search after all the Go specific
-directories have been searched.  */
-
-static vec<gm2_char_p> gm2_search_dirs;
-
-
-
-/* The list of directories to search after all the gm2 specific
-directories have been searched.  */
-#endif
 
 /* Handle gm2 specific options.  Return 0 if we didn't do anything.  */
 
@@ -586,10 +568,10 @@ gm2_langhook_global_bindings_p (void)
 }
 
 /* Push a declaration into the current binding level.  We can't
-usefully implement this since we don't want to convert from tree back
-to one of our internal data structures.  I think the only way this is
-used is to record a decl which is to be returned by getdecls, and we
-could implement it for that purpose if necessary.  */
+   usefully implement this since we don't want to convert from tree back
+   to one of our internal data structures.  I think the only way this is
+   used is to record a decl which is to be returned by getdecls, and we
+   could implement it for that purpose if necessary.  */
 
 static tree
 gm2_langhook_pushdecl (tree decl ATTRIBUTE_UNUSED)
@@ -598,14 +580,15 @@ gm2_langhook_pushdecl (tree decl ATTRIBUTE_UNUSED)
 }
 
 /* This hook is used to get the current list of declarations as
-trees.  We don't support that; instead we use write_globals.  This
-can't simply crash because it is called by -gstabs.  */
+   trees.  We don't support that; instead we use write_globals.  This
+   can't simply crash because it is called by -gstabs.  */
 
 static tree
 gm2_langhook_getdecls (void)
 {
   return NULL;
 }
+
 
 static void
 m2_write_global_declarations (tree globals)
@@ -634,14 +617,6 @@ m2_write_global_declarations (tree globals)
     }
 }
 
-#if 0
-  for (decl = globals; decl ; decl = DECL_CHAIN (decl))
-    {
-      rest_of_decl_compilation (decl, 1, 1);
-      debug_hooks->late_global_decl (decl);
-    }
-#endif
-
 /* Write out globals.  */
 
 static void
@@ -652,46 +627,13 @@ write_globals (void)
 
   m2block_finishGlobals ();
 
-#if 0
-
-
-/* Process all file scopes in this compilation, and the
-external_scope, through wrapup_global_declarations and
-check_global_declarations.  */
-  FOR_EACH_VEC_ELT (all_translation_units, i, t)
-    m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
-  /* in the future it is likely that GCC will call this automatically.
-Until then we must do this.  */
-  /* We're done parsing; proceed to optimize and emit assembly.  */
-  cgraph_finalize_compilation_unit ();
-#endif
-
   /* Process all file scopes in this compilation, and the
   external_scope, through wrapup_global_declarations and
   check_global_declarations.  */
   FOR_EACH_VEC_ELT (*all_translation_units, i, t)
   m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
-
-#if 0
-
-
-/* We're done parsing; proceed to optimize and emit assembly.  FIXME:
-shouldn't be the front end's responsibility to call this.  */
-  symtab->finalize_compilation_unit ();
-
-
-
-/* After cgraph has had a chance to emit everything that's going to
-be emitted, output debug information for globals.  */
-  if (!seen_error ())
-    {
-      timevar_push (TV_SYMOUT);
-      FOR_EACH_VEC_ELT (*all_translation_units, i, t)
-	m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
-      timevar_pop (TV_SYMOUT);
-    }
-#endif
 }
+
 
 /*  Gimplify an EXPR_STMT node.  */
 
@@ -727,7 +669,7 @@ genericize_catch_block (tree *stmt_p)
 }
 
 /* Convert the tree representation of FNDECL from m2 frontend trees
-to GENERIC.  */
+   to GENERIC.  */
 
 extern void pf (tree);
 
@@ -765,7 +707,7 @@ gm2_genericize (tree fndecl)
 }
 
 /* gm2 gimplify expression, currently just change THROW in the same
-way as C++ */
+   way as C++ */
 
 static int
 gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED,
@@ -775,21 +717,6 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED,
 
   switch (code)
     {
-#if 0
-    case LSHIFT_EXPR:
-    case RSHIFT_EXPR:
-      {
-        tree *op1_p = &TREE_OPERAND (*expr_p, 1);
-        if (TREE_CODE (TREE_TYPE (*op1_p)) != VECTOR_TYPE
-            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
-                                    unsigned_type_node)
-            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
-                                    integer_type_node))
-          *op1_p = convert (unsigned_type_node, *op1_p);
-	return GS_OK;
-      }
-#endif
-
     case THROW_EXPR:
 
       /* FIXME communicate throw type to back end, probably by moving
@@ -815,7 +742,7 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED,
 }
 
 /* FIXME: This is a hack to preserve trees that we create from the
-garbage collector.  */
+   garbage collector.  */
 
 static GTY (()) tree gm2_gc_root;
 static tree personality_decl = NULL_TREE;
@@ -827,7 +754,7 @@ gm2_preserve_from_gc (tree t)
 }
 
 /* Return a decl for the exception personality function.  The
-function itself is implemented in libgo/runtime/go-unwind.c.  */
+   function itself is implemented in libgo/runtime/go-unwind.c.  */
 
 static tree
 gm2_langhook_eh_personality (void)
@@ -887,8 +814,8 @@ convert (tree type, tree expr)
 }
 
 /* Mark EXP saying that we need to be able to take the address of it;
-it should not be allocated in a register.  Returns true if
-successful.  */
+   it should not be allocated in a register.  Returns true if
+   successful.  */
 
 bool
 gm2_mark_addressable (tree exp)
@@ -929,7 +856,7 @@ gm2_mark_addressable (tree exp)
 }
 
 /* Return an integer type with BITS bits of precision, that is
-unsigned if UNSIGNEDP is nonzero, otherwise signed.  */
+   unsigned if UNSIGNEDP is nonzero, otherwise signed.  */
 
 tree
 gm2_type_for_size (unsigned int bits, int unsignedp)

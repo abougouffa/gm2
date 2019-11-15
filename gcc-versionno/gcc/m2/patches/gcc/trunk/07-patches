@@ -1,16 +1,25 @@
---- gcc-versionno-orig/gcc/gcc.h	2019-11-13 15:40:50.000000000 +0000
-+++ gcc-versionno/gcc/gcc.h	2019-11-13 16:01:40.575098416 +0000
-@@ -73,9 +73,18 @@
+--- gcc-versionno-orig/gcc/gcc.h	2019-11-14 20:41:54.000000000 +0000
++++ gcc-versionno/gcc/gcc.h	2019-11-15 13:58:18.163403005 +0000
+@@ -73,9 +73,27 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);
  extern void set_input (const char *);
 +extern void save_switch (const char *opt, size_t n_args,
 +			 const char *const *args,
 +			 bool validated, bool known);
-+extern void fe_B_prefix (const char *arg);
++void handle_OPT_B (const char *arg);
 +extern void fe_add_infile (const char *infile, const char *lang);
 +extern void fe_add_linker_option (const char *option);
 +extern void fe_add_spec_function (const char *name, const char *(*func) (int, const char **));
++extern void xputenv (const char *value);
++extern const char *xgetenv (const char *key);
++extern void print_options (const char *desc,
++			   unsigned int in_decoded_options_count,
++			   struct cl_decoded_option *in_decoded_options);
++extern void print_option (const char *desc, unsigned int i,
++			  struct cl_decoded_option *in_decoded_options);
++extern void dbg_options (unsigned int in_decoded_options_count,
++			 struct cl_decoded_option *in_decoded_options);
  
  /* Spec files linked with gcc.c must provide definitions for these.  */
  
@@ -19,7 +28,7 @@
  /* Called before processing to change/add/remove arguments.  */
  extern void lang_specific_driver (struct cl_decoded_option **,
  				  unsigned int *, int *);
-@@ -97,4 +106,8 @@
+@@ -97,4 +115,8 @@
  					      void *user_data),
  				   void *user_data);
  
