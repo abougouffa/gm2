@@ -1,3 +1,30 @@
+2019-11-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2-lang.c:  removed unused #if 0 code.
+	  Tidied up formatting of comments.
+	* m2/gm2spec.c:  placed the B prefix addition
+          code into LOCAL_DEBUGGING #ifdef.  Use
+          xputenv/xgetenv.  Detect OPT_fuselist and remove
+          the an incorrect language error, it is used by
+          gm2 to control linking.  Convert many of the
+          debugging for loops into calls to print_options.
+	* m2/lang.opt:  option L added.
+	* m2/patches/gcc/trunk/01-patches:  (regenerated)
+	* m2/patches/gcc/trunk/02-patches:  (regenerated)
+	* m2/patches/gcc/trunk/03-patches:  (regenerated)
+	* m2/patches/gcc/trunk/04-patches:  (regenerated)
+	* m2/patches/gcc/trunk/05-patches:  (regenerated)
+	* m2/patches/gcc/trunk/06-patches:  (regenerated)
+	* m2/patches/gcc/trunk/07-patches:  (regenerated)
+	* m2/patches/gcc/trunk/08-patches:  (regenerated)
+	* m2/patches/gcc/trunk/09-patches:  (regenerated)
+	* m2/patches/gcc/trunk/10-patches:  (regenerated)
+	* m2/patches/gcc/trunk/11-patches:  (added)
+	* m2/patches/gcc/trunk/12-patches:  (added)
+	* m2/patches/gcc/trunk/13-patches:  (added)
+	* m2/patches/gcc/trunk/14-patches:  (added)
+	* m2/patches/gcc/trunk/15-patches:  (added)
+
 2019-11-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/patches/gcc/trunk/01-patches:  (regenerated)
