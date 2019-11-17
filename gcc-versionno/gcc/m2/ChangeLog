@@ -1,3 +1,10 @@
+2019-11-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* testsuite/lib/gm2.exp:  added gpl3.
+	* testsuite/lib/gm2-simple.exp:  added gpl3.
+	* testsuite/lib/gm2-torture.exp:  added gpl3.
+	* testsuite/lib/gm2.exp:    added gpl3.
+
 2019-11-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2-lang.c:  removed unused #if 0 code.
