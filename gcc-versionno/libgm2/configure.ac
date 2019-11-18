@@ -22,13 +22,15 @@
 
 # Process this file with autoreconf to produce a configure script.
 
-# AC_PREREQ(2.64)
 AC_INIT(package-unused, version-unused,,libgm2)
+AC_CONFIG_SRCDIR(Makefile.am)
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_HEADER(config.h)
 
-libtool_VERSION=14:0:0
+libtool_VERSION=15:0:0
 AC_SUBST(libtool_VERSION)
+
+AM_ENABLE_MULTILIB(, ..)
 
 GCC_NO_EXECUTABLES
 
@@ -50,8 +52,6 @@ GCC_NO_EXECUTABLES
 
 AC_CANONICAL_SYSTEM
 ACX_NONCANONICAL_TARGET
-
-AM_ENABLE_MULTILIB(, ..)
 
 target_alias=${target_alias-$host_alias}
 AC_SUBST(target_alias)

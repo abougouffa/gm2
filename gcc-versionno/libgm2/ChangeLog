@@ -1,3 +1,9 @@
+2019-11-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/configure:  (regenerated).
+	* libgm2/configure.ac:  (libtool_VERSION=15.0.0).
+	  Place AM_ENABLE_MULTILIB above GCC_NO_EXECUTABLES.
+
 2019-11-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libm2pim/Selective.c:  changed to GPL3+ and fixed
