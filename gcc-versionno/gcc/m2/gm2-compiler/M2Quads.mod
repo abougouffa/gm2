@@ -7093,6 +7093,7 @@ BEGIN
          PushTFtok (MakeConstLit(MakeKey('0'), Address), Address, tok1)
       END
    ELSE
+      tok1 := GetTokenNo () ;
       MetaError0 ('{%E}SYSTEM procedure ADDADR expects 2 parameters') ;
       PopN (NoOfParam + 1) ;
       PushTFtok (MakeConstLit (MakeKey ('0'), Address), Address, tok1)

@@ -1138,7 +1138,8 @@ AssignmentOrProcedureCall :=                                               % VAR
                                                                                  tokno : CARDINAL ; %
                                                                            % DisplayStack %
                              Designator
-                             ( ":="                                        % tokno := GetTokenNo () -1 %
+                                                                           % tokno := GetTokenNo () %
+                             ( ":="
                                                                            % (* PrintTokenNo (tokno) *) %
                                     Expression                             % BuildAssignment (tokno) %
                                 |                                          % isFunc := CheckBuildFunction() %
