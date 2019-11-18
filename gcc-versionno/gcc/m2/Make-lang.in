@@ -889,7 +889,7 @@ BUILD-COMPILER-BOOT = $(BUILD-COMPILER-BOOT-H) \
 BUILD-BOOT-H = m2/boot-bin/mc$(exeext) \
                $(BUILD-LIBS-BOOT-H) $(BUILD-COMPILER-BOOT-H) $(TARGET_H)
 
-GM2GCC = -I$(srcdir)/gm -Im2 -I$(srcdir)/m2/gm2-gcc -Im2/gm2-gcc
+GM2GCC = -I$(srcdir)/m2 -Im2 -I$(srcdir)/m2/gm2-gcc -Im2/gm2-gcc
 
 MCINCLUDES= -I$(srcdir)/m2/mc-boot-ch
 
