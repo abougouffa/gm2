@@ -43,15 +43,11 @@ CONST
    GGCPOISON = 0A5A5A5A5H ;   (* poisoned memory contains this code *)
 
 TYPE
-   PtrToInteger = POINTER TO INTEGER ;
+   PtrToCardinal = POINTER TO CARDINAL ;
 
 VAR
    mod2gcc       : Index ;
-   badSymbol,
    PoisonedSymbol: ADDRESS ;
-
-
-PROCEDURE mystop2 ; BEGIN END mystop2 ;
 
 
 (*
@@ -61,18 +57,14 @@ PROCEDURE mystop2 ; BEGIN END mystop2 ;
 PROCEDURE Mod2Gcc (sym: CARDINAL) : Tree ;
 VAR
    n : Name ;
-   t : PtrToInteger ;
+   t : PtrToCardinal ;
    tr: Tree ;
 BEGIN
    IF USEPOISON
    THEN
-      IF sym=1095
-      THEN
-         mystop2
-      END ;
       IF InBounds(mod2gcc, sym)
       THEN
-         t := PtrToInteger(GetIndice(mod2gcc, sym)) ;
+         t := PtrToCardinal(GetIndice(mod2gcc, sym)) ;
          IF (t#NIL) AND (t^=GGCPOISON)
          THEN
             InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
@@ -103,7 +95,7 @@ END Mod2Gcc ;
 PROCEDURE AddModGcc (sym: CARDINAL; gcc: Tree) ;
 VAR
    old: Tree ;
-   t  : PtrToInteger ;
+   t  : PtrToCardinal ;
 BEGIN
    IF gcc=GetErrorNode()
    THEN
@@ -112,16 +104,11 @@ BEGIN
 
    IF USEPOISON
    THEN
-      t := PtrToInteger(gcc) ;
+      t := PtrToCardinal(gcc) ;
       IF (gcc#Tree(NIL)) AND (t^=GGCPOISON)
       THEN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
-   END ;
-
-   IF sym=707
-   THEN
-      mystop2
    END ;
 
    old := Mod2Gcc(sym) ;
@@ -215,14 +202,14 @@ BEGIN
       IF tr=PoisonedSymbol
       THEN
          n := GetSymName(sym) ;
-         (* not poisoned by the garbage collector, but by the gm2 front end *)
-         printf1('the gm2 front end poisoned this symbol (%a)\n', n) ;
-         InternalError('attempting to use a gcc symbol which is no longer in scope',
-                       __FILE__, __LINE__)
+         (* not poisoned by the garbage collector, but by the gm2 front end.  *)
+         printf1 ('the gm2 front end poisoned this symbol (%a)\n', n) ;
+         InternalError ('attempting to use a gcc symbol which is no longer in scope',
+                        __FILE__, __LINE__)
       END ;
-      RETURN( tr )
+      RETURN tr
    ELSE
-      RETURN( NIL )
+      RETURN NIL
    END
 END Mod2GccWithoutGCCPoison ;
 

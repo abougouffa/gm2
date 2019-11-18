@@ -92,6 +92,7 @@ Boston, MA 02110-1301, USA@*
 * Building::         Building GNU Modula-2 from source.
 * Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
 * Building on gcc 8.2::   Building on the gcc-8.2 branch.
+* Prerequisites:: Installing the prerequsites.
 * Debian gcc-8.2 build::  Building gcc-8.2 under Debian.
 * Solaris gcc-4.7 build:: Building gcc-4.7 under Solaris.
 * Development::      How to access the git repository.
@@ -227,18 +228,18 @@ source tree.
 
 @table @code
 
-@item
-the libraries have had a name change and are now referenced as
-@code{-flibs=m2pim,m2iso,m2cor,m2log}.  The gm2 driver program has
-been enhanced to allow third party libraries to be installed alongside
-gm2 libraries.
+@item libraries
+the gm2 driver program has been enhanced to allow third party
+libraries to be installed alongside gm2 libraries.  For example if the
+user specifies library @code{foo} using @code{-flibs=foo} the driver
+will check the install directory for a subdirectory @code{foo}.
 
-@item
-@code{libpth} has been removed from gm2 and the coroutines are now
+@item libpth
+has been removed from gm2 and the coroutines are now
 implemented using the gcc portable threading library (which is used by
 other front ends).
 
-@item
+@item libulm
 the Ulm libraries have been removed from the gm2 tree as they were not
 GPL3.
 
