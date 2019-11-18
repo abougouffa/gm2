@@ -15,7 +15,7 @@
 # <http://www.gnu.org/licenses/>.
 
 # This file was written by Gaius Mulley (gaius.mulley@southwales.ac.uk)
-# for GNU Modula-2
+# for GNU Modula-2.
 
 # we want to use libgloss so we can get find_gcc.
 load_lib libgloss.exp

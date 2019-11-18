@@ -3,7 +3,8 @@
 	* testsuite/lib/gm2.exp:  added gpl3.
 	* testsuite/lib/gm2-simple.exp:  added gpl3.
 	* testsuite/lib/gm2-torture.exp:  added gpl3.
-	* testsuite/lib/gm2.exp:    added gpl3.
+	* testsuite/lib/gm2.exp:   added gpl3.
+	* testsuite/lib/gm2.exp:  fixed typo.
 
 2019-11-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
