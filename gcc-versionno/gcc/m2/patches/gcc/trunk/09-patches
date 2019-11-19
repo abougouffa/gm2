@@ -1,5 +1,5 @@
 --- gcc-versionno-orig/Makefile.in	2019-11-14 20:24:18.000000000 +0000
-+++ gcc-versionno/Makefile.in	2019-11-15 14:17:56.000000000 +0000
++++ gcc-versionno/Makefile.in	2019-11-19 11:02:47.000000000 +0000
 @@ -158,6 +158,7 @@
  	GOCFLAGS="$(GOCFLAGS_FOR_BUILD)"; export GOCFLAGS; \
  	GDC="$(GDC_FOR_BUILD)"; export GDC; \

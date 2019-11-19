@@ -1,7 +1,12 @@
 2019-11-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/Make-lang.in:  corrected path to target libraries
-	  and name of the default library.  (libm2pim.a).
+          and name of the default library.  (libm2pim.a).
+          Tidied up many of the -B usages and fixed the argument
+	  to reflect the new directory.
+	* m2/patches/gcc/trunk/01-patches:  (regenerated).
+	* m2/patches/gcc/trunk/02-patches:  (regenerated).
+	* m2/patches/gcc/trunk/09-patches:  (regenerated).
 
 2019-11-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
