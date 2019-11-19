@@ -1,3 +1,21 @@
+2019-11-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* multilib fixes
+	* libgm2/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/Makefile.in:  (regenerated).
+	* libgm2/configure:  (regenerated).
+	* libgm2/configure.ac:  (ACX_NONCANONICAL_TARGET) removed.
+	* libgm2/libm2cor/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/libm2cor/Makefile.in:  (regenerated).
+	* libgm2/libm2iso/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/libm2iso/Makefile.in:  (regenerated).
+	* libgm2/libm2log/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/libm2log/Makefile.in:  (regenerated).
+	* libgm2/libm2min/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/libm2min/Makefile.in:  (regenerated).
+	* libgm2/libm2pim/Makefile.am:  (MULTIBUILDTOP) propagate.
+	* libgm2/libm2pim/Makefile.in:  (regenerated).
+
 2019-11-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/configure:  (regenerated).

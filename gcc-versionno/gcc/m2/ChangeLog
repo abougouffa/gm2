@@ -2,8 +2,8 @@
 
 	* m2/Make-lang.in:  fixed include path typo.
 	* m2/gm2.texi:  fixed missing menu item.
-	* m2/gm2-compiler/SymbolConversion.mod:  (PtrToInteger) removed
-	  and replaced by (PtrToCardinal).
+	* m2/gm2-compiler/SymbolConversion.mod:  (PtrToInteger)
+	  removed and replaced by (PtrToCardinal).
 
 2019-11-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

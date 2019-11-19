@@ -51,7 +51,7 @@ GCC_NO_EXECUTABLES
 # http://gcc.gnu.org/ml/libstdc++/2003-07/msg00451.html
 
 AC_CANONICAL_SYSTEM
-ACX_NONCANONICAL_TARGET
+## ACX_NONCANONICAL_TARGET
 
 target_alias=${target_alias-$host_alias}
 AC_SUBST(target_alias)
