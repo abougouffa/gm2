@@ -521,7 +521,7 @@ GM2_C_OBJS        = m2/gm2-lang.o \
                     m2/gm2-gcc/m2top.o \
                     m2/gm2-gcc/m2misc.o \
                     m2/gm2-gcc/init.o
-GM2_LIBS          = m2/gm2-compiler/gm2.a ../$(target_subdir)/libm2/libpim/.libs/libpim.a m2/gm2-libs-boot/choosetemp.o
+GM2_LIBS          = m2/gm2-compiler/gm2.a ../$(target_subdir)/libgm2/libm2pim/.libs/libm2pim.a m2/gm2-libs-boot/choosetemp.o
 
 GM2_LIBS_BOOT     = m2/gm2-compiler-boot/gm2.a \
                     m2/gm2-libs-boot/libgm2.a
@@ -1260,7 +1260,6 @@ BOOTGM2=gm2
 MCOPTIONS=-g -c -fsources -fcpp -fsoft-check-all -fm2-g
 MCLINK=-g -fmodules -c
 MCLINK=-g
-# GM2SYS=/opt/m2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
 # GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/m2pim
 GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/10.0.0/m2/m2pim
 GM2PATH=$(srcdir)/m2/mc:$(GM2SYS):$(srcdir)/m2:m2/gm2-auto:$(srcdir)/m2/gm2-libs:$(srcdir)/m2/gm2-libs-iso
@@ -1765,10 +1764,10 @@ stage1/m2/gm2m$(exeext): \
 stage2/m2/gm2l$(exeext): $(GM2_LIBS) $(GM2_C_OBJS) $(GM2_LINK_TOOLS_BOOT) m2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/m2/init/gm2linit > gm2l.lst
 	./xgm2 -fuselist -fmodules -c -I$(srcdir)/m2/gm2-libs -I$(srcdir)/m2/gm2-compiler \
-               -I../$(target_subdir)/libm2/libpim/.libs/ \
+               -I../$(target_subdir)/libgm2/libm2pim/.libs/ \
                -g -B./stage1/m2/ -B./ m2/gm2-compiler/gm2l.mod
 	./xgm2 -v -Im2/gm2-libs -Im2/gm2-compiler \
-               -I../$(target_subdir)/libm2/libpim/.libs/ \
+               -I../$(target_subdir)/libgm2/libm2pim/.libs/ \
                -I$(srcdir)/m2/gm2-libs -I$(srcdir)/m2/gm2-compiler -g -B./stage1/m2/ -B./ -o $@ \
                -fuselist m2/gm2-compiler/gm2l.mod $(LIBS)
 
