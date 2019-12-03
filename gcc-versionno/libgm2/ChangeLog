@@ -1,3 +1,8 @@
+2019-12-03      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libm2min/Makefile.am:  (M2LIBDIR) corrected
+          destination directory to m2/m2min.
+
 2019-11-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* multilib fixes

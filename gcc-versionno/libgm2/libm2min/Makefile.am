@@ -110,7 +110,7 @@ libm2min_la_M2FLAGS = -I. -I$(GM2_SRC)/gm2-libs-min -I$(GM2_SRC)/gm2-libs -fno-e
 BUILT_SOURCES = SYSTEM.def
 CLEANFILES = SYSTEM.def
 
-M2LIBDIR = /m2/min/
+M2LIBDIR = /m2/m2min/
 
 .mod.lo:
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(GM2_FOR_TARGET) -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libm2min_la_M2FLAGS) $< -o $@
