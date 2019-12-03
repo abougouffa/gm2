@@ -184,7 +184,7 @@ libm2isodir = libm2iso
 libm2iso_la_DEPENDENCIES = SYSTEM.def
 libm2iso_la_CFLAGS = -I. -I.. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../ -I../../../gcc -I$(GCC_DIR) -I$(GCC_DIR)/../include -I../../libgcc -I$(GCC_DIR)/../libgcc -I$(MULTIBUILDTOP)../../gcc/include
 libm2iso_la_M2FLAGS = -I. -Ilibm2iso -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -fiso -fextended-opaque -fm2-g -g
-libm2iso_la_LINK = $(LINK)
+libm2iso_la_LINK = $(LINK) -version-info $(libtool_VERSION)
 CLEANFILES = SYSTEM.def
 BUILT_SOURCES = SYSTEM.def
 
