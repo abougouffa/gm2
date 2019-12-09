@@ -8,6 +8,13 @@
 	* libgm2/libm2log/Makefile.in:  regenerated.
 	* libgm2/libm2min/Makefile.in:  regenerated.
 	* libgm2/libm2pim/Makefile.in:  regenerated.
+	* libgm2/configure.ac:  (LT_INIT) used instead of AM_PROG_LIBTOOL.
+	* libgm2/libm2cor/Makefile.in:  regenerated.
+	* libgm2/libm2iso/Makefile.in:  regenerated.
+	* libgm2/libm2iso/Makefile.in:  regenerated.
+	* libgm2/libm2log/Makefile.in:  regenerated.
+	* libgm2/libm2min/Makefile.in:  regenerated.
+	* libgm2/libm2pim/Makefile.in:  regenerated.
 
 2019-12-04      Matthias Klose  <doko@cs.tu-berlin.de>
 

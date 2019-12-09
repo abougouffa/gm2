@@ -177,7 +177,9 @@ AC_PATH_PROG(PERL, perl, perl-not-found-in-path-error)
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
-AM_PROG_LIBTOOL
+LT_INIT
+AC_LIBTOOL_DLOPEN
+# AM_PROG_LIBTOOL
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
 

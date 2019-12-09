@@ -23,7 +23,7 @@ rm -rf autom4te.cache
 rm -f aclocal.m4
 # aclocal -I . -I config -I ../config
 aclocal -I . -I ../config
-autoreconf
+autoreconf -I . -I ../config
 
 rm -rf autom4te.cache
 
