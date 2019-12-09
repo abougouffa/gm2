@@ -24,7 +24,7 @@
 
 AC_INIT(package-unused, version-unused,,libgm2)
 AC_CONFIG_SRCDIR(Makefile.am)
-AC_CONFIG_MACRO_DIR([config])
+# AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_HEADER(config.h)
 
 libtool_VERSION=15:0:0
@@ -34,25 +34,11 @@ AM_ENABLE_MULTILIB(, ..)
 
 GCC_NO_EXECUTABLES
 
-# Gets build, host, target, *_vendor, *_cpu, *_os, etc.
-#
-# You will slowly go insane if you do not grok the following fact:  when
-# building this library, the top-level /target/ becomes the library's /host/.
-#
-# configure then causes --target to default to --host, exactly like any
-# other package using autoconf.  Therefore, 'target' and 'host' will
-# always be the same.  This makes sense both for native and cross compilers
-# just think about it for a little while.  :-)
-#
-# Also, if this library is being configured as part of a cross compiler, the
-# top-level configure script will pass the "real" host as $with_cross_host.
-#
+AC_USE_SYSTEM_EXTENSIONS
+
 # Do not delete or change the following two lines.  For why, see
 # http://gcc.gnu.org/ml/libstdc++/2003-07/msg00451.html
-
 AC_CANONICAL_SYSTEM
-## ACX_NONCANONICAL_TARGET
-
 target_alias=${target_alias-$host_alias}
 AC_SUBST(target_alias)
 

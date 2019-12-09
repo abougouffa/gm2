@@ -1,4 +1,15 @@
-2019-09-04      Matthias Klose  <doko@cs.tu-berlin.de>
+2019-12-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/configure.ac:  remove reference to config dir.
+          (ACX_NONCANONICAL_TARGET) removed.
+	* libgm2/libm2cor/Makefile.in:  regenerated.
+	* libgm2/libm2iso/Makefile.in:  regenerated.
+	* libgm2/libm2iso/Makefile.in:  regenerated.
+	* libgm2/libm2log/Makefile.in:  regenerated.
+	* libgm2/libm2min/Makefile.in:  regenerated.
+	* libgm2/libm2pim/Makefile.in:  regenerated.
+
+2019-12-04      Matthias Klose  <doko@cs.tu-berlin.de>
 
 	* libgm2/Makefile.in:  regenerated.
 	* libgm2/aclocal.m4:  regenerated from automake-1.15.1.
