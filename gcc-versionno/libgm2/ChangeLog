@@ -1,4 +1,4 @@
-2019-12-10      Matthias Klose  <doko@cs.tu-berlin.de>
+2019-12-10      Matthias Klose <doko@ubuntu.com>
 
 	* libgm2/libm2cor/Makefile.am:  (libsubdir) corrected using
 	  target_alias.
@@ -37,7 +37,7 @@
 	* libgm2/libm2min/Makefile.in:  regenerated.
 	* libgm2/libm2pim/Makefile.in:  regenerated.
 
-2019-12-04      Matthias Klose  <doko@cs.tu-berlin.de>
+2019-12-04      Matthias Klose <doko@ubuntu.com>
 
 	* libgm2/Makefile.in:  regenerated.
 	* libgm2/aclocal.m4:  regenerated from automake-1.15.1.

@@ -2666,7 +2666,7 @@
           comparison so that it matches the algorithm in the comment
 	  above.
 
-2019-09-04      Matthias Klose  <doko@cs.tu-berlin.de>
+2019-09-04      Matthias Klose <doko@ubuntu.com>
 
 	* gm2/examples/gravity/testsim.py:  python2 to 3 conversion.
 	* gm2/examples/gravity/testsim2.py:  python2 to 3 conversion.
@@ -2905,7 +2905,7 @@
 	* testsuite/gm2/switches/check-all/plugin/fail/modulus.mod:
 	  print the values to ensure that the code is not thrown away.
 
-2019-08-20      Matthias Klose  <doko@cs.tu-berlin.de>
+2019-08-20      Matthias Klose <doko@ubuntu.com>
 
 	* gm2/Make-lang.in:  added dependancies for subdir
           creation.
