@@ -24,11 +24,9 @@ a copy of the GCC Runtime Library Exception along with this program;
 see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 <http://www.gnu.org/licenses/>.  */
 
-#include "tconfig.h"
-#include "tsystem.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "libgcc_tm.h"
+#include "config.h"
+#include <unistd.h>
+#include <pthread.h>
 
 extern void M2RTS_Halt (const char *, int, const char *, const char *);
 int RTco_init (void);
