@@ -27,7 +27,7 @@ MAKEOVERRIDES=
 version := $(shell $(CC) -dumpversion)
 
 # Directory in which the compiler finds libraries etc.
-libsubdir = $(libdir)/gcc/$(host_noncanonical)/$(version)
+libsubdir = $(libdir)/gcc/$(target_alias)/$(version)
 # Used to install the shared libgcc.
 slibdir = @slibdir@
 

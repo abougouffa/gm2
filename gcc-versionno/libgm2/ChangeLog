@@ -1,3 +1,21 @@
+2019-12-10      Matthias Klose  <doko@cs.tu-berlin.de>
+
+	* libgm2/libm2cor/Makefile.am:  (libsubdir) corrected using
+	  target_alias.
+	* libgm2/libm2iso/Makefile.am:  (libsubdir) corrected using
+	  target_alias.
+	* libgm2/libm2log/Makefile.am:  (libsubdir) corrected using
+	  target_alias.
+	* libgm2/libm2min/Makefile.am:  (libsubdir) corrected using
+	  target_alias.
+	* libgm2/libm2pim/Makefile.am:  (libsubdir) corrected using
+	  target_alias.
+	* libgm2/libm2cor/Makefile.in:  regenerated.
+	* libgm2/libm2iso/Makefile.in:  regenerated.
+	* libgm2/libm2log/Makefile.in:  regenerated.
+	* libgm2/libm2min/Makefile.in:  regenerated.
+	* libgm2/libm2pim/Makefile.in:  regenerated.
+
 2019-12-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libm2iso/RTco.c:  corrected include files

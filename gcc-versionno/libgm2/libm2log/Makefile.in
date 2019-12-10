@@ -374,7 +374,7 @@ MAKEOVERRIDES =
 version := $(shell $(CC) -dumpversion)
 
 # Directory in which the compiler finds libraries etc.
-libsubdir = $(libdir)/gcc/$(host_noncanonical)/$(version)
+libsubdir = $(libdir)/gcc/$(target_alias)/$(version)
 MULTIDIR := $(shell $(CC) $(CFLAGS) -print-multi-directory)
 MULTIOSDIR := $(shell $(CC) $(CFLAGS) -print-multi-os-directory)
 MULTIOSSUBDIR := $(shell if test x$(MULTIOSDIR) != x.; then echo /$(MULTIOSDIR); fi)
