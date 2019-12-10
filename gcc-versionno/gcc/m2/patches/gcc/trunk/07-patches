@@ -1,13 +1,13 @@
 --- gcc-versionno-orig/gcc/gcc.h	2019-12-09 21:19:54.000000000 +0000
-+++ gcc-versionno/gcc/gcc.h	2019-12-09 21:46:21.445586530 +0000
-@@ -73,9 +73,27 @@
++++ gcc-versionno/gcc/gcc.h	2019-12-10 22:06:50.945894819 +0000
+@@ -73,9 +73,28 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);
  extern void set_input (const char *);
 +extern void save_switch (const char *opt, size_t n_args,
 +			 const char *const *args,
 +			 bool validated, bool known);
-+void handle_OPT_B (const char *arg);
++extern void handle_OPT_B (const char *arg);
 +extern void fe_add_infile (const char *infile, const char *lang);
 +extern void fe_add_linker_option (const char *option);
 +extern void fe_add_spec_function (const char *name, const char *(*func) (int, const char **));
@@ -20,6 +20,7 @@
 +			  struct cl_decoded_option *in_decoded_options);
 +extern void dbg_options (unsigned int in_decoded_options_count,
 +			 struct cl_decoded_option *in_decoded_options);
++
  
  /* Spec files linked with gcc.c must provide definitions for these.  */
  
@@ -28,7 +29,19 @@
  /* Called before processing to change/add/remove arguments.  */
  extern void lang_specific_driver (struct cl_decoded_option **,
  				  unsigned int *, int *);
-@@ -97,4 +115,8 @@
+@@ -83,6 +102,11 @@
+ /* Called before linking.  Returns 0 on success and -1 on failure.  */
+ extern int lang_specific_pre_link (void);
+ 
++/* Subdirectory to use for locating libraries in OS conventions.  Set by
++   set_multilib_dir based on the compilation options.  */
++
++extern const char *multilib_dir;
++
+ extern int n_infiles;
+ 
+ /* Number of extra output files that lang_specific_pre_link may generate.  */
+@@ -97,4 +121,8 @@
  					      void *user_data),
  				   void *user_data);
  

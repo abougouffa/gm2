@@ -17,6 +17,12 @@
 	* m2/patches/gcc/trunk/13-patches:  (regenerated)
 	* m2/patches/gcc/trunk/14-patches:  (regenerated)
 	* m2/patches/gcc/trunk/15-patches:  (regenerated)
+	* m2/gm2spec.c:  added multilib_dir to include and link paths.
+	* m2/patches/gcc/trunk/06-patches:  (regenerated)
+	  and multilib_dir is extern.
+	* m2/patches/gcc/trunk/07-patches:  (regenerate)
+	  and multilib_dir is extern.
+	* m2/patches/gcc/trunk/09-patches:  (regenerated)
 
 2019-11-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

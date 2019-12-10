@@ -432,8 +432,11 @@ build_archive_path (const char *libpath, const char *library)
 
       if (libdir != NULL)
         {
-          int l
-              = strlen (libpath) + 1 + strlen ("m2") + 1 + strlen (libdir) + 1;
+	  int m = 0;
+	  if (multilib_dir != NULL)
+	    m = strlen (multilib_dir);
+
+	  int l = strlen (libpath) + 1 + strlen ("m2") + 1 + strlen (libdir) + 1 + m + 1;
           char *s = (char *)xmalloc (l);
           char dir_sep[2];
 
@@ -442,6 +445,11 @@ build_archive_path (const char *libpath, const char *library)
 
           strcpy (s, libpath);
           strcat (s, dir_sep);
+	  if (m > 0)
+	    {
+	      strcat (s, multilib_dir);
+	      strcat (s, dir_sep);
+	    }
           strcat (s, "m2");
           strcat (s, dir_sep);
           strcat (s, libdir);
@@ -537,18 +545,27 @@ add_default_archives (const char *libpath, const char *libraries,
 static const char *
 build_include_path (const char *libpath, const char *library)
 {
-  char sepstr[2];
+  char dir_sep[2];
   char *gm2libs;
+  int m = 0;
 
-  sepstr[0] = DIR_SEPARATOR;
-  sepstr[1] = (char)0;
+  if (multilib_dir != NULL)
+    m = strlen (multilib_dir);
 
-  gm2libs = (char *)alloca (strlen (libpath) + strlen (sepstr) + strlen ("m2")
-                            + strlen (sepstr) + strlen (library) + 1);
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  gm2libs = (char *)alloca (strlen (libpath) + strlen (dir_sep) + strlen ("m2")
+                            + strlen (dir_sep) + strlen (library) + 1 + m + 1);
   strcpy (gm2libs, libpath);
-  strcat (gm2libs, sepstr);
+  strcat (gm2libs, dir_sep);
+  if (m > 0)
+    {
+      strcat (gm2libs, multilib_dir);
+      strcat (gm2libs, dir_sep);
+    }
   strcat (gm2libs, "m2");
-  strcat (gm2libs, sepstr);
+  strcat (gm2libs, dir_sep);
   strcat (gm2libs, library);
 
   return xstrdup (gm2libs);

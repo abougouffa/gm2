@@ -1,5 +1,5 @@
 --- gcc-versionno-orig/configure	2019-12-09 21:16:56.000000000 +0000
-+++ gcc-versionno/configure	2019-12-09 22:02:26.696555253 +0000
++++ gcc-versionno/configure	2019-12-10 11:33:45.187595360 +0000
 @@ -612,6 +612,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -371,13 +371,13 @@
  # Specify what files to not compare during bootstrap.
  
 -compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/*"
-+compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | gcc/m2/gm2version\$(objext) | gcc/m2/gm2-compiler-boot/M2Version\$(objext)"
++compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | gcc/m2/gm2version\$(objext) | gcc/m2/*/M2Version\$(objext)"
  case "$target" in
    hppa*64*-*-hpux*) ;;
 -  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o" ;;
 -  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext)" ;;
-+  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o | gcc/m2/gm2version\$(objext) | gcc/m2/gm2-compiler-boot/M2Version\$(objext)" ;;
-+  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext) | gcc/m2/gm2version\$(objext) | gcc/m2/gm2-compiler-boot/M2Version\$(objext)" ;;
++  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o | gcc/m2/gm2version\$(objext) | gcc/m2/*/M2Version\$(objext)" ;;
++  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext) | gcc/m2/gm2version\$(objext) | gcc/m2/*/M2Version\$(objext)" ;;
  esac
  
  
