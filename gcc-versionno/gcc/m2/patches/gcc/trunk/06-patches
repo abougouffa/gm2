@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/gcc.c	2019-11-14 20:41:54.000000000 +0000
-+++ gcc-versionno/gcc/gcc.c	2019-11-15 15:16:01.675796079 +0000
+--- gcc-versionno-orig/gcc/gcc.c	2019-12-09 21:19:54.000000000 +0000
++++ gcc-versionno/gcc/gcc.c	2019-12-09 21:46:21.433586592 +0000
 @@ -304,6 +304,10 @@
  static const char *cross_compile = "0";
  #endif

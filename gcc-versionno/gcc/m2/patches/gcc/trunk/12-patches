@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/fortran/gfortranspec.c	2019-11-14 21:09:08.000000000 +0000
-+++ gcc-versionno/gcc/fortran/gfortranspec.c	2019-11-14 21:27:29.719106057 +0000
+--- gcc-versionno-orig/gcc/fortran/gfortranspec.c	2019-12-09 21:36:46.000000000 +0000
++++ gcc-versionno/gcc/fortran/gfortranspec.c	2019-12-09 21:46:21.457586467 +0000
 @@ -447,4 +447,12 @@
  }
  

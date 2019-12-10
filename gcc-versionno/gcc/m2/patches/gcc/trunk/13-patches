@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/d/d-spec.cc	2019-11-14 20:40:53.000000000 +0000
-+++ gcc-versionno/gcc/d/d-spec.cc	2019-11-14 21:27:29.787105639 +0000
+--- gcc-versionno-orig/gcc/d/d-spec.cc	2019-12-09 21:19:26.000000000 +0000
++++ gcc-versionno/gcc/d/d-spec.cc	2019-12-09 21:46:21.461586446 +0000
 @@ -514,3 +514,10 @@
  
  int lang_specific_extra_outfiles = 0;  /* Not used for D.  */

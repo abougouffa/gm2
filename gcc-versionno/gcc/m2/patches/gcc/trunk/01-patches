@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure	2019-11-14 20:38:27.000000000 +0000
-+++ gcc-versionno/configure	2019-11-18 12:14:45.596513762 +0000
+--- gcc-versionno-orig/configure	2019-12-09 21:16:56.000000000 +0000
++++ gcc-versionno/configure	2019-12-09 22:02:26.696555253 +0000
 @@ -612,6 +612,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET

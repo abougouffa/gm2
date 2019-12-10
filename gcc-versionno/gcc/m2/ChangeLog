@@ -1,3 +1,23 @@
+2019-12-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/patches/gcc/trunk/01-patches:  (regenerated)
+	* m2/patches/gcc/trunk/02-patches:  (regenerated).
+          Changed the exclusion rule to include any M2Version
+	  object file.
+	* m2/patches/gcc/trunk/03-patches:  (regenerated)
+	* m2/patches/gcc/trunk/04-patches:  (regenerated)
+	* m2/patches/gcc/trunk/05-patches:  (regenerated)
+	* m2/patches/gcc/trunk/06-patches:  (regenerated)
+	* m2/patches/gcc/trunk/07-patches:  (regenerated)
+	* m2/patches/gcc/trunk/08-patches:  (regenerated)
+	* m2/patches/gcc/trunk/09-patches:  (regenerated)
+	* m2/patches/gcc/trunk/10-patches:  (regenerated)
+	* m2/patches/gcc/trunk/11-patches:  (regenerated)
+	* m2/patches/gcc/trunk/12-patches:  (regenerated)
+	* m2/patches/gcc/trunk/13-patches:  (regenerated)
+	* m2/patches/gcc/trunk/14-patches:  (regenerated)
+	* m2/patches/gcc/trunk/15-patches:  (regenerated)
+
 2019-11-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/Make-lang.in:  corrected path to target libraries
