@@ -1,3 +1,8 @@
+2019-12-13      Matthias Klose <doko@ubuntu.com>
+
+	* m2/patches/gcc/trunk/02-patches:  (regenerated).
+	  (toplevel configure.ac has neater exclusion rules).
+
 2019-12-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2spec.c:  corrected path components to use
