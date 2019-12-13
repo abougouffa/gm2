@@ -629,24 +629,24 @@ build_fobject_path (const char *prev, const char *libpath, const char *library)
   if (prev == NULL)
     {
       gm2objs = (char *)alloca (
-          strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr)
+          strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr)
           + strlen (libName) + 1 + strlen (libpath) + strlen (sepstr)
-          + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1);
+          + strlen ("m2") + strlen (sepstr) + strlen (libName) + 1);
       strcpy (gm2objs, "");
     }
   else
     {
       gm2objs = (char *)alloca (
           strlen (prev) + strlen (":") + strlen (libpath) + strlen (sepstr)
-          + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1
-          + strlen (libpath) + strlen (sepstr) + strlen ("gm2")
+          + strlen ("m2") + strlen (sepstr) + strlen (libName) + 1
+          + strlen (libpath) + strlen (sepstr) + strlen ("m2")
           + strlen (sepstr) + strlen (libName) + 1);
       strcpy (gm2objs, prev);
       strcat (gm2objs, ":");
     }
   strcat (gm2objs, libpath);
   strcat (gm2objs, sepstr);
-  strcat (gm2objs, "gm2");
+  strcat (gm2objs, "m2");
   strcat (gm2objs, sepstr);
   strcat (gm2objs, libName);
 

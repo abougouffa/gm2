@@ -1,3 +1,8 @@
+2019-12-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2spec.c:  corrected path components to use
+          m2 rather than gm2.
+
 2019-12-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/patches/gcc/trunk/01-patches:  (regenerated)
