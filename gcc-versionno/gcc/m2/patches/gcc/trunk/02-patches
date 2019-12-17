@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure.ac	2019-12-09 21:15:16.000000000 +0000
-+++ gcc-versionno/configure.ac	2019-12-13 14:55:26.291325722 +0000
+--- gcc-versionno-orig/configure.ac	2019-12-17 12:52:47.000000000 +0000
++++ gcc-versionno/configure.ac	2019-12-17 12:59:47.231872099 +0000
 @@ -162,6 +162,7 @@
  		target-libffi \
  		target-libobjc \
@@ -62,17 +62,11 @@
  GCC_TARGET_TOOL(ld, LD_FOR_TARGET, LD, [ld/ld-new])
  GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, LIPO)
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
-@@ -3626,10 +3639,11 @@
+@@ -3626,6 +3639,7 @@
  # Specify what files to not compare during bootstrap.
  
  compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/*"
 +compare_exclusions="$compare_exclusions | gcc/m2/gm2version\$(objext) | gcc/m2/*/M2Version\$(objext)"
  case "$target" in
    hppa*64*-*-hpux*) ;;
--  hppa*-*-hpux*) compare_exclusions="gcc/cc*-checksum\$(objext) | */libgcc/lib2funcs* | gcc/ada/*tools/* | gcc/function-tests.o" ;;
--  powerpc*-ibm-aix*) compare_exclusions="gcc/cc*-checksum\$(objext) | gcc/ada/*tools/* | *libgomp*\$(objext)" ;;
-+  hppa*-*-hpux*) compare_exclusions="$compare_exclusions | */libgcc/lib2funcs* | gcc/function-tests.o" ;;
-+  powerpc*-ibm-aix*) compare_exclusions="compare_exclusions | *libgomp*\$(objext)" ;;
- esac
- AC_SUBST(compare_exclusions)
- 
+   hppa*-*-hpux*) compare_exclusions="$compare_exclusions | */libgcc/lib2funcs* | gcc/function-tests.o" ;;

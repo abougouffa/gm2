@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/gcc.h	2019-12-09 21:19:54.000000000 +0000
-+++ gcc-versionno/gcc/gcc.h	2019-12-10 22:06:50.945894819 +0000
+--- gcc-versionno-orig/gcc/gcc.h	2019-12-17 12:52:58.000000000 +0000
++++ gcc-versionno/gcc/gcc.h	2019-12-17 12:58:42.188198584 +0000
 @@ -73,9 +73,28 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);

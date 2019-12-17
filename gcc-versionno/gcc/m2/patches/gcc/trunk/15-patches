@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/go/gospec.c	2019-12-09 21:34:11.000000000 +0000
-+++ gcc-versionno/gcc/go/gospec.c	2019-12-09 21:46:21.481586342 +0000
+--- gcc-versionno-orig/gcc/go/gospec.c	2019-12-17 12:57:32.000000000 +0000
++++ gcc-versionno/gcc/go/gospec.c	2019-12-17 12:58:42.356197740 +0000
 @@ -440,3 +440,11 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

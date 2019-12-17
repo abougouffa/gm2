@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/brig/brigspec.c	2019-12-09 21:18:17.000000000 +0000
-+++ gcc-versionno/gcc/brig/brigspec.c	2019-12-09 21:46:21.465586425 +0000
+--- gcc-versionno-orig/gcc/brig/brigspec.c	2019-12-17 12:52:54.000000000 +0000
++++ gcc-versionno/gcc/brig/brigspec.c	2019-12-17 12:58:42.340197820 +0000
 @@ -134,3 +134,11 @@
  /* Number of extra output files that lang_specific_pre_link may generate.  */
  
