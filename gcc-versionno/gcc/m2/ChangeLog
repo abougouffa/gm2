@@ -1,3 +1,13 @@
+2019-12-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2spec.c:  detect -m<arg> option and use arg
+          to build the multilib paths (-I), (-fobject-path)
+	  and (-L).
+	* m2/patches/gcc/trunk/06-patches:  regenerated.
+	  Reverted multilib_dir to be static.
+	* m2/patches/gcc/trunk/07-patches:  regenerated.
+	  Reverted multilib_dir to be static.
+
 2019-12-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/patches/gcc/trunk/01-patches:  (regenerated).

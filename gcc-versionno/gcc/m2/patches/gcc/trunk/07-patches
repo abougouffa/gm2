@@ -1,5 +1,5 @@
 --- gcc-versionno-orig/gcc/gcc.h	2019-12-17 12:52:58.000000000 +0000
-+++ gcc-versionno/gcc/gcc.h	2019-12-17 12:58:42.188198584 +0000
++++ gcc-versionno/gcc/gcc.h	2019-12-18 02:37:31.641821809 +0000
 @@ -73,9 +73,28 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);
@@ -29,19 +29,7 @@
  /* Called before processing to change/add/remove arguments.  */
  extern void lang_specific_driver (struct cl_decoded_option **,
  				  unsigned int *, int *);
-@@ -83,6 +102,11 @@
- /* Called before linking.  Returns 0 on success and -1 on failure.  */
- extern int lang_specific_pre_link (void);
- 
-+/* Subdirectory to use for locating libraries in OS conventions.  Set by
-+   set_multilib_dir based on the compilation options.  */
-+
-+extern const char *multilib_dir;
-+
- extern int n_infiles;
- 
- /* Number of extra output files that lang_specific_pre_link may generate.  */
-@@ -97,4 +121,8 @@
+@@ -97,4 +116,8 @@
  					      void *user_data),
  				   void *user_data);
  
