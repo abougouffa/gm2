@@ -1,3 +1,8 @@
+2020-01-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* testsuite/iso/run/pass/onebyte.mod:  New file.
+	* testsuite/iso/run/pass/conststrarray.mod:  New file.
+
 2019-12-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2spec.c:  detect -m<arg> option and use arg
