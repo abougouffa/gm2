@@ -1138,7 +1138,8 @@ RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
     {
       return currentEHB;
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/RTExceptions.def", 25, 1);
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/RTExceptions.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 

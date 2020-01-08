@@ -10772,6 +10772,7 @@ BEGIN
    setNeedSpace (p) ;
    outCard (p, tokenToColumnNo (w, 0)) ;
    outText (p, ');\n') ;
+   outText (p, '__builtin_unreachable ();\n')
 END doExceptionC ;
 
 
@@ -10795,6 +10796,7 @@ BEGIN
    setNeedSpace (p) ;
    outCard (p, tokenToColumnNo (w, 0)) ;
    outText (p, ');\n') ;
+   outText (p, '__builtin_unreachable ();\n')
 END doExceptionCP ;
 
 

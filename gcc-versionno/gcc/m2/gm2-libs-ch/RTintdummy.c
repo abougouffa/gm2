@@ -30,6 +30,7 @@ RTint_Init (void)
 {
 }
 
+#if 0
 void
 _M2_RTint_init (void)
 {
@@ -39,3 +40,4 @@ void
 _M2_RTint_finish (void)
 {
 }
+#endif

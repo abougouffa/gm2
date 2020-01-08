@@ -57,7 +57,8 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
     {
       return (M2EXCEPTION_M2Exceptions) (n);
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/M2EXCEPTION.def", 25, 1);
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/M2EXCEPTION.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 unsigned int M2EXCEPTION_IsM2Exception (void)

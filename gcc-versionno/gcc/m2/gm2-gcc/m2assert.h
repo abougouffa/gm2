@@ -32,7 +32,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
     if (!(X))                                                                 \
       {                                                                       \
         debug_tree (Y);                                                       \
-        internal_error ("[%s:%d]:condition `%s' failed", __FILE__, __LINE__,  \
+        internal_error ("%s:%d:condition `%s' failed", __FILE__, __LINE__,    \
                         #X);                                                  \
       }                                                                       \
   }
@@ -42,7 +42,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
     if ((X != 0) && (X != 1))                                                 \
       {                                                                       \
         internal_error (                                                      \
-            "[%s:%d]:the value `%s' is not a BOOLEAN, it's value was %d",     \
+            "%s:%d:the value `%s' is not a BOOLEAN, it's value was %d",       \
             __FILE__, __LINE__, #X, X);                                       \
       }                                                                       \
   }
@@ -50,7 +50,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
   {                                                                           \
     if (!(X))                                                                 \
       {                                                                       \
-        internal_error ("[%s:%d]:condition `%s' failed", __FILE__, __LINE__,  \
+        internal_error ("%s:%d:condition `%s' failed", __FILE__, __LINE__,    \
                         #X);                                                  \
       }                                                                       \
   }

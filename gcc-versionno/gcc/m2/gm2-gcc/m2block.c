@@ -716,6 +716,7 @@ flush_pending_note (void)
 {
   if (pending_statement && (M2Options_GetM2g ()))
     {
+#if 0
       tree instr = m2decl_BuildStringConstant ("nop", 3);
       tree string
           = resolve_asm_operand_names (instr, NULL_TREE, NULL_TREE, NULL_TREE);
@@ -724,7 +725,9 @@ flush_pending_note (void)
 
       ASM_INPUT_P (note) = FALSE;
       ASM_VOLATILE_P (note) = FALSE;
-
+#else
+      tree note = build_empty_stmt (pending_location);
+#endif
       pending_statement = FALSE;
       do_add_stmt (note);
     }

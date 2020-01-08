@@ -59,7 +59,7 @@ RTExceptions
 #
 # Initialization order
 #
-RTco
+# RTco
 RTint
 StrLib
 ASCII

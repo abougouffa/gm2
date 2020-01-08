@@ -1,6 +1,129 @@
 2020-01-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* updated the copyright dates for 2020.
+	* mc/decl.mod:  added call to __builtin_unreachable
+          after every fatal exception.
+	* m2/gm2-gcc/m2assert.h:  (ASSERT), (ASSERT_BOOL),
+	  (ASSERT_CONDITION) adjusted the fatal message
+          to avoid gcc warnings.
+	* m2/gm2-gcc/m2assert.h:  removed [] in the format
+	  specifier.
+	* m2/gm2-gcc/m2block.c:  (flush_pending_note) use
+	  build_empty_stmt instead of hardcoded "nop".
+	* m2/gm2-libs-ch/RTcodummy.c:  (_M2_RTco_init) removed.
+	  (_M2_RTco_finish) removed.
+	* m2/gm2-libs-ch/RTintdummy.c:  (_M2_RTdummy_init) removed.
+	  (_M2_RTdummy_finish) removed.
+	* m2/init/mcinit:  removed reference to RTco.
+	* m2/mc-boot/GASCII.c:  regenerated.
+	* m2/mc-boot/GASCII.h:  regenerated.
+	* m2/mc-boot/GArgs.c:  regenerated.
+	* m2/mc-boot/GArgs.h:  regenerated.
+	* m2/mc-boot/GAssertion.c:  regenerated.
+	* m2/mc-boot/GAssertion.h:  regenerated.
+	* m2/mc-boot/GBreak.c:  regenerated.
+	* m2/mc-boot/GBreak.h:  regenerated.
+	* m2/mc-boot/GCOROUTINES.h:  regenerated.
+	* m2/mc-boot/GCmdArgs.c:  regenerated.
+	* m2/mc-boot/GCmdArgs.h:  regenerated.
+	* m2/mc-boot/GDebug.c:  regenerated.
+	* m2/mc-boot/GDebug.h:  regenerated.
+	* m2/mc-boot/GDynamicStrings.h:  regenerated.
+	* m2/mc-boot/GEnvironment.c:  regenerated.
+	* m2/mc-boot/GEnvironment.h:  regenerated.
+	* m2/mc-boot/GFIO.c:  regenerated.
+	* m2/mc-boot/GFIO.h:  regenerated.
+	* m2/mc-boot/GFormatStrings.c:  regenerated.
+	* m2/mc-boot/GFormatStrings.h:  regenerated.
+	* m2/mc-boot/GFpuIO.c:  regenerated.
+	* m2/mc-boot/GFpuIO.h:  regenerated.
+	* m2/mc-boot/GIO.h:  regenerated.
+	* m2/mc-boot/GIndexing.h:  regenerated.
+	* m2/mc-boot/GM2EXCEPTION.c:  regenerated.
+	* m2/mc-boot/GM2EXCEPTION.h:  regenerated.
+	* m2/mc-boot/GM2RTS.c:  regenerated.
+	* m2/mc-boot/GM2RTS.h:  regenerated.
+	* m2/mc-boot/GMemUtils.c:  regenerated.
+	* m2/mc-boot/GMemUtils.h:  regenerated.
+	* m2/mc-boot/GNumberIO.c:  regenerated.
+	* m2/mc-boot/GNumberIO.h:  regenerated.
+	* m2/mc-boot/GPushBackInput.c:  regenerated.
+	* m2/mc-boot/GPushBackInput.h:  regenerated.
+	* m2/mc-boot/GRTExceptions.c:  regenerated.
+	* m2/mc-boot/GRTExceptions.h:  regenerated.
+	* m2/mc-boot/GRTco.h:  regenerated.
+	* m2/mc-boot/GRTint.c:  regenerated.
+	* m2/mc-boot/GRTint.h:  regenerated.
+	* m2/mc-boot/GSArgs.c:  regenerated.
+	* m2/mc-boot/GSArgs.h:  regenerated.
+	* m2/mc-boot/GSFIO.c:  regenerated.
+	* m2/mc-boot/GSFIO.h:  regenerated.
+	* m2/mc-boot/GSYSTEM.h:  regenerated.
+	* m2/mc-boot/GSelective.h:  regenerated.
+	* m2/mc-boot/GStdIO.c:  regenerated.
+	* m2/mc-boot/GStdIO.h:  regenerated.
+	* m2/mc-boot/GStorage.h:  regenerated.
+	* m2/mc-boot/GStrCase.h:  regenerated.
+	* m2/mc-boot/GStrIO.c:  regenerated.
+	* m2/mc-boot/GStrIO.h:  regenerated.
+	* m2/mc-boot/GStrLib.h:  regenerated.
+	* m2/mc-boot/GStringConvert.c:  regenerated.
+	* m2/mc-boot/GStringConvert.h:  regenerated.
+	* m2/mc-boot/GSysExceptions.h:  regenerated.
+	* m2/mc-boot/GSysStorage.h:  regenerated.
+	* m2/mc-boot/GTimeString.c:  regenerated.
+	* m2/mc-boot/GTimeString.h:  regenerated.
+	* m2/mc-boot/GUnixArgs.h:  regenerated.
+	* m2/mc-boot/Galists.c:  regenerated.
+	* m2/mc-boot/Galists.h:  regenerated.
+	* m2/mc-boot/Gdecl.c:  regenerated.
+	* m2/mc-boot/Gdecl.h:  regenerated.
+	* m2/mc-boot/Gdtoa.h:  regenerated.
+	* m2/mc-boot/Gerrno.h:  regenerated.
+	* m2/mc-boot/Gkeyc.c:  regenerated.
+	* m2/mc-boot/Gkeyc.h:  regenerated.
+	* m2/mc-boot/Gldtoa.h:  regenerated.
+	* m2/mc-boot/Glibc.h:  regenerated.
+	* m2/mc-boot/Glibm.h:  regenerated.
+	* m2/mc-boot/Glists.h:  regenerated.
+	* m2/mc-boot/GmcComment.c:  regenerated.
+	* m2/mc-boot/GmcComment.h:  regenerated.
+	* m2/mc-boot/GmcComp.c:  regenerated.
+	* m2/mc-boot/GmcComp.h:  regenerated.
+	* m2/mc-boot/GmcDebug.h:  regenerated.
+	* m2/mc-boot/GmcError.c:  regenerated.
+	* m2/mc-boot/GmcError.h:  regenerated.
+	* m2/mc-boot/GmcFileName.h:  regenerated.
+	* m2/mc-boot/GmcLexBuf.c:  regenerated.
+	* m2/mc-boot/GmcLexBuf.h:  regenerated.
+	* m2/mc-boot/GmcMetaError.h:  regenerated.
+	* m2/mc-boot/GmcOptions.h:  regenerated.
+	* m2/mc-boot/GmcPreprocess.h:  regenerated.
+	* m2/mc-boot/GmcPretty.h:  regenerated.
+	* m2/mc-boot/GmcPrintf.h:  regenerated.
+	* m2/mc-boot/GmcQuiet.h:  regenerated.
+	* m2/mc-boot/GmcReserved.h:  regenerated.
+	* m2/mc-boot/GmcSearch.h:  regenerated.
+	* m2/mc-boot/GmcStack.h:  regenerated.
+	* m2/mc-boot/GmcStream.c:  regenerated.
+	* m2/mc-boot/GmcStream.h:  regenerated.
+	* m2/mc-boot/Gmcflex.h:  regenerated.
+	* m2/mc-boot/Gmcp1.h:  regenerated.
+	* m2/mc-boot/Gmcp2.h:  regenerated.
+	* m2/mc-boot/Gmcp3.h:  regenerated.
+	* m2/mc-boot/Gmcp4.h:  regenerated.
+	* m2/mc-boot/Gmcp5.h:  regenerated.
+	* m2/mc-boot/GnameKey.c:  regenerated.
+	* m2/mc-boot/GnameKey.h:  regenerated.
+	* m2/mc-boot/GsymbolKey.c:  regenerated.
+	* m2/mc-boot/GsymbolKey.h:  regenerated.
+	* m2/mc-boot/Gtermios.h:  regenerated.
+	* m2/mc-boot/Gtop.c:  regenerated.
+	* m2/mc-boot/Gvarargs.c:  regenerated.
+	* m2/mc-boot/Gvarargs.h:  regenerated.
+	* m2/mc-boot/Gwlists.c:  regenerated.
+	* m2/mc-boot/Gwlists.h:  regenerated.
+	* m2/mc-boot/Gwrapc.h:  regenerated.
 
 2020-01-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
