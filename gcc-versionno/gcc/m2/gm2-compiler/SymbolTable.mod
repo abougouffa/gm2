@@ -4856,6 +4856,7 @@ VAR
    pSym: PtrToSymbol ;
    type: CARDINAL ;
 BEGIN
+   type := NulSym ;
    Assert(sym#NulSym) ;
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
@@ -8713,6 +8714,7 @@ VAR
    ParSym: CARDINAL ;
 BEGIN
    pSym := GetPsym(ProcSym) ;
+   ParSym := NulSym ;
    WITH pSym^ DO
       CASE SymbolType OF
 
@@ -8721,7 +8723,7 @@ BEGIN
       ProcTypeSym : ParSym := GetItemFromList(ProcType.ListOfParam, no)
 
       ELSE
-         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__) ;
       END
    END ;
    pSym := GetPsym(ParSym) ;

@@ -4792,6 +4792,7 @@ VAR
    low, high: Tree ;
    location : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    Subscript := GetArraySubscript (array) ;
    Assert (IsSubscript (Subscript)) ;
    Type := GetDType (Subscript) ;
