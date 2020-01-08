@@ -1,6 +1,6 @@
 /* m2pp.h pretty print trees, output in Modula-2 where possible.
 
-Copyright (C) 2007-2019 Free Software Foundation, Inc.
+Copyright (C) 2007-2020 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
@@ -16,9 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not, write to the
-Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.  */
+along with GNU Modula-2; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  */
 
 #if !defined(M2PP_H)
 #   define M2PP_H

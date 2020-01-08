@@ -1,6 +1,6 @@
 (* ppg.mod master source file of the ebnf parser generator.
 
-Copyright (C) 2003-2019 Free Software Foundation, Inc.
+Copyright (C) 2003-2020 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.

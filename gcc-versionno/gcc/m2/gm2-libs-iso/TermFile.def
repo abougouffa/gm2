@@ -3,7 +3,7 @@
    BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
 
    Copyright ISO/IEC (International Organization for Standardization
-   and International Electrotechnical Commission) 1996-2019.
+   and International Electrotechnical Commission) 1996-2020.
 
    It may be freely copied for the purpose of implementation (see page
    707 of the Information technology - Programming languages Part 1:
