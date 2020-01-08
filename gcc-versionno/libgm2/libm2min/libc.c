@@ -19,13 +19,17 @@ You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
-void abort (void);
-void exit  (int);
+void abort (void) __attribute__ ((noreturn));
+void exit (int) __attribute__ ((noreturn));
 
 void abort (void)
 {
+  /* you should add your system dependant code here.  */
+  __builtin_unreachable ();
 }
 
 void exit (int i)
 {
+  /* you should add your system dependant code here.  */
+  __builtin_unreachable ();
 }

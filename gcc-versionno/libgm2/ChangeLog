@@ -1,3 +1,8 @@
+2020-01-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libm2min/libc.c:  (exit) noreturn added.
+	  (abort) noreturn added.
+
 2019-12-10      Matthias Klose <doko@ubuntu.com>
 
 	* libgm2/libm2cor/Makefile.am:  (libsubdir) corrected using
