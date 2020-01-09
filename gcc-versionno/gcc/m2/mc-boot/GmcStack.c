@@ -145,7 +145,7 @@ void * mcStack_pop (mcStack_stack s)
 
   if (s->count == 0)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {
@@ -191,7 +191,7 @@ void * mcStack_access (mcStack_stack s, unsigned int i)
 {
   if ((i > s->count) || (i == 0))
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {

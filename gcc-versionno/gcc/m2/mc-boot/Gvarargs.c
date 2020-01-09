@@ -149,7 +149,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
 
   if (v->i == v->nArgs)
     {
-      M2RTS_HALT (-1);;  /* too many calls to arg.  */
+      M2RTS_HALT (-1);  /* too many calls to arg.  */
     }
   else
     {
@@ -166,7 +166,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
         }
       else
         {
-          M2RTS_HALT (-1);;  /* parameter mismatch.  */
+          M2RTS_HALT (-1);  /* parameter mismatch.  */
         }
       v->i += 1;
     }
@@ -222,7 +222,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
 
   if (v->i == v->nArgs)
     {
-      M2RTS_HALT (-1);;  /* too many calls to arg.  */
+      M2RTS_HALT (-1);  /* too many calls to arg.  */
     }
   else
     {
@@ -239,7 +239,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
         }
       else
         {
-          M2RTS_HALT (-1);;  /* parameter mismatch.  */
+          M2RTS_HALT (-1);  /* parameter mismatch.  */
         }
     }
 }

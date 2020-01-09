@@ -1216,7 +1216,7 @@ static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
 {
   if (((PoisonOn && (s != NULL)) && (s->head != NULL)) && (s->head->state == poisoned))
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   return s;
 }
@@ -1559,7 +1559,7 @@ void DynamicStrings_Fin (DynamicStrings_String s)
 {
   if ((DynamicStrings_KillString (s)) != NULL)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
 }
 
@@ -1688,7 +1688,7 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
     }
   if ((a == NULL) && (b != NULL))
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   return a;
 }
@@ -1806,11 +1806,11 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
             {
               if (a->contents.buf.array[i] != a->contents.buf.array[i])
                 {
-                  M2RTS_HALT (-1);;
+                  M2RTS_HALT (-1);
                 }
               if (b->contents.buf.array[i] != b->contents.buf.array[i])
                 {
-                  M2RTS_HALT (-1);;
+                  M2RTS_HALT (-1);
                 }
               if (a->contents.buf.array[i] != b->contents.buf.array[i])
                 {

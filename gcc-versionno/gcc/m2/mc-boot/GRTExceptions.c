@@ -1062,7 +1062,7 @@ void RTExceptions_DefaultErrorCatch (void)
 
   e = RTExceptions_GetExceptionBlock ();
   n = libc_write (2, RTExceptions_GetTextBuffer (e), libc_strlen (RTExceptions_GetTextBuffer (e)));
-  M2RTS_HALT (-1);;
+  M2RTS_HALT (-1);
 }
 
 

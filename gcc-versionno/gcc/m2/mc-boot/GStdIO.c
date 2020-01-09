@@ -141,7 +141,7 @@ void StdIO_PushOutput (StdIO_ProcWrite p)
 {
   if (StackWPtr == MaxStack)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {
@@ -159,7 +159,7 @@ void StdIO_PopOutput (void)
 {
   if (StackWPtr == 1)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {
@@ -180,7 +180,7 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
     }
   else
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
 }
 
@@ -195,7 +195,7 @@ void StdIO_PushInput (StdIO_ProcRead p)
 {
   if (StackRPtr == MaxStack)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {
@@ -213,7 +213,7 @@ void StdIO_PopInput (void)
 {
   if (StackRPtr == 1)
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
   else
     {
@@ -234,7 +234,7 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
     }
   else
     {
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
 }
 

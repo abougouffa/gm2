@@ -103,7 +103,7 @@ void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo
   Debug_DebugString ((char *) ":", 1);
   Debug_DebugString ((char *) Message, _Message_high);
   Debug_DebugString ((char *) "\\n", 2);
-  M2RTS_HALT (-1);;
+  M2RTS_HALT (-1);
 }
 
 

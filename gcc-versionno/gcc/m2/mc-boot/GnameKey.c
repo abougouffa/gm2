@@ -297,7 +297,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   Storage_ALLOCATE ((void **) &p, higha+1);
   if (p == NULL)
     {
-      M2RTS_HALT (-1);;  /* out of memory error  */
+      M2RTS_HALT (-1);  /* out of memory error  */
     }
   else
     {
@@ -341,7 +341,7 @@ nameKey_Name nameKey_makekey (void * a)
       Storage_ALLOCATE ((void **) &p, higha+1);
       if (p == NULL)
         {
-          M2RTS_HALT (-1);;  /* out of memory error  */
+          M2RTS_HALT (-1);  /* out of memory error  */
         }
       else
         {

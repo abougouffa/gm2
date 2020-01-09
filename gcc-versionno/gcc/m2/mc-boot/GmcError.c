@@ -484,7 +484,7 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
 
 
       default:
-        M2RTS_HALT (-1);;
+        M2RTS_HALT (-1);
         break;
     }
   return s;
@@ -571,7 +571,7 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
 
 
       default:
-        M2RTS_HALT (-1);;
+        M2RTS_HALT (-1);
         break;
     }
   return s;
@@ -703,7 +703,7 @@ void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigne
       outString (mcLexBuf_findFileNameFromToken (mcLexBuf_getTokenNo (), 0), mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0), mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "*** fatal error ***", 19)));
     }
   outString (DynamicStrings_Mark (DynamicStrings_InitString ((char *) file, _file_high)), line, 0, DynamicStrings_ConCat (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "*** internal error *** ", 23)), DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high))));
-  M2RTS_HALT (-1);;
+  M2RTS_HALT (-1);
 }
 
 
@@ -1115,7 +1115,7 @@ void mcError_flushErrors (void)
   if (flushAll (head, TRUE))
     {
       M2RTS_ExitOnHalt (1);
-      M2RTS_HALT (-1);;
+      M2RTS_HALT (-1);
     }
 }
 
@@ -1158,7 +1158,7 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
         {}  /* empty.  */
     }
   M2RTS_ExitOnHalt (1);
-  M2RTS_HALT (-1);;
+  M2RTS_HALT (-1);
 }
 
 void _M2_mcError_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
