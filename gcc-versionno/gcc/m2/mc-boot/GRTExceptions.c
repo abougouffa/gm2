@@ -37,7 +37,7 @@ see <https://www.gnu.org/licenses/>.  */
 #   include "GStorage.h"
 #   include "Gmcrts.h"
 #include <unistd.h>
-extern void throw (int);
+#   include "sys/cdefs.h"
 #define _RTExceptions_H
 #define _RTExceptions_C
 
@@ -1062,7 +1062,7 @@ void RTExceptions_DefaultErrorCatch (void)
 
   e = RTExceptions_GetExceptionBlock ();
   n = libc_write (2, RTExceptions_GetTextBuffer (e), libc_strlen (RTExceptions_GetTextBuffer (e)));
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 

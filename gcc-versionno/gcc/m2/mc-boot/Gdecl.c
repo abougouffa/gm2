@@ -6501,7 +6501,7 @@ static decl_node newNode (nodeT k)
   Storage_ALLOCATE ((void **) &d, sizeof (_T1));
   if (d == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -6845,7 +6845,7 @@ static decl_node addToScope (decl_node n)
         }
       return addTo (&s->impF.decls, n);
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -7611,7 +7611,7 @@ static decl_node makeVal (decl_node params)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 
@@ -7629,7 +7629,7 @@ static decl_node makeCast (decl_node c, decl_node p)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 
@@ -8150,7 +8150,7 @@ static DynamicStrings_String getStringContents (decl_node n)
   else if (decl_isLiteral (n))
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* --fixme--  finish this.  */
+      M2RTS_HALT (-1);;  /* --fixme--  finish this.  */
       return NULL;  /* --fixme--  finish this.  */
     }
   else if (isString (n))
@@ -8163,7 +8163,7 @@ static DynamicStrings_String getStringContents (decl_node n)
       /* avoid dangling else.  */
       return getStringContents (n->unaryF.arg);
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -8416,7 +8416,7 @@ static decl_node makeBase (nodeT k)
 
 
       default:
-        M2RTS_HALT (-1);  /* legal kind.  */
+        M2RTS_HALT (-1);;  /* legal kind.  */
         break;
     }
   return n;
@@ -8764,7 +8764,7 @@ static decl_node doGetExprType (decl_node n)
       case elsif:
       case assignment:
         /* statements.  */
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
         break;
 
       case plus:
@@ -8867,7 +8867,7 @@ static decl_node doGetExprType (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -9015,7 +9015,7 @@ static decl_node getSymScope (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -9087,7 +9087,7 @@ static DynamicStrings_String getString (decl_node n)
 
 static void doNone (decl_node n)
 {
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -10636,7 +10636,7 @@ static void doString (mcPretty_pretty p, decl_node n)
       metaError1 ('illegal string {%1k}', n)
    END
   */
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -11723,7 +11723,7 @@ static decl_node doMin (decl_node n)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+      M2RTS_HALT (-1);;  /* finish the cacading elsif statement.  */
     }
 }
 
@@ -11801,7 +11801,7 @@ static decl_node doMax (decl_node n)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+      M2RTS_HALT (-1);;  /* finish the cacading elsif statement.  */
     }
 }
 
@@ -12285,7 +12285,7 @@ static void doVarientFieldC (mcPretty_pretty p, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       i += 1;
     }
@@ -12319,12 +12319,12 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           /* doVarientFieldC (p, n^.varientF.tag)  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
     }
   outText (p, (char *) "union", 5);
@@ -12352,7 +12352,7 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       i += 1;
     }
@@ -12535,7 +12535,7 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
       mcPretty_print (p, (char *) "to do ...  typedef etc etc ", 27);
       doFQNameC (p, n);
       mcPretty_print (p, (char *) ";\\n", 3);
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 
@@ -14929,7 +14929,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
         }
       else
         {
-          M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to INCL')  */
+          M2RTS_HALT (-1);;  /* metaError0 ('expecting two parameters to INCL')  */
         }
     }
 }
@@ -14966,7 +14966,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
         }
       else
         {
-          M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to EXCL')  */
+          M2RTS_HALT (-1);;  /* metaError0 ('expecting two parameters to EXCL')  */
         }
     }
 }
@@ -14983,7 +14983,7 @@ static void doNewC (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isIntrinsic (n));
   if (n->intrinsicF.args == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -15029,7 +15029,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isIntrinsic (n));
   if (n->intrinsicF.args == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -15062,7 +15062,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
         }
       else
         {
-          M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to DISPOSE')  */
+          M2RTS_HALT (-1);;  /* metaError0 ('expecting a single parameter to DISPOSE')  */
         }
     }
 }
@@ -15077,7 +15077,7 @@ static void doCapC (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
     {
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
+      M2RTS_HALT (-1);;  /* metaError0 ('expecting a single parameter to CAP')  */
     }
   else
     {
@@ -15100,7 +15100,7 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
     {
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
+      M2RTS_HALT (-1);;  /* metaError0 ('expecting a single parameter to LENGTH')  */
     }
   else
     {
@@ -15128,7 +15128,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
   mcDebug_assert (isUnary (n));
   if (n->unaryF.arg == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -15165,7 +15165,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
     {
       /* avoid dangling else.  */
       /* do nothing.  */
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -15258,7 +15258,7 @@ static void doHalt (mcPretty_pretty p, decl_node n)
     {
       outText (p, (char *) "M2RTS_HALT", 10);
       mcPretty_setNeedSpace (p);
-      outText (p, (char *) "(-1)", 4);
+      outText (p, (char *) "(-1);", 5);
     }
   else if ((expListLen (n->intrinsicF.args)) == 1)
     {
@@ -15287,7 +15287,7 @@ static void doReC (mcPretty_pretty p, decl_node n)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   if (t == realN)
     {
@@ -15296,7 +15296,7 @@ static void doReC (mcPretty_pretty p, decl_node n)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -15320,7 +15320,7 @@ static void doImC (mcPretty_pretty p, decl_node n)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   if (t == realN)
     {
@@ -15329,7 +15329,7 @@ static void doImC (mcPretty_pretty p, decl_node n)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -16085,7 +16085,7 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* need to handle another s^.kind.  */
+      M2RTS_HALT (-1);;  /* need to handle another s^.kind.  */
     }
 }
 
@@ -17302,7 +17302,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case elsif:
       case assignment:
         /* statements.  */
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
         break;
 
       case componentref:
@@ -18766,7 +18766,7 @@ static DynamicStrings_String genKind (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -19466,7 +19466,7 @@ static void outC (mcPretty_pretty p, decl_node n)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   keyc_leaveScope (n);
 }
@@ -19573,7 +19573,7 @@ static void doVarientFieldM2 (mcPretty_pretty p, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       i += 1;
     }
@@ -19608,7 +19608,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
     }
   mcPretty_setNeedSpace (p);
@@ -19635,7 +19635,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       i += 1;
     }
@@ -20223,7 +20223,7 @@ static void outM2 (mcPretty_pretty p, decl_node n)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 
@@ -20345,7 +20345,7 @@ static void dbgRecord (alists_alist l, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
@@ -20399,7 +20399,7 @@ static void dbgVarient (alists_alist l, decl_node n)
       else
         {
           /* avoid dangling else.  */
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
@@ -20826,7 +20826,7 @@ static decl_node doDupExpr (decl_node n)
       case return_:
       case stmtseq:
       case comment:
-        M2RTS_HALT (-1);  /* should not be duplicating code.  */
+        M2RTS_HALT (-1);;  /* should not be duplicating code.  */
         break;
 
       case nil:
@@ -21889,7 +21889,7 @@ decl_node decl_getType (decl_node n)
       case elsif:
       case assignment:
         /* statements.  */
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
         break;
 
       case cmplx:
@@ -21984,7 +21984,7 @@ decl_node decl_getType (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
-  M2RTS_HALT (-1);
+  M2RTS_HALT (-1);;
 }
 
 
@@ -23394,7 +23394,7 @@ nameKey_Name decl_getSymName (decl_node n)
 
 
       default:
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
         break;
     }
 }
@@ -23524,7 +23524,7 @@ void decl_addImportedModule (decl_node m, decl_node i, unsigned int scoped)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   if (scoped)
     {
@@ -23639,7 +23639,7 @@ void decl_enterScope (decl_node n)
 {
   if (Indexing_IsIndiceInIndex (scopeStack, (void *) n))
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -24086,7 +24086,7 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+      M2RTS_HALT (-1);;  /* most likely op needs a clause as above.  */
     }
 }
 
@@ -24115,7 +24115,7 @@ decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
   else
     {
       /* avoid dangling else.  */
-      M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+      M2RTS_HALT (-1);;  /* most likely op needs a clause as above.  */
     }
 }
 

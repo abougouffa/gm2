@@ -157,7 +157,7 @@ void NumberIO_CardToStr (unsigned int x, unsigned int n, char *a, unsigned int _
       {
         StrIO_WriteString ((char *) "NumberIO - increase MaxDigits", 29);
         StrIO_WriteLn ();
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
       }
     buf.array[i-1] = x % 10;
     x = x / 10;
@@ -254,7 +254,7 @@ void NumberIO_HexToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
       {
         StrIO_WriteString ((char *) "NumberIO - increase MaxDigits", 29);
         StrIO_WriteLn ();
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
       }
     buf.array[i-1] = x % 0x010;
     x = x / 0x010;
@@ -332,7 +332,7 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
       {
         StrIO_WriteString ((char *) "NumberIO - increase MaxDigits", 29);
         StrIO_WriteLn ();
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
       }
     buf.array[i-1] = c % 10;
     c = c / 10;
@@ -472,7 +472,7 @@ void NumberIO_OctToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
       {
         StrIO_WriteString ((char *) "NumberIO - increase MaxDigits", 29);
         StrIO_WriteLn ();
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
       }
     buf.array[i-1] = x % 8;
     x = x / 8;
@@ -548,7 +548,7 @@ void NumberIO_BinToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
       {
         StrIO_WriteString ((char *) "NumberIO - increase MaxBits", 27);
         StrIO_WriteLn ();
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);;
       }
     buf.array[i-1] = x % 2;
     x = x / 2;

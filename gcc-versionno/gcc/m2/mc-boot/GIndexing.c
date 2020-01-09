@@ -204,7 +204,7 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 {
   if (i == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -221,7 +221,7 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
 {
   if (i == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -238,7 +238,7 @@ unsigned int Indexing_LowIndice (Indexing_Index i)
 {
   if (i == NULL)
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   else
     {
@@ -262,7 +262,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (n < i->Low)
         {
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
       else
         {
@@ -316,7 +316,7 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
 
   if (! (Indexing_InBounds (i, n)))
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
   b = i->ArrayStart;
   b += (n-i->Low)*sizeof (void *);
@@ -325,7 +325,7 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
     {
       if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
         {
-          M2RTS_HALT (-1);
+          M2RTS_HALT (-1);;
         }
     }
   return (*p);
@@ -406,7 +406,7 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
     }
   else
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 

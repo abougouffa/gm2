@@ -163,7 +163,7 @@ void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unu
   listOfFiles = alists_initList ();
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles})))
     {
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);;
     }
 }
 

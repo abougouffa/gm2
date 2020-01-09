@@ -1293,6 +1293,7 @@ mc-help:  force
 	@echo "mc-continue     builds the mc from the C version and attempts to build gm2 libraries and gm2 compiler"
 	@echo "mc-verify       builds mc from Modula-2 sources and mc from C sources and run both on all sources diffing the output"
 	@echo "mc              builds mc from Modula-2 sources, quickly"
+	@echo "m2/pge          build the parser generator (needed by mc-maintainer)"
 
 mc-verify:  mc-clean mc-bootstrap mc
 	mv mc m2/boot-bin/mc.m2
