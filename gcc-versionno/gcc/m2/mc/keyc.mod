@@ -590,8 +590,7 @@ PROCEDURE checkThrow (p: pretty) ;
 BEGIN
    IF seenThrow
    THEN
-      (* --fixme-- it would be better to use an include file, when one is known.  *)
-      print (p, 'extern void throw (int);\n')
+      print (p, '#   include "sys/cdefs.h"\n')
    END
 END checkThrow ;
 

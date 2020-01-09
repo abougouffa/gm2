@@ -681,8 +681,7 @@ static void checkThrow (mcPretty_pretty p)
 {
   if (seenThrow)
     {
-      /* --fixme-- it would be better to use an include file, when one is known.  */
-      mcPretty_print (p, (char *) "extern void throw (int);\\n", 26);
+      mcPretty_print (p, (char *) "#include \"sys/cdefs.h\"\\n", 26);
     }
 }
 

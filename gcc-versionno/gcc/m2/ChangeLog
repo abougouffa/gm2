@@ -21,7 +21,9 @@
           procedure.  (genDefs) call checkUnistd, checkThrow.
 	  (init) initialize seenUnistd, seenThrow.
 	* m2/tools-src/mklink.c:  added unistd.h include.
-	  (main) added a issing return type.
+          (main) added a issing return type.
+	* m2/mc/keyc.mod:  (checkThrow) use system header file for throw.
+	* m2/mc-boot/Gkeyc.c:  regenerated.
 
 2020-01-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
