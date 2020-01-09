@@ -37,6 +37,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include <string.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <unistd.h>
 #define _M2RTS_H
 #define _M2RTS_C
 

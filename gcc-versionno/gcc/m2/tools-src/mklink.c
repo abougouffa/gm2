@@ -44,6 +44,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <unistd.h>
 
 typedef struct functlist
 {
@@ -140,6 +141,7 @@ addGccArg (char *arg)
     }
 }
 
+int
 main (int argc, char *argv[])
 {
   int i;

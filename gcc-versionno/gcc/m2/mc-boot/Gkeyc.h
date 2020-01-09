@@ -46,6 +46,18 @@ extern "C" {
 
 
 /*
+   useUnistd - need to use unistd.h call using open/close/read/write require this header.
+*/
+
+EXTERN void keyc_useUnistd (void);
+
+/*
+   useThrow - use the throw function.
+*/
+
+EXTERN void keyc_useThrow (void);
+
+/*
    useStorage - indicate we have used storage.
 */
 

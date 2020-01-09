@@ -1334,7 +1334,7 @@ m2/boot-bin/mc-devel$(exeext): $(objdir)/m2/gm2-auto/mcp1.mod \
                                 $(objdir)/m2/gm2-auto/mcp4.mod \
                                 $(objdir)/m2/gm2-auto/mcp5.mod \
                                 mcflex.c \
-                                m2/gm2-libs-boot/RTintdummy.o
+	                        m2/gm2-libs-boot/RTintdummy.o
 	gcc -I$(srcdir)/m2/mc -c -g mcflex.c
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/decl.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/m2/mc/mcStream.mod

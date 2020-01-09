@@ -87,6 +87,8 @@ static unsigned int seenFabs;
 static unsigned int seenFabsl;
 static unsigned int seenSize_t;
 static unsigned int seenSSize_t;
+static unsigned int seenUnistd;
+static unsigned int seenThrow;
 static unsigned int seenFree;
 static unsigned int seenMalloc;
 static unsigned int seenStorage;
@@ -100,6 +102,18 @@ static unsigned int seenComplex;
 static unsigned int seenM2RTS;
 static unsigned int seenStrlen;
 static unsigned int seenCtype;
+
+/*
+   useUnistd - need to use unistd.h call using open/close/read/write require this header.
+*/
+
+void keyc_useUnistd (void);
+
+/*
+   useThrow - use the throw function.
+*/
+
+void keyc_useThrow (void);
 
 /*
    useStorage - indicate we have used storage.
@@ -409,6 +423,18 @@ static void checkM2RTS (mcPretty_pretty p);
 static void checkException (mcPretty_pretty p);
 
 /*
+   checkThrow - check to see if the throw function is used.
+*/
+
+static void checkThrow (mcPretty_pretty p);
+
+/*
+   checkUnistd - check to see if the unistd.h header file is required.
+*/
+
+static void checkUnistd (mcPretty_pretty p);
+
+/*
    checkComplex - check to see if the type complex was used.
 */
 
@@ -648,6 +674,33 @@ static void checkException (mcPretty_pretty p)
 
 
 /*
+   checkThrow - check to see if the throw function is used.
+*/
+
+static void checkThrow (mcPretty_pretty p)
+{
+  if (seenThrow)
+    {
+      /* --fixme-- it would be better to use an include file, when one is known.  */
+      mcPretty_print (p, (char *) "extern void throw (int);\\n", 26);
+    }
+}
+
+
+/*
+   checkUnistd - check to see if the unistd.h header file is required.
+*/
+
+static void checkUnistd (mcPretty_pretty p)
+{
+  if (seenUnistd)
+    {
+      mcPretty_print (p, (char *) "#include <unistd.h>\\n", 21);
+    }
+}
+
+
+/*
    checkComplex - check to see if the type complex was used.
 */
 
@@ -858,6 +911,8 @@ static void initKeywords (void)
 
 static void init (void)
 {
+  seenUnistd = FALSE;
+  seenThrow = FALSE;
   seenFree = FALSE;
   seenMalloc = FALSE;
   seenStorage = FALSE;
@@ -896,6 +951,26 @@ static void init (void)
   freeList = NULL;
   initKeywords ();
   initMacros ();
+}
+
+
+/*
+   useUnistd - need to use unistd.h call using open/close/read/write require this header.
+*/
+
+void keyc_useUnistd (void)
+{
+  seenUnistd = TRUE;
+}
+
+
+/*
+   useThrow - use the throw function.
+*/
+
+void keyc_useThrow (void)
+{
+  seenThrow = TRUE;
 }
 
 
@@ -1228,7 +1303,9 @@ void keyc_genDefs (mcPretty_pretty p)
   checkException (p);
   checkComplex (p);
   checkCtype (p);
+  checkUnistd (p);
   checkM2RTS (p);
+  checkThrow (p);
 }
 
 

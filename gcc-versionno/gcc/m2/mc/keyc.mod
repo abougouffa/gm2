@@ -63,6 +63,8 @@ VAR
    seenSize_t,
    seenSSize_t,
 
+   seenUnistd,
+   seenThrow,
    seenFree,
    seenMalloc,
    seenStorage,
@@ -571,6 +573,53 @@ END checkException ;
 
 
 (*
+   useThrow - use the throw function.
+*)
+
+PROCEDURE useThrow ;
+BEGIN
+   seenThrow := TRUE
+END useThrow ;
+
+
+(*
+   checkThrow - check to see if the throw function is used.
+*)
+
+PROCEDURE checkThrow (p: pretty) ;
+BEGIN
+   IF seenThrow
+   THEN
+      (* --fixme-- it would be better to use an include file, when one is known.  *)
+      print (p, 'extern void throw (int);\n')
+   END
+END checkThrow ;
+
+
+(*
+   useUnistd - need to use unistd.h call using open/close/read/write require this header.
+*)
+
+PROCEDURE useUnistd ;
+BEGIN
+   seenUnistd := TRUE
+END useUnistd ;
+
+
+(*
+   checkUnistd - check to see if the unistd.h header file is required.
+*)
+
+PROCEDURE checkUnistd (p: pretty) ;
+BEGIN
+   IF seenUnistd
+   THEN
+      print (p, '#include <unistd.h>\n')
+   END
+END checkUnistd ;
+
+
+(*
    useComplex - use the complex data type.
 *)
 
@@ -612,7 +661,9 @@ BEGIN
    checkException (p) ;
    checkComplex (p) ;
    checkCtype (p) ;
-   checkM2RTS (p)
+   checkUnistd (p) ;
+   checkM2RTS (p) ;
+   checkThrow (p)
 END genDefs ;
 
 
@@ -938,6 +989,8 @@ END initKeywords ;
 
 PROCEDURE init ;
 BEGIN
+   seenUnistd := FALSE ;
+   seenThrow := FALSE ;
    seenFree := FALSE ;
    seenMalloc := FALSE ;
    seenStorage := FALSE ;

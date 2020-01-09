@@ -35,6 +35,7 @@ see <https://www.gnu.org/licenses/>.  */
 #   endif
 
 #include <stdlib.h>
+#include <unistd.h>
 #define _IO_H
 #define _IO_C
 

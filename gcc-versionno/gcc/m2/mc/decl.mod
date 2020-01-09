@@ -3674,10 +3674,39 @@ BEGIN
       RETURN makeIntrinsicUnaryType (length, n, cardinalN)
    ELSIF c = throwN
    THEN
+      keyc.useThrow ;
       RETURN makeIntrinsicProc (throw, 1, n)
    END ;
    RETURN NIL
 END checkIntrinsic ;
+
+
+(*
+   checkCHeaders - check to see if the function is a C system function and
+                   requires a header file included.
+*)
+
+PROCEDURE checkCHeaders (c: node) ;
+VAR
+   name: Name ;
+   s   : node ;
+BEGIN
+   IF isProcedure (c)
+   THEN
+      s := getScope (c) ;
+      IF getSymName (s) = makeKey ('libc')
+      THEN
+         name := getSymName (c) ;
+         IF (name = makeKey ('read')) OR
+            (name = makeKey ('write')) OR
+            (name = makeKey ('open')) OR
+            (name = makeKey ('close'))
+         THEN
+            keyc.useUnistd
+         END
+      END
+   END
+END checkCHeaders ;
 
 
 (*
@@ -3696,6 +3725,7 @@ BEGIN
       addImportedModule (getMainModule (), lookupDef (makeKey ('M2RTS')), FALSE)
    END ;
    f := checkIntrinsic (c, n) ;
+   checkCHeaders (c) ;
    IF f = NIL
    THEN
       f := newNode (funccall) ;

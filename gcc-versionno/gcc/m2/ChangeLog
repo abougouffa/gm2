@@ -1,3 +1,28 @@
+2020-01-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/Make-lang.in:  (mc) add RTintdummy.o as a dependant
+	  and link with RTintdummy.o.
+	* m2/mc-boot/GDynamicStrings.c:  regenerated.
+	* m2/mc-boot/GFIO.c:  regenerated.
+	* m2/mc-boot/GIO.c:  regenerated.
+	* m2/mc-boot/GM2RTS.c:  regenerated.
+	* m2/mc-boot/GRTExceptions.c:  regenerated.
+	* m2/mc-boot/Gdecl.c:  regenerated.
+	* m2/mc-boot/Gkeyc.c:  regenerated.
+	* m2/mc-boot/Gkeyc.h:  regenerated.
+	* m2/mc/decl.mod:  (checkInstrinsic) check whether throw is
+          called.  (checkCHeaders) New procedure.  (makeFuncCall)
+	  call checkCHeaders.
+	* m2/mc/keyc.def:  (useUnistd) New procedure.  (useThrow) New
+	  procedure.
+	* m2/mc/keyc.mod:  (seenUnistd) New boolean.  (seenThrow) New
+	  boolean.  (useThrow) New procedure.  (checkThrow) New
+          procedure.  (useUnistd) New procedure.  (checkUnistd) New
+          procedure.  (genDefs) call checkUnistd, checkThrow.
+	  (init) initialize seenUnistd, seenThrow.
+	* m2/tools-src/mklink.c:  added unistd.h include.
+	  (main) added a issing return type.
+
 2020-01-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* updated the copyright dates for 2020.

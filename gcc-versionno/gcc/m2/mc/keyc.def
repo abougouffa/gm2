@@ -28,6 +28,20 @@ FROM nameKey IMPORT Name ;
 
 
 (*
+   useUnistd - need to use unistd.h call using open/close/read/write require this header.
+*)
+
+PROCEDURE useUnistd ;
+
+
+(*
+   useThrow - use the throw function.
+*)
+
+PROCEDURE useThrow ;
+
+
+(*
    useStorage - indicate we have used storage.
 *)
 

@@ -36,6 +36,8 @@ see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #   include "GStorage.h"
 #   include "Gmcrts.h"
+#include <unistd.h>
+extern void throw (int);
 #define _RTExceptions_H
 #define _RTExceptions_C
 

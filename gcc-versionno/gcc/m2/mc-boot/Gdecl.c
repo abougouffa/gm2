@@ -3270,6 +3270,8 @@ void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p);
 */
 
 wlists_wlist wlists_duplicateList (wlists_wlist l);
+void keyc_useUnistd (void);
+void keyc_useThrow (void);
 void keyc_useStorage (void);
 void keyc_useFree (void);
 void keyc_useMalloc (void);
@@ -3712,6 +3714,13 @@ static decl_node makeIntrinsicBinaryType (nodeT k, decl_node paramList, decl_nod
 */
 
 static decl_node checkIntrinsic (decl_node c, decl_node n);
+
+/*
+   checkCHeaders - check to see if the function is a C system function and
+                   requires a header file included.
+*/
+
+static void checkCHeaders (decl_node c);
 
 /*
    isFuncCall - returns TRUE if, n, is a function/procedure call.
@@ -7796,9 +7805,35 @@ static decl_node checkIntrinsic (decl_node c, decl_node n)
   else if (c == throwN)
     {
       /* avoid dangling else.  */
+      keyc_useThrow ();
       return makeIntrinsicProc ((nodeT) throw, 1, n);
     }
   return NULL;
+}
+
+
+/*
+   checkCHeaders - check to see if the function is a C system function and
+                   requires a header file included.
+*/
+
+static void checkCHeaders (decl_node c)
+{
+  nameKey_Name name;
+  decl_node s;
+
+  if (decl_isProcedure (c))
+    {
+      s = decl_getScope (c);
+      if ((decl_getSymName (s)) == (nameKey_makeKey ((char *) "libc", 4)))
+        {
+          name = decl_getSymName (c);
+          if ((((name == (nameKey_makeKey ((char *) "read", 4))) || (name == (nameKey_makeKey ((char *) "write", 5)))) || (name == (nameKey_makeKey ((char *) "open", 4)))) || (name == (nameKey_makeKey ((char *) "close", 5))))
+            {
+              keyc_useUnistd ();
+            }
+        }
+    }
 }
 
 
@@ -24537,6 +24572,7 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
       decl_addImportedModule (decl_getMainModule (), decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5)), FALSE);
     }
   f = checkIntrinsic (c, n);
+  checkCHeaders (c);
   if (f == NULL)
     {
       f = newNode ((nodeT) funccall);

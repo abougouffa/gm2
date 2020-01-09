@@ -39,6 +39,7 @@ see <https://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <stdlib.h>
 #   include "GStorage.h"
+#include <unistd.h>
 #define _DynamicStrings_H
 #define _DynamicStrings_C
 
