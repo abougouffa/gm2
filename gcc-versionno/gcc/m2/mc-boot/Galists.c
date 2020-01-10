@@ -170,6 +170,8 @@ alists_alist alists_initList (void)
   l->noOfelements = 0;
   l->next = NULL;
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -234,6 +236,8 @@ void * alists_getItemFromList (alists_alist l, unsigned int n)
       l = l->next;
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -267,6 +271,8 @@ unsigned int alists_getIndexOfList (alists_alist l, void * c)
         }
       return l->noOfelements+(alists_getIndexOfList (l->next, c));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -291,6 +297,8 @@ unsigned int alists_noOfItemsInList (alists_alist l)
       } while (! (l == NULL));
       return t;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -371,6 +379,8 @@ unsigned int alists_isItemInList (alists_alist l, void * c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -412,6 +422,8 @@ alists_alist alists_duplicateList (alists_alist l)
       i += 1;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_alists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

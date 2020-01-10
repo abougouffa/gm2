@@ -175,6 +175,8 @@ static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
     {
       return (((*p.proc) (t->key)) || (searchForAny (t->left, p))) || (searchForAny (t->right, p));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -202,6 +204,8 @@ symbolKey_symbolTree symbolKey_initTree (void)
   t->left = NULL;
   t->right = NULL;
   return t;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void symbolKey_killTree (symbolKey_symbolTree *t)
@@ -236,6 +240,8 @@ void * symbolKey_getSymKey (symbolKey_symbolTree t, nameKey_Name name)
           return child->key;
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
@@ -353,6 +359,8 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
 unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t)
 {
   return t->left == NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -367,6 +375,8 @@ unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t)
 unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
 {
   return searchForAny (t->left, p);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

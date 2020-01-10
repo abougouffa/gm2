@@ -169,6 +169,8 @@ lists_list lists_initList (void)
   l->noOfelements = 0;
   l->next = NULL;
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -233,6 +235,8 @@ void * lists_getItemFromList (lists_list l, unsigned int n)
       l = l->next;
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -266,6 +270,8 @@ unsigned int lists_getIndexOfList (lists_list l, void * c)
         }
       return l->noOfelements+(lists_getIndexOfList (l->next, c));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -290,6 +296,8 @@ unsigned int lists_noOfItemsInList (lists_list l)
       } while (! (l == NULL));
       return t;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -370,6 +378,8 @@ unsigned int lists_isItemInList (lists_list l, void * c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -411,6 +421,8 @@ lists_list lists_duplicateList (lists_list l)
       i += 1;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_lists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

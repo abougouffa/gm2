@@ -198,6 +198,8 @@ static void DSdbExit (DynamicStrings_String s)
 static unsigned int IsDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -253,6 +255,8 @@ static DynamicStrings_String FormatString (DynamicStrings_String fmt, int *start
     }
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -405,6 +409,8 @@ static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int
     }
   DSdbExit ((DynamicStrings_String) NULL);
   return in;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -428,6 +434,8 @@ static DynamicStrings_String Copy (DynamicStrings_String fmt, DynamicStrings_Str
         }
     }
   return in;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -473,6 +481,8 @@ static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicSt
         }
       return s;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -490,6 +500,8 @@ DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String fmt)
   s = HandlePercent (fmt, DynamicStrings_InitString ((char *) "", 0), 0);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -514,6 +526,8 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String fmt, unsigne
   s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -540,6 +554,8 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String fmt, unsigne
   s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -569,6 +585,8 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String fmt, unsigne
   s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -601,6 +619,8 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String fmt, unsigne
   s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -653,6 +673,8 @@ DynamicStrings_String FormatStrings_HandleEscape (DynamicStrings_String s)
   s = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), j, 0)));
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_FormatStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

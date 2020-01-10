@@ -749,6 +749,8 @@ static unsigned int Capture (DynamicStrings_String s)
   */
   captured = s;
   return 1;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -766,6 +768,8 @@ static unsigned int Min (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -783,6 +787,8 @@ static unsigned int Max (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -921,6 +927,8 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
   if ((libc_strncpy (s->debug.proc, p, (StrLib_StrLen ((char *) proc, _proc_high))+1)) == NULL)
     {}  /* empty.  */
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -935,6 +943,8 @@ static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s)
       list = list->debug.next;
     }
   return list == s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1033,6 +1043,8 @@ static unsigned int IsOnAllocated (DynamicStrings_String s)
       }
   } while (! (f == NULL));
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1057,6 +1069,8 @@ static unsigned int IsOnDeallocated (DynamicStrings_String s)
       }
   } while (! (f == NULL));
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1220,6 +1234,8 @@ static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
       __builtin_unreachable ();
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1320,6 +1336,8 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
         }
     }
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1344,6 +1362,8 @@ static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String 
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1354,6 +1374,8 @@ static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String 
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1495,6 +1517,8 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 739, (char *) "InitString", 10);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1547,6 +1571,8 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
         }
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1594,6 +1620,8 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 938, (char *) "InitStringCharStar", 18);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1617,6 +1645,8 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 958, (char *) "InitStringChar", 14);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1635,6 +1665,8 @@ DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
       s->head->state = marked;
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1652,6 +1684,8 @@ unsigned int DynamicStrings_Length (DynamicStrings_String s)
     {
       return s->contents.len+(DynamicStrings_Length (s->contents.next));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1694,6 +1728,8 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
       __builtin_unreachable ();
     }
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1723,6 +1759,8 @@ DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char c
     }
   ConcatContents (&t->contents, (char *) &b.array[0], 1, 1, 0);
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1744,6 +1782,8 @@ DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStr
       a->contents.len = 0;
     }
   return DynamicStrings_ConCat (a, b);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1763,6 +1803,8 @@ DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1154, (char *) "Dup", 3);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1783,6 +1825,8 @@ DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicString
       a = AssignDebug (a, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1174, (char *) "Add", 3);
     }
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1832,6 +1876,8 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1864,6 +1910,8 @@ unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
       t = DynamicStrings_KillString (t);
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1900,6 +1948,8 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
       t = DynamicStrings_KillString (t);
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1926,6 +1976,8 @@ DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1301, (char *) "Mult", 4);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2021,6 +2073,8 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
       d = AssignDebug (d, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1386, (char *) "Slice", 5);
     }
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2063,6 +2117,8 @@ int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
       s = s->contents.next;
     }
   return -1;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2113,6 +2169,8 @@ int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
       s = s->contents.next;
     }
   return j;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2143,6 +2201,8 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1498, (char *) "RemoveComment", 13);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2166,6 +2226,8 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1610, (char *) "RemoveWhitePrefix", 17);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2189,6 +2251,8 @@ DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s
       s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/DynamicStrings.mod", 54, 1632, (char *) "RemoveWhitePostfix", 18);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2224,6 +2288,8 @@ DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2259,6 +2325,8 @@ DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2318,6 +2386,8 @@ char DynamicStrings_char (DynamicStrings_String s, int i)
     {
       return s->contents.buf.array[c];
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2370,6 +2440,8 @@ void * DynamicStrings_string (DynamicStrings_String s)
         }
       return s->head->charStar;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2387,6 +2459,8 @@ DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_hig
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitString ((char *) a, _a_high), (char *) file, _file_high, line, (char *) "InitString", 10);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2402,6 +2476,8 @@ DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringCharStar (a), (char *) file, _file_high, line, (char *) "InitStringCharStar", 18);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2417,6 +2493,8 @@ DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, uns
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringChar (ch), (char *) file, _file_high, line, (char *) "InitStringChar", 14);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2432,6 +2510,8 @@ DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned i
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Mult (s, n), (char *) file, _file_high, line, (char *) "Mult", 4);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2447,6 +2527,8 @@ DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Dup (s), (char *) file, _file_high, line, (char *) "Dup", 3);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2465,6 +2547,8 @@ DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, 
   s = AssignDebug (DynamicStrings_Slice (s, low, high), (char *) file, _file_high, line, (char *) "Slice", 5);
   DSdbExit (s);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2553,6 +2637,8 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
       frameHead = frameHead->next;
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_DynamicStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

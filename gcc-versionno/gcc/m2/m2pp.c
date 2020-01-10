@@ -372,11 +372,13 @@ pv (tree t)
 /* ps - print statement list.  Expected to be printed interactively
    from the debugger: print ps(expr), or to be called from code.  */
 
+#if 0
 void
 ps (tree t)
 {
   pf (t);
 }
+#endif
 
 #if 0
 void
@@ -389,6 +391,7 @@ ptc (tree t)
 
 /* */
 
+#if 0
 static tree rememberF = NULL;
 
 static void
@@ -398,6 +401,7 @@ remember (tree t)
   printf ("type:  watch *((tree *) %p) != %p\n", (void *)&DECL_SAVED_TREE (t),
           (void *)DECL_SAVED_TREE (t));
 }
+#endif
 
 /* push - pushes tree, t, onto stack.  */
 

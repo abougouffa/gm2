@@ -80,6 +80,8 @@ DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module
     {
       return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, (MaxFileName-(DynamicStrings_Length (extension)))-1), '.'), extension);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -92,6 +94,8 @@ DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module
 DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module)
 {
   return DynamicStrings_Slice (module, 0, MaxStemName);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -110,6 +114,8 @@ DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filenam
     {
       return filename;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -131,6 +137,8 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
     {
       return DynamicStrings_Slice (filename, i+1, 0);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcFileName_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

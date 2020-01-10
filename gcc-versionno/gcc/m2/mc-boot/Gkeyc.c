@@ -730,6 +730,8 @@ static scope new (decl_node n)
       freeList = freeList->next;
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -744,6 +746,8 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCatChar ((*m), '_');
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -758,6 +762,8 @@ static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "_", 1), DynamicStrings_Mark ((*m)));
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -795,6 +801,8 @@ static unsigned int clash (nameKey_Name n, unsigned int scopes)
       return TRUE;
     }
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1389,6 +1397,8 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
       symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1434,6 +1444,8 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
     }
   m = DynamicStrings_KillString (m);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

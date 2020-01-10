@@ -83,6 +83,8 @@ unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
       a[j] = ASCII_nul;
     }
   return i < UnixArgs_ArgC;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -94,6 +96,8 @@ unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
 unsigned int Args_Narg (void)
 {
   return UnixArgs_ArgC;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_Args_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

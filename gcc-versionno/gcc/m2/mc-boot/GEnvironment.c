@@ -75,6 +75,8 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
       a[i] = ASCII_nul;
     }
   return Addr != NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_Environment_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -224,6 +224,8 @@ mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc 
   p->indent = 0;
   p->stacked = NULL;
   return p;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -238,6 +240,8 @@ mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p)
   Storage_ALLOCATE ((void **) &q, sizeof (_T1));
   (*q) = (*p);
   return q;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -264,6 +268,8 @@ mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p)
   q = mcPretty_dupPretty (p);
   q->stacked = p;
   return q;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -283,6 +289,8 @@ mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
   q->curLine = p->curLine;
   mcPretty_killPretty (&p);
   return q;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -293,6 +301,8 @@ mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
 unsigned int mcPretty_getindent (mcPretty_pretty p)
 {
   return p->indent;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -320,6 +330,8 @@ unsigned int mcPretty_getcurpos (mcPretty_pretty s)
     {
       return s->curPos;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -330,6 +342,8 @@ unsigned int mcPretty_getcurpos (mcPretty_pretty s)
 unsigned int mcPretty_getseekpos (mcPretty_pretty s)
 {
   return s->seekPos;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -340,6 +354,8 @@ unsigned int mcPretty_getseekpos (mcPretty_pretty s)
 unsigned int mcPretty_getcurline (mcPretty_pretty s)
 {
   return s->curLine;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void mcPretty_setNeedSpace (mcPretty_pretty s)

@@ -6549,6 +6549,8 @@ static unsigned int isLocal (decl_node n)
       return decl_isProcedure (s);
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6590,6 +6592,8 @@ static void importEnumFields (decl_node m, decl_node n)
 static unsigned int isComplex (decl_node n)
 {
   return n == complexN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6600,6 +6604,8 @@ static unsigned int isComplex (decl_node n)
 static unsigned int isLongComplex (decl_node n)
 {
   return n == longcomplexN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6610,6 +6616,8 @@ static unsigned int isLongComplex (decl_node n)
 static unsigned int isShortComplex (decl_node n)
 {
   return n == shortcomplexN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6621,6 +6629,8 @@ static unsigned int isAProcType (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return (decl_isProcType (n)) || (n == procN);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6635,6 +6645,8 @@ static fixupInfo initFixupInfo (void)
   f.count = 0;
   f.info = Indexing_InitIndex (1);
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6661,6 +6673,8 @@ static decl_node makeDef (nameKey_Name n)
   d->defF.visited = FALSE;
   initPair (&d->defF.com);
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6687,6 +6701,8 @@ static decl_node makeImp (nameKey_Name n)
   d->impF.visited = FALSE;
   initPair (&d->impF.com);
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6712,6 +6728,8 @@ static decl_node makeModule (nameKey_Name n)
   d->moduleF.visited = FALSE;
   initPair (&d->moduleF.com);
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6722,6 +6740,8 @@ static decl_node makeModule (nameKey_Name n)
 static unsigned int isDefForC (decl_node n)
 {
   return (decl_isDef (n)) && n->defF.forC;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6786,6 +6806,8 @@ static decl_node addTo (scopeT *decls, decl_node d)
         }
     }
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6975,6 +6997,8 @@ static decl_node checkPtr (decl_node n)
         }
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -6985,6 +7009,8 @@ static decl_node checkPtr (decl_node n)
 static unsigned int isVarDecl (decl_node n)
 {
   return n->kind == vardecl;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7042,6 +7068,8 @@ static decl_node addProcedureToScope (decl_node d, nameKey_Name n)
       symbolKey_putSymKey (baseSymbols, n, (void *) haltN);
     }
   return addToScope (d);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7081,6 +7109,8 @@ static decl_node makeOptParameter (decl_node l, decl_node type, decl_node init)
   n->optargF.init = init;
   n->optargF.scope = NULL;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7092,6 +7122,8 @@ static unsigned int setwatch (decl_node n)
 {
   globalNode = n;
   return TRUE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7102,6 +7134,8 @@ static unsigned int setwatch (decl_node n)
 static unsigned int runwatch (void)
 {
   return globalNode->kind == identlist;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7112,6 +7146,8 @@ static unsigned int runwatch (void)
 static unsigned int isIdentList (decl_node n)
 {
   return n->kind == identlist;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7130,6 +7166,8 @@ static unsigned int identListLen (decl_node n)
       mcDebug_assert (isIdentList (n));
       return wlists_noOfItemsInList (n->identlistF.names);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7174,6 +7212,8 @@ static decl_node makeVarientField (decl_node v, decl_node p)
   n->varientfieldF.listOfSons = Indexing_InitIndex (1);
   n->varientfieldF.scope = decl_getDeclScope ();
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7273,6 +7313,8 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
    END ;
   */
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7338,6 +7380,8 @@ static decl_node getParent (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7365,6 +7409,8 @@ static decl_node getRecord (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7376,6 +7422,8 @@ static unsigned int isConstExp (decl_node c)
 {
   mcDebug_assert (c != NULL);
   return c->kind == constexp;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7413,6 +7461,8 @@ static decl_node getNextFixup (fixupInfo *f)
 {
   (*f).count += 1;
   return Indexing_GetIndice ((*f).info, (*f).count);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7433,6 +7483,8 @@ static decl_node doMakeEnum (void)
   e->enumerationF.high = NULL;
   addEnumToModule (currentModule, e);
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7485,6 +7537,8 @@ static decl_node getExpList (decl_node p, unsigned int n)
   mcDebug_assert (decl_isExpList (p));
   mcDebug_assert (n <= (Indexing_HighIndice (p->explistF.exp)));
   return Indexing_GetIndice (p->explistF.exp, n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7503,6 +7557,8 @@ static unsigned int expListLen (decl_node p)
       mcDebug_assert (decl_isExpList (p));
       return Indexing_HighIndice (p->explistF.exp);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7531,6 +7587,8 @@ static unsigned int getConstExpComplete (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7570,6 +7628,8 @@ static decl_node doMakeConstExp (void)
   c = makeUnary ((nodeT) constexp, (decl_node) NULL, (decl_node) NULL);
   addConstToModule (currentModule, c);
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7608,6 +7668,8 @@ static unsigned int isAnyType (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7666,6 +7728,8 @@ static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
   f->intrinsicF.postUnreachable = k == halt;
   initPair (&f->intrinsicF.intrinsicComment);
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7676,6 +7740,8 @@ static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
 static decl_node makeIntrinsicUnaryType (nodeT k, decl_node paramList, decl_node returnType)
 {
   return makeUnary (k, getExpList (paramList, 1), returnType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7686,6 +7752,8 @@ static decl_node makeIntrinsicUnaryType (nodeT k, decl_node paramList, decl_node
 static decl_node makeIntrinsicBinaryType (nodeT k, decl_node paramList, decl_node returnType)
 {
   return makeBinary (k, getExpList (paramList, 1), getExpList (paramList, 2), returnType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7829,6 +7897,8 @@ static decl_node checkIntrinsic (decl_node c, decl_node n)
       return makeIntrinsicProc ((nodeT) throw, 1, n);
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7865,6 +7935,8 @@ static unsigned int isFuncCall (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == funccall;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7889,6 +7961,8 @@ static unsigned int isTypeInternal (decl_node n)
   mcDebug_assert (n != NULL);
   mcDebug_assert (decl_isType (n));
   return n->typeF.isInternal;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -7911,6 +7985,8 @@ static decl_node lookupBase (nameKey_Name n)
       keyc_useComplex ();
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8054,6 +8130,8 @@ static unsigned int isUnary (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8092,6 +8170,8 @@ static unsigned int isBinary (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8144,6 +8224,8 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
         }
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8154,6 +8236,8 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
 static unsigned int isLeafString (decl_node n)
 {
   return ((isString (n)) || ((decl_isLiteral (n)) && ((decl_getType (n)) == charN))) || ((decl_isConst (n)) && ((getExprType (n)) == charN));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8208,6 +8292,8 @@ static nameKey_Name addNames (decl_node a, decl_node b)
   sa = DynamicStrings_KillString (sa);
   sb = DynamicStrings_KillString (sb);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8233,6 +8319,8 @@ static decl_node resolveString (decl_node n)
       n = decl_makeString (addNames (resolveString (n->binaryF.left), resolveString (n->binaryF.right)));
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8257,6 +8345,8 @@ static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res)
       rs = DynamicStrings_KillString (rs);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8274,6 +8364,8 @@ static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node result
       n = doMakeBinary (k, l, r, resultType);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8319,6 +8411,8 @@ static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
         __builtin_unreachable ();
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8335,6 +8429,8 @@ static decl_node doMakeComponentRef (decl_node rec, decl_node field)
   n->componentrefF.field = field;
   n->componentrefF.resultType = decl_getType (field);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8346,6 +8442,8 @@ static unsigned int isComponentRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == componentref;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8357,6 +8455,8 @@ static unsigned int isArrayRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == arrayref;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8368,6 +8468,8 @@ static unsigned int isDeref (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == deref;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8445,6 +8547,8 @@ static decl_node makeBase (nodeT k)
         break;
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8478,6 +8582,8 @@ static unsigned int isOrdinal (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8492,6 +8598,8 @@ static decl_node mixTypes (decl_node a, decl_node b)
       return addressN;
     }
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8506,6 +8614,8 @@ static decl_node doSetExprType (decl_node *t, decl_node n)
       (*t) = n;
     }
   return (*t);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8537,6 +8647,8 @@ static decl_node getMaxMinType (decl_node n)
       /* avoid dangling else.  */
       return n;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8548,6 +8660,8 @@ static decl_node doGetFuncType (decl_node n)
 {
   mcDebug_assert (isFuncCall (n));
   return doSetExprType (&n->funccallF.type, decl_getType (n->funccallF.function));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8922,6 +9036,8 @@ static decl_node getExprType (decl_node n)
       t = doGetExprType (n);
     }
   return t;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9074,6 +9190,8 @@ static DynamicStrings_String getFQstring (decl_node n)
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
       return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9097,6 +9215,8 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
       return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9114,6 +9234,8 @@ static DynamicStrings_String getString (decl_node n)
     {
       return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9314,6 +9436,8 @@ static unsigned int needsParen (decl_node n)
         __builtin_unreachable ();
     }
   return TRUE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9724,6 +9848,8 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9811,6 +9937,8 @@ static unsigned int isZero (decl_node n)
       return isZero (n->unaryF.arg);
     }
   return (decl_getSymName (n)) == (nameKey_makeKey ((char *) "0", 1));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -9993,6 +10121,8 @@ static decl_node getSetLow (decl_node n)
           return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10662,6 +10792,8 @@ static unsigned int isString (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == string;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10746,6 +10878,8 @@ static DynamicStrings_String toCstring (nameKey_Name n)
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
   return replaceChar (replaceChar (s, '\\', (char *) "\\\\", 2), '"', (char *) "\\\"", 2);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10759,6 +10893,8 @@ static DynamicStrings_String toCchar (nameKey_Name n)
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
   return replaceChar (replaceChar (s, '\\', (char *) "\\\\", 2), '\'', (char *) "\\'", 2);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10798,6 +10934,8 @@ static unsigned int countChar (DynamicStrings_String s, char ch)
 static unsigned int lenCstring (DynamicStrings_String s)
 {
   return (DynamicStrings_Length (s))-(countChar (s, '\\'));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10880,6 +11018,8 @@ static void doStringC (mcPretty_pretty p, decl_node n)
 static unsigned int isPunct (char ch)
 {
   return (((((((((ch == '.') || (ch == '(')) || (ch == ')')) || (ch == '^')) || (ch == ':')) || (ch == ';')) || (ch == '{')) || (ch == '}')) || (ch == ',')) || (ch == '*');
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10890,6 +11030,8 @@ static unsigned int isPunct (char ch)
 static unsigned int isWhite (char ch)
 {
   return ((ch == ' ') || (ch == ASCII_tab)) || (ch == ASCII_lf);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -10951,6 +11093,8 @@ static mcPretty_pretty outKm2 (mcPretty_pretty p, char *a_, unsigned int _a_high
       p = mcPretty_popPretty (p);
     }
   return p;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11000,6 +11144,8 @@ static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
   t = DynamicStrings_KillString (t);
   s = DynamicStrings_KillString (s);
   return p;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11161,6 +11307,8 @@ static nameKey_Name doCname (nameKey_Name n, cnameT *c, unsigned int scopes)
         }
       return (*c).name;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11196,6 +11344,8 @@ static nameKey_Name getDName (decl_node n, unsigned int scopes)
         break;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11307,6 +11457,8 @@ static decl_node getParameterVariable (decl_node n, nameKey_Name m)
     }
   mcDebug_assert (decl_isProcedure (p));
   return decl_lookupInScope (p, m);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11705,6 +11857,8 @@ static void doCompletePartialArray (mcPretty_pretty p, decl_node t, decl_node r)
 static decl_node lookupConst (decl_node type, nameKey_Name n)
 {
   return decl_makeLiteralInt (n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11891,6 +12045,8 @@ static decl_node getMax (decl_node n)
       mcDebug_assert (isOrdinal (n));
       return doMax (n);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -11916,6 +12072,8 @@ static decl_node getMin (decl_node n)
       mcDebug_assert (isOrdinal (n));
       return doMin (n);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12059,6 +12217,8 @@ static unsigned int isBase (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12180,6 +12340,8 @@ static unsigned int isSystem (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12482,6 +12644,8 @@ static void doRecordC (mcPretty_pretty p, decl_node n, decl_node *m)
 static unsigned int isBitset (decl_node n)
 {
   return n == bitsetN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12493,6 +12657,8 @@ static unsigned int isNegative (decl_node n)
 {
   /* --fixme-- needs to be completed.  */
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12725,6 +12891,8 @@ static unsigned int isExternal (decl_node n)
 
   s = decl_getScope (n);
   return ((s != NULL) && (decl_isDef (s))) && (((decl_isImp (decl_getMainModule ())) && (s != (decl_lookupDef (decl_getSymName (decl_getMainModule ()))))) || (decl_isModule (decl_getMainModule ())));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -12903,6 +13071,8 @@ static unsigned int checkDeclareUnboundedParamCopyC (mcPretty_pretty p, decl_nod
         }
     }
   return seen;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13080,6 +13250,8 @@ static DynamicStrings_String tempName (void)
 {
   tempCount += 1;
   return FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "_T%d", 4), (unsigned char *) &tempCount, (sizeof (tempCount)-1));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13100,6 +13272,8 @@ static decl_node makeIntermediateType (DynamicStrings_String s, decl_node p)
   putTypeInternal (p);
   decl_leaveScope ();
   return p;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13571,6 +13745,8 @@ static unsigned int isStatementSequenceEmpty (decl_node s)
 {
   mcDebug_assert (decl_isStatementSequence (s));
   return (Indexing_HighIndice (s->stmtF.statements)) == 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13591,6 +13767,8 @@ static unsigned int isSingleStatement (decl_node s)
     }
   s = Indexing_GetIndice (s->stmtF.statements, 1);
   return (! (decl_isStatementSequence (s))) || (isSingleStatement (s));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13707,6 +13885,8 @@ static unsigned int requiresUnpackProc (decl_node s)
 {
   mcDebug_assert (isAssignment (s));
   return (decl_isProcedure (s->assignmentF.expr)) || ((decl_skipType (decl_getType (s->assignmentF.des))) != (decl_skipType (decl_getType (s->assignmentF.expr))));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13735,6 +13915,8 @@ static void doAssignmentC (mcPretty_pretty p, decl_node s)
 static unsigned int containsStatement (decl_node s)
 {
   return ((s != NULL) && (decl_isStatementSequence (s))) && (! (isStatementSequenceEmpty (s)));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13843,6 +14025,8 @@ static void doElsifC (mcPretty_pretty p, decl_node s)
 static unsigned int noIfElse (decl_node n)
 {
   return (((n != NULL) && (decl_isIf (n))) && (n->ifF.else_ == NULL)) && (n->ifF.elsif == NULL);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13907,6 +14091,8 @@ static unsigned int noIfElseChained (decl_node n)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13934,6 +14120,8 @@ static unsigned int hasIfElse (decl_node n)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13944,6 +14132,8 @@ static unsigned int hasIfElse (decl_node n)
 static unsigned int isIfElse (decl_node n)
 {
   return ((n != NULL) && (decl_isIf (n))) && ((n->ifF.else_ != NULL) || (n->ifF.elsif != NULL));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -13983,6 +14173,8 @@ static unsigned int hasIfAndNoElse (decl_node n)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -14448,6 +14640,8 @@ static void doAdrExprC (mcPretty_pretty p, decl_node n)
 static unsigned int typePair (decl_node a, decl_node b, decl_node x, decl_node y)
 {
   return ((a == x) && (b == y)) || ((a == y) && (b == x));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -14465,6 +14659,8 @@ static unsigned int needsCast (decl_node at, decl_node ft)
     {
       return TRUE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -14531,6 +14727,8 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
         }
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -14633,6 +14831,8 @@ static decl_node getNthParamType (Indexing_Index l, unsigned int i)
       return decl_getType (p);
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -14682,6 +14882,8 @@ static decl_node getNthParam (Indexing_Index l, unsigned int i)
         }
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -15322,6 +15524,8 @@ static unsigned int isIntrinsic (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -15535,6 +15739,8 @@ static unsigned int isIntrinsicFunction (decl_node n)
         return FALSE;
         break;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -15585,6 +15791,8 @@ static decl_node getFuncFromExpr (decl_node n)
       n = decl_skipType (decl_getType (n));
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -15995,6 +16203,8 @@ static unsigned int canUseSwitchCaseLabels (decl_node n)
       i += 1;
     }
   return TRUE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16023,6 +16233,8 @@ static unsigned int canUseSwitch (decl_node n)
       i += 1;
     }
   return TRUE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16238,6 +16450,8 @@ static void includeParameters (decl_node n)
 static unsigned int isHalt (decl_node n)
 {
   return n->kind == halt;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16248,6 +16462,8 @@ static unsigned int isHalt (decl_node n)
 static unsigned int isReturnOrHalt (decl_node n)
 {
   return (isHalt (n)) || (decl_isReturn (n));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16258,6 +16474,8 @@ static unsigned int isReturnOrHalt (decl_node n)
 static unsigned int isLastStatementReturn (decl_node n)
 {
   return isLastStatement (n, (decl_isNodeF) {(decl_isNodeF_t) isReturnOrHalt});
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16276,6 +16494,8 @@ static unsigned int isLastStatementSequence (decl_node n, decl_isNodeF q)
       return isLastStatement ((decl_node) Indexing_GetIndice (n->stmtF.statements, h), q);
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16302,6 +16522,8 @@ static unsigned int isLastStatementIf (decl_node n, decl_isNodeF q)
       ret = isLastStatement (n->ifF.else_, q);
     }
   return ret;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16328,6 +16550,8 @@ static unsigned int isLastStatementElsif (decl_node n, decl_isNodeF q)
       ret = isLastStatement (n->elsifF.else_, q);
     }
   return ret;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16358,6 +16582,8 @@ static unsigned int isLastStatementCase (decl_node n, decl_isNodeF q)
       ret = ret && (isLastStatement (n->caseF.else_, q));
     }
   return ret;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16400,6 +16626,8 @@ static unsigned int isLastStatement (decl_node n, decl_isNodeF q)
       return TRUE;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16428,9 +16656,18 @@ static void doProcedureC (decl_node n)
   doStatementsC (doP, n->procedureF.beginStatements);
   if (n->procedureF.returnType != NULL)
     {
-      if (returnException && (! (isLastStatementReturn (n))))
+      if (returnException)
         {
-          doException (doP, (char *) "ReturnException", 15, n);
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if (isLastStatementReturn (n))
+            {
+              outText (doP, (char *) "/* static analysis guarentees a RETURN statement will be used before here.  */\\n", 80);
+              outText (doP, (char *) "__builtin_unreachable ();\\n", 27);
+            }
+          else
+            {
+              doException (doP, (char *) "ReturnException", 15, n);
+            }
         }
     }
   doP = outKc (doP, (char *) "}\\n", 3);
@@ -16489,6 +16726,8 @@ static dependentState allDependants (decl_node n)
   s = walkDependants (l, n);
   alists_killList (&l);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16513,6 +16752,8 @@ static dependentState walkDependants (alists_alist l, decl_node n)
       alists_includeItemIntoList (l, (void *) n);
       return doDependants (l, n);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16540,6 +16781,8 @@ static dependentState walkType (alists_alist l, decl_node n)
       queueBlocked (t);
       return blocked;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16697,6 +16940,8 @@ static dependentState walkRecord (alists_alist l, decl_node n)
   dbt ((char *) "}\\n", 3);
   mcPretty_setindent (doP, o);
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16738,6 +16983,8 @@ static dependentState walkVarient (alists_alist l, decl_node n)
   db ((char *) "{completed", 10, n);
   dbt ((char *) "}\\n", 3);
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16772,6 +17019,8 @@ static dependentState walkVar (alists_alist l, decl_node n)
       queueBlocked (t);
       return blocked;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16800,6 +17049,8 @@ static dependentState walkEnumeration (alists_alist l, decl_node n)
       i += 1;
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16827,6 +17078,8 @@ static dependentState walkSubrange (alists_alist l, decl_node n)
       return s;
     }
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16849,6 +17102,8 @@ static dependentState walkSubscript (alists_alist l, decl_node n)
       return s;
     }
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16868,6 +17123,8 @@ static dependentState walkPointer (alists_alist l, decl_node n)
       return completed;
     }
   return walkType (l, n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16895,6 +17152,8 @@ static dependentState walkArray (alists_alist l, decl_node n)
         }
     }
   return walkDependants (l, n->arrayF.subr);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16917,6 +17176,8 @@ static dependentState walkConst (alists_alist l, decl_node n)
       return s;
     }
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16935,6 +17196,8 @@ static dependentState walkVarParam (alists_alist l, decl_node n)
       return completed;
     }
   return walkDependants (l, t);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16953,6 +17216,8 @@ static dependentState walkParam (alists_alist l, decl_node n)
       return completed;
     }
   return walkDependants (l, t);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -16971,6 +17236,8 @@ static dependentState walkOptarg (alists_alist l, decl_node n)
       return completed;
     }
   return walkDependants (l, t);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17006,6 +17273,8 @@ static dependentState walkRecordField (alists_alist l, decl_node n)
       /* s := walkDependants (l, t)  */
       return blocked;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17037,6 +17306,8 @@ static dependentState walkVarientField (alists_alist l, decl_node n)
   n->varientfieldF.simple = t <= 1;
   dbs (s, n);
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17047,6 +17318,8 @@ static dependentState walkVarientField (alists_alist l, decl_node n)
 static dependentState walkEnumerationField (alists_alist l, decl_node n)
 {
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17057,6 +17330,8 @@ static dependentState walkEnumerationField (alists_alist l, decl_node n)
 static dependentState walkSet (alists_alist l, decl_node n)
 {
   return walkDependants (l, decl_getType (n));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17082,6 +17357,8 @@ static dependentState walkProcType (alists_alist l, decl_node n)
         }
     }
   return walkParameters (l, n->proctypeF.parameters);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17099,6 +17376,8 @@ static dependentState walkProcedure (alists_alist l, decl_node n)
       return s;
     }
   return walkParameters (l, n->procedureF.parameters);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17126,6 +17405,8 @@ static dependentState walkParameters (alists_alist l, Indexing_Index p)
       i += 1;
     }
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17136,6 +17417,8 @@ static dependentState walkParameters (alists_alist l, Indexing_Index p)
 static dependentState walkFuncCall (alists_alist l, decl_node n)
 {
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17153,6 +17436,8 @@ static dependentState walkUnary (alists_alist l, decl_node n)
       return s;
     }
   return walkDependants (l, n->unaryF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17175,6 +17460,8 @@ static dependentState walkBinary (alists_alist l, decl_node n)
       return s;
     }
   return walkDependants (l, n->binaryF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17197,6 +17484,8 @@ static dependentState walkComponentRef (alists_alist l, decl_node n)
       return s;
     }
   return walkDependants (l, n->componentrefF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17219,6 +17508,8 @@ static dependentState walkPointerRef (alists_alist l, decl_node n)
       return s;
     }
   return walkDependants (l, n->pointerrefF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17250,6 +17541,8 @@ static dependentState walkSetValue (alists_alist l, decl_node n)
       i += 1;
     }
   return completed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17488,6 +17781,8 @@ static unsigned int tryComplete (decl_node n, nodeProcedure c, nodeProcedure t, 
       return TRUE;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -17510,6 +17805,8 @@ static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
       return TRUE;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -18876,6 +19173,8 @@ static DynamicStrings_String gen (decl_node n)
   s = DynamicStrings_ConCat (s, getFQstring (n));
   s = DynamicStrings_ConCat (s, DynamicStrings_InitString ((char *) " >", 2));
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -19009,6 +19308,8 @@ static unsigned int tryPartial (decl_node n, nodeProcedure pt)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20369,6 +20670,8 @@ static decl_node dbgAdd (alists_alist l, decl_node n)
       alists_includeItemIntoList (l, (void *) n);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20771,6 +21074,8 @@ static void addGenericAfter (decl_node n, decl_node c)
 static unsigned int isAssignment (decl_node n)
 {
   return n->kind == assignment;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20782,6 +21087,8 @@ static unsigned int isComment (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == comment;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20814,6 +21121,8 @@ static decl_node dupExplist (decl_node n)
       i += 1;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20825,6 +21134,8 @@ static decl_node dupArrayref (decl_node n)
 {
   mcDebug_assert (isArrayRef (n));
   return decl_makeArrayRef (decl_dupExpr (n->arrayrefF.array), decl_dupExpr (n->arrayrefF.index));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20836,6 +21147,8 @@ static decl_node dupPointerref (decl_node n)
 {
   mcDebug_assert (decl_isPointerRef (n));
   return decl_makePointerRef (decl_dupExpr (n->pointerrefF.ptr), decl_dupExpr (n->pointerrefF.field));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20847,6 +21160,8 @@ static decl_node dupComponentref (decl_node n)
 {
   mcDebug_assert (isComponentRef (n));
   return doMakeComponentRef (decl_dupExpr (n->componentrefF.rec), decl_dupExpr (n->componentrefF.field));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20858,6 +21173,8 @@ static decl_node dupBinary (decl_node n)
 {
   /* assert (isBinary (n)) ;  */
   return makeBinary (n->kind, decl_dupExpr (n->binaryF.left), decl_dupExpr (n->binaryF.right), n->binaryF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20869,6 +21186,8 @@ static decl_node dupUnary (decl_node n)
 {
   /* assert (isUnary (n)) ;  */
   return makeUnary (n->kind, decl_dupExpr (n->unaryF.arg), n->unaryF.resultType);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20884,6 +21203,8 @@ static decl_node dupFunccall (decl_node n)
   m = decl_makeFuncCall (decl_dupExpr (n->funccallF.function), decl_dupExpr (n->funccallF.args));
   m->funccallF.type = n->funccallF.type;
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -20905,6 +21226,8 @@ static decl_node dupSetValue (decl_node n)
       i += 1;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21151,6 +21474,8 @@ static decl_node makeBitnum (void)
   b->subrangeF.low = lookupConst (b, nameKey_makeKey ((char *) "0", 1));
   b->subrangeF.high = lookupConst (b, nameKey_makeKey ((char *) "31", 2));
   return b;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21321,6 +21646,8 @@ static void init (void)
 unsigned int decl_getDeclaredMod (decl_node n)
 {
   return n->at.modDeclared;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21332,6 +21659,8 @@ unsigned int decl_getDeclaredMod (decl_node n)
 unsigned int decl_getDeclaredDef (decl_node n)
 {
   return n->at.defDeclared;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21343,6 +21672,8 @@ unsigned int decl_getDeclaredDef (decl_node n)
 unsigned int decl_getFirstUsed (decl_node n)
 {
   return n->at.firstUsed;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21354,6 +21685,8 @@ unsigned int decl_isDef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == def;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21365,6 +21698,8 @@ unsigned int decl_isImp (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == imp;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21375,6 +21710,8 @@ unsigned int decl_isImp (decl_node n)
 unsigned int decl_isImpOrModule (decl_node n)
 {
   return (decl_isImp (n)) || (decl_isModule (n));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21403,6 +21740,8 @@ unsigned int decl_isVisited (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21515,6 +21854,8 @@ unsigned int decl_getEnumsComplete (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21570,6 +21911,8 @@ decl_node decl_getNextEnum (void)
   mcDebug_assert (n != NULL);
   mcDebug_assert ((decl_isEnumeration (n)) || (decl_isEnumerationField (n)));
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21581,6 +21924,8 @@ unsigned int decl_isModule (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == module;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21594,6 +21939,8 @@ unsigned int decl_isMainModule (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n == mainModule;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21635,6 +21982,8 @@ decl_node decl_lookupDef (nameKey_Name n)
       Indexing_IncludeIndiceIntoIndex (defUniverseI, (void *) d);
     }
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21655,6 +22004,8 @@ decl_node decl_lookupImp (nameKey_Name n)
     }
   mcDebug_assert (! (decl_isModule (m)));
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21675,6 +22026,8 @@ decl_node decl_lookupModule (nameKey_Name n)
     }
   mcDebug_assert (! (decl_isImp (m)));
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21722,6 +22075,8 @@ decl_node decl_lookupInScope (decl_node scope, nameKey_Name n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21733,6 +22088,8 @@ unsigned int decl_isConst (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == const_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -21744,6 +22101,8 @@ unsigned int decl_isType (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == type;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22114,6 +22473,8 @@ decl_node decl_skipType (decl_node n)
       n = decl_getType (n);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22144,6 +22505,8 @@ unsigned int decl_isTypeHidden (decl_node n)
   mcDebug_assert (n != NULL);
   mcDebug_assert (decl_isType (n));
   return n->typeF.isHidden;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22155,6 +22518,8 @@ unsigned int decl_hasHidden (decl_node n)
 {
   mcDebug_assert (decl_isDef (n));
   return n->defF.hasHidden;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22166,6 +22531,8 @@ unsigned int decl_isVar (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == var;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22176,6 +22543,8 @@ unsigned int decl_isVar (decl_node n)
 unsigned int decl_isTemporary (decl_node n)
 {
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22204,6 +22573,8 @@ unsigned int decl_isExported (decl_node n)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22218,6 +22589,8 @@ decl_node decl_getDeclScope (void)
 
   i = Indexing_HighIndice (scopeStack);
   return Indexing_GetIndice (scopeStack, i);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22473,6 +22846,8 @@ decl_node decl_getScope (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22484,6 +22859,8 @@ unsigned int decl_isLiteral (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == literal;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22499,6 +22876,8 @@ unsigned int decl_isConstSet (decl_node n)
       return decl_isSet (decl_skipType (decl_getType (n)));
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22510,6 +22889,8 @@ unsigned int decl_isEnumerationField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == enumerationfield;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22521,6 +22902,8 @@ unsigned int decl_isEnumeration (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == enumeration;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22532,6 +22915,8 @@ unsigned int decl_isUnbounded (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return (n->kind == array) && n->arrayF.isUnbounded;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22543,6 +22928,8 @@ unsigned int decl_isParameter (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return (n->kind == param) || (n->kind == varparam);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22554,6 +22941,8 @@ unsigned int decl_isVarParam (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varparam;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22565,6 +22954,8 @@ unsigned int decl_isParam (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == param;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22575,6 +22966,8 @@ unsigned int decl_isParam (decl_node n)
 unsigned int decl_isNonVarParam (decl_node n)
 {
   return decl_isParam (n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22599,6 +22992,8 @@ decl_node decl_addOptParameter (decl_node proc, nameKey_Name id, decl_node type,
       decl_addParameter (proc, p);
     }
   return p;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22609,6 +23004,8 @@ decl_node decl_addOptParameter (decl_node proc, nameKey_Name id, decl_node type,
 unsigned int decl_isOptarg (decl_node n)
 {
   return n->kind == optarg_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22620,6 +23017,8 @@ unsigned int decl_isRecord (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == record;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22631,6 +23030,8 @@ unsigned int decl_isRecordField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == recordfield;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22642,6 +23043,8 @@ unsigned int decl_isVarientField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varientfield;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22653,6 +23056,8 @@ unsigned int decl_isArray (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == array;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22664,6 +23069,8 @@ unsigned int decl_isProcType (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == proctype;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22675,6 +23082,8 @@ unsigned int decl_isPointer (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == pointer;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22686,6 +23095,8 @@ unsigned int decl_isProcedure (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == procedure;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22697,6 +23108,8 @@ unsigned int decl_isVarient (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varient;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22708,6 +23121,8 @@ unsigned int decl_isSet (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == set;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22719,6 +23134,8 @@ unsigned int decl_isSubrange (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == subrange;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22729,6 +23146,8 @@ unsigned int decl_isSubrange (decl_node n)
 unsigned int decl_isZtype (decl_node n)
 {
   return n == ztypeN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22739,6 +23158,8 @@ unsigned int decl_isZtype (decl_node n)
 unsigned int decl_isRtype (decl_node n)
 {
   return n == rtypeN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22756,6 +23177,8 @@ decl_node decl_makeConst (nameKey_Name n)
   d->constF.scope = decl_getDeclScope ();
   d->constF.value = NULL;
   return addToScope (d);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22785,6 +23208,8 @@ decl_node decl_makeType (nameKey_Name n)
   d->typeF.isHidden = FALSE;
   d->typeF.isInternal = FALSE;
   return addToScope (d);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22812,6 +23237,8 @@ decl_node decl_makeTypeImp (nameKey_Name n)
       d->typeF.isHidden = FALSE;
       return addToScope (d);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22833,6 +23260,8 @@ decl_node decl_makeVar (nameKey_Name n)
   d->varF.isVarParameter = FALSE;
   initCname (&d->varF.cname);
   return addToScope (d);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22875,6 +23304,8 @@ decl_node decl_makeVarDecl (decl_node i, decl_node type)
       j += 1;
     }
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22892,6 +23323,8 @@ decl_node decl_makeEnum (void)
     {
       return doMakeEnum ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22909,6 +23342,8 @@ decl_node decl_makeEnumField (decl_node e, nameKey_Name n)
     {
       return doMakeEnumField (e, n);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22926,6 +23361,8 @@ decl_node decl_makeSubrange (decl_node low, decl_node high)
   n->subrangeF.type = NULL;
   n->subrangeF.scope = decl_getDeclScope ();
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22952,6 +23389,8 @@ decl_node decl_makePointer (decl_node type)
   n->pointerF.type = type;
   n->pointerF.scope = decl_getDeclScope ();
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22967,6 +23406,8 @@ decl_node decl_makeSet (decl_node type)
   n->setF.type = type;
   n->setF.scope = decl_getDeclScope ();
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -22987,6 +23428,8 @@ decl_node decl_makeArray (decl_node subr, decl_node type)
   n->arrayF.scope = decl_getDeclScope ();
   n->arrayF.isUnbounded = FALSE;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23014,6 +23457,8 @@ decl_node decl_makeRecord (void)
   n->recordF.listOfSons = Indexing_InitIndex (1);
   n->recordF.scope = decl_getDeclScope ();
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23056,6 +23501,8 @@ decl_node decl_makeVarient (decl_node r)
         __builtin_unreachable ();
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23101,6 +23548,8 @@ decl_node decl_addFieldsToRecord (decl_node r, decl_node v, decl_node i, decl_no
       j += 1;
     }
   return r;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23154,6 +23603,8 @@ decl_node decl_buildVarientFieldRecord (decl_node v, decl_node p)
   mcDebug_assert (decl_isVarientField (f));
   putFieldVarient (f, v);
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23558,6 +24009,8 @@ decl_node decl_import (decl_node m, decl_node n)
       return n;
     }
   return r;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23578,6 +24031,8 @@ decl_node decl_lookupExported (decl_node n, nameKey_Name i)
       return r;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23613,6 +24068,8 @@ decl_node decl_lookupSym (nameKey_Name n)
       h -= 1;
     }
   return lookupBase (n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23705,6 +24162,8 @@ nameKey_Name decl_getSource (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23715,6 +24174,8 @@ nameKey_Name decl_getSource (decl_node n)
 decl_node decl_getMainModule (void)
 {
   return mainModule;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23725,6 +24186,8 @@ decl_node decl_getMainModule (void)
 decl_node decl_getCurrentModule (void)
 {
   return currentModule;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23822,6 +24285,8 @@ decl_node decl_makeProcedure (nameKey_Name n)
       d->procedureF.modComment = NULL;
     }
   return addProcedureToScope (d, n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23873,6 +24338,8 @@ decl_node decl_makeProcType (void)
   d->proctypeF.vararg = FALSE;
   d->proctypeF.returnType = NULL;
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23927,6 +24394,8 @@ decl_node decl_makeVarParameter (decl_node l, decl_node type, decl_node proc)
   d->varparamF.scope = proc;
   d->varparamF.isUnbounded = FALSE;
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23945,6 +24414,8 @@ decl_node decl_makeNonVarParameter (decl_node l, decl_node type, decl_node proc)
   d->paramF.scope = proc;
   d->paramF.isUnbounded = FALSE;
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -23986,6 +24457,8 @@ decl_node decl_makeIdentList (void)
   n->identlistF.names = wlists_initList ();
   n->identlistF.cnamed = FALSE;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24006,6 +24479,8 @@ unsigned int decl_putIdent (decl_node n, nameKey_Name i)
       wlists_putItemIntoList (n->identlistF.names, (unsigned int) i);
       return TRUE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24068,6 +24543,8 @@ decl_node decl_makeVarargs (void)
   d = newNode ((nodeT) varargs);
   d->varargsF.scope = NULL;
   return d;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24078,6 +24555,8 @@ decl_node decl_makeVarargs (void)
 unsigned int decl_isVarargs (decl_node n)
 {
   return n->kind == varargs;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24284,6 +24763,8 @@ decl_node decl_makeComponentRef (decl_node rec, decl_node field)
     {
       return doMakeComponentRef (rec, field);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24301,6 +24782,8 @@ decl_node decl_makePointerRef (decl_node ptr, decl_node field)
   n->pointerrefF.field = field;
   n->pointerrefF.resultType = decl_getType (field);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24312,6 +24795,8 @@ unsigned int decl_isPointerRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == pointerref;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24326,6 +24811,8 @@ decl_node decl_makeDeRef (decl_node n)
   t = decl_skipType (decl_getType (n));
   mcDebug_assert (decl_isPointer (t));
   return makeUnary ((nodeT) deref, n, decl_getType (t));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24362,6 +24849,8 @@ decl_node decl_makeArrayRef (decl_node array, decl_node index)
   } while (! (i > j));
   n->arrayrefF.resultType = t;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24372,6 +24861,8 @@ decl_node decl_makeArrayRef (decl_node array, decl_node index)
 decl_node decl_getLastOp (decl_node n)
 {
   return doGetLastOp (n, n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24382,6 +24873,8 @@ decl_node decl_getLastOp (decl_node n)
 decl_node decl_getCardinal (void)
 {
   return cardinalN;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24407,6 +24900,8 @@ decl_node decl_makeLiteralInt (nameKey_Name n)
     }
   s = DynamicStrings_KillString (s);
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24422,6 +24917,8 @@ decl_node decl_makeLiteralReal (nameKey_Name n)
   m->literalF.name = n;
   m->literalF.type = rtypeN;
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24448,6 +24945,8 @@ decl_node decl_makeString (nameKey_Name n)
       m->stringF.cchar = NULL;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24463,6 +24962,8 @@ decl_node decl_makeSetValue (void)
   n->setvalueF.type = bitsetN;
   n->setvalueF.values = Indexing_InitIndex (1);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24474,6 +24975,8 @@ unsigned int decl_isSetValue (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == setvalue;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24487,6 +24990,8 @@ decl_node decl_putSetValue (decl_node n, decl_node t)
   mcDebug_assert (decl_isSetValue (n));
   n->setvalueF.type = t;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24502,6 +25007,8 @@ decl_node decl_includeSetValue (decl_node n, decl_node l, decl_node h)
   mcDebug_assert (decl_isSetValue (n));
   Indexing_IncludeIndiceIntoIndex (n->setvalueF.values, (void *) l);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24535,6 +25042,8 @@ decl_node decl_getBuiltinConst (nameKey_Name n)
       /* avoid dangling else.  */
       return NULL;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24549,6 +25058,8 @@ decl_node decl_makeExpList (void)
   n = newNode ((nodeT) explist);
   n->explistF.exp = Indexing_InitIndex (1);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24560,6 +25071,8 @@ unsigned int decl_isExpList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == explist;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24589,6 +25102,8 @@ decl_node decl_makeConstExp (void)
     {
       return doMakeConstExp ();
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24616,6 +25131,8 @@ decl_node decl_getNextConstExp (void)
       return getNextFixup (&currentModule->moduleF.constFixup);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24656,6 +25173,8 @@ decl_node decl_fixupConstExp (decl_node c, decl_node e)
   mcDebug_assert (isConstExp (c));
   c->unaryF.arg = e;
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24708,6 +25227,8 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
       initPair (&f->funccallF.funccallComment);
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24722,6 +25243,8 @@ decl_node decl_makeStatementSequence (void)
   n = newNode ((nodeT) stmtseq);
   n->stmtF.statements = Indexing_InitIndex (1);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24732,6 +25255,8 @@ decl_node decl_makeStatementSequence (void)
 unsigned int decl_isStatementSequence (decl_node n)
 {
   return n->kind == stmtseq;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24848,6 +25373,8 @@ decl_node decl_makeReturn (void)
   n->returnF.exp = NULL;
   initPair (&n->returnF.returnComment);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24859,6 +25386,8 @@ unsigned int decl_isReturn (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == return_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24887,6 +25416,8 @@ decl_node decl_makeWhile (void)
   initPair (&n->whileF.doComment);
   initPair (&n->whileF.endComment);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24910,6 +25441,8 @@ void decl_putWhile (decl_node n, decl_node e, decl_node s)
 unsigned int decl_isWhile (decl_node n)
 {
   return n->kind == while_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -24951,6 +25484,8 @@ decl_node decl_makeAssignment (decl_node d, decl_node e)
   n->assignmentF.expr = e;
   initPair (&n->assignmentF.assignComment);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25025,6 +25560,8 @@ decl_node decl_makeExit (decl_node l, unsigned int n)
   e->exitF.loop = l;
   l->loopF.labelno = n;
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25036,6 +25573,8 @@ unsigned int decl_isExit (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == exit_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25051,6 +25590,8 @@ decl_node decl_makeLoop (void)
   l->loopF.statements = NULL;
   l->loopF.labelno = 0;
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25062,6 +25603,8 @@ unsigned int decl_isLoop (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == loop;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25094,6 +25637,8 @@ decl_node decl_makeComment (char *a_, unsigned int _a_high)
   mcComment_addText (c, DynamicStrings_string (s));
   s = DynamicStrings_KillString (s);
   return decl_makeCommentS (c);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25115,6 +25660,8 @@ decl_node decl_makeCommentS (mcComment_commentDesc c)
       n->commentF.content = c;
       return n;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25137,6 +25684,8 @@ decl_node decl_makeIf (decl_node e, decl_node s)
   initPair (&n->ifF.elseComment);
   initPair (&n->ifF.endComment);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25147,6 +25696,8 @@ decl_node decl_makeIf (decl_node e, decl_node s)
 unsigned int decl_isIf (decl_node n)
 {
   return n->kind == if_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25178,6 +25729,8 @@ decl_node decl_makeElsif (decl_node i, decl_node e, decl_node s)
       mcDebug_assert (i->elsifF.else_ == NULL);
     }
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25188,6 +25741,8 @@ decl_node decl_makeElsif (decl_node i, decl_node e, decl_node s)
 unsigned int decl_isElsif (decl_node n)
 {
   return n->kind == elsif;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25229,6 +25784,8 @@ decl_node decl_makeFor (void)
   n->forF.increment = NULL;
   n->forF.statements = NULL;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25240,6 +25797,8 @@ unsigned int decl_isFor (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == for_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25277,6 +25836,8 @@ decl_node decl_makeRepeat (void)
   initPair (&n->repeatF.repeatComment);
   initPair (&n->repeatF.untilComment);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25288,6 +25849,8 @@ unsigned int decl_isRepeat (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == repeat;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25340,6 +25903,8 @@ decl_node decl_makeCase (void)
   n->caseF.caseLabelList = Indexing_InitIndex (1);
   n->caseF.else_ = NULL;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25351,6 +25916,8 @@ unsigned int decl_isCase (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == case_;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25364,6 +25931,8 @@ decl_node decl_putCaseExpression (decl_node n, decl_node e)
   mcDebug_assert (decl_isCase (n));
   n->caseF.expression = e;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25377,6 +25946,8 @@ decl_node decl_putCaseElse (decl_node n, decl_node e)
   mcDebug_assert (decl_isCase (n));
   n->caseF.else_ = e;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25392,6 +25963,8 @@ decl_node decl_putCaseStatement (decl_node n, decl_node l, decl_node s)
   mcDebug_assert (decl_isCaseList (l));
   Indexing_IncludeIndiceIntoIndex (n->caseF.caseLabelList, (void *) decl_makeCaseLabelList (l, s));
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25407,6 +25980,8 @@ decl_node decl_makeCaseLabelList (decl_node l, decl_node s)
   n->caselabellistF.caseList = l;
   n->caselabellistF.statements = s;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25418,6 +25993,8 @@ unsigned int decl_isCaseLabelList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == caselabellist;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25432,6 +26009,8 @@ decl_node decl_makeCaseList (void)
   n = newNode ((nodeT) caselist);
   n->caselistF.rangePairs = Indexing_InitIndex (1);
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25443,6 +26022,8 @@ unsigned int decl_isCaseList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == caselist;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25455,6 +26036,8 @@ decl_node decl_putCaseRange (decl_node n, decl_node lo, decl_node hi)
   mcDebug_assert (decl_isCaseList (n));
   Indexing_IncludeIndiceIntoIndex (n->caselistF.rangePairs, (void *) decl_makeRange (lo, hi));
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25470,6 +26053,8 @@ decl_node decl_makeRange (decl_node lo, decl_node hi)
   n->rangeF.lo = lo;
   n->rangeF.hi = hi;
   return n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25481,6 +26066,8 @@ unsigned int decl_isRange (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == range;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -25500,6 +26087,8 @@ decl_node decl_dupExpr (decl_node n)
     {
       return doDupExpr (n);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

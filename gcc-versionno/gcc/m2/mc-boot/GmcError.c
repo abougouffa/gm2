@@ -335,6 +335,8 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
       i += 1;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -428,6 +430,8 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
       s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w, _w_high);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -489,6 +493,8 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
         break;
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -577,6 +583,8 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
         break;
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -678,6 +686,8 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
       } while (! (e == NULL));
     }
   return written;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -830,6 +840,8 @@ mcError_error mcError_newError (unsigned int atTokenNo)
       f->next = e;
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -845,6 +857,8 @@ mcError_error mcError_newWarning (unsigned int atTokenNo)
   e = mcError_newError (atTokenNo);
   e->fatal = FALSE;
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -874,6 +888,8 @@ mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e)
       e->child = f;
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high)

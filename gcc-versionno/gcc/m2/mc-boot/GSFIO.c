@@ -96,6 +96,8 @@ DynamicStrings_String SFIO_ReadS (FIO_File file);
 unsigned int SFIO_Exists (DynamicStrings_String fname)
 {
   return FIO_exists (DynamicStrings_string (fname), DynamicStrings_Length (fname));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -109,6 +111,8 @@ unsigned int SFIO_Exists (DynamicStrings_String fname)
 FIO_File SFIO_OpenToRead (DynamicStrings_String fname)
 {
   return FIO_openToRead (DynamicStrings_string (fname), DynamicStrings_Length (fname));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -122,6 +126,8 @@ FIO_File SFIO_OpenToRead (DynamicStrings_String fname)
 FIO_File SFIO_OpenToWrite (DynamicStrings_String fname)
 {
   return FIO_openToWrite (DynamicStrings_string (fname), DynamicStrings_Length (fname));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -140,6 +146,8 @@ FIO_File SFIO_OpenToWrite (DynamicStrings_String fname)
 FIO_File SFIO_OpenForRandom (DynamicStrings_String fname, unsigned int towrite, unsigned int newfile)
 {
   return FIO_openForRandom (DynamicStrings_string (fname), DynamicStrings_Length (fname), towrite, newfile);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -156,6 +164,8 @@ DynamicStrings_String SFIO_WriteS (FIO_File file, DynamicStrings_String s)
       nBytes = FIO_WriteNBytes (file, DynamicStrings_Length (s), DynamicStrings_string (s));
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -183,6 +193,8 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
         {}  /* empty.  */
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_SFIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

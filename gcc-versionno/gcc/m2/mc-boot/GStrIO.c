@@ -117,6 +117,8 @@ static void Echo (char ch)
 static unsigned int AlphaNum (char ch)
 {
   return (((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'))) || ((ch >= '0') && (ch <= '9'));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

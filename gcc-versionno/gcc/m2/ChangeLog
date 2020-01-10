@@ -5,6 +5,57 @@
           declare if not already set.
 	* m2/mc-boot-ch/GSelective.c:  include sys/time.h.
 	* m2/mc-boot-ch/Gwrapc.c:  include stdlib.h.
+	* m2/gm2-gcc/m2decl.c:  (stop) removed.
+	* m2/m2pp.c:  commented out unused debugging functions.
+	* m2/mc-boot/GArgs.c:  regenerated.
+	* m2/mc-boot/GCmdArgs.c:  regenerated.
+	* m2/mc-boot/GDynamicStrings.c:  regenerated.
+	* m2/mc-boot/GEnvironment.c:  regenerated.
+	* m2/mc-boot/GFIO.c:  regenerated.
+	* m2/mc-boot/GFormatStrings.c:  regenerated.
+	* m2/mc-boot/GIO.c:  regenerated.
+	* m2/mc-boot/GIndexing.c:  regenerated.
+	* m2/mc-boot/GM2EXCEPTION.c:  regenerated.
+	* m2/mc-boot/GM2RTS.c:  regenerated.
+	* m2/mc-boot/GPushBackInput.c:  regenerated.
+	* m2/mc-boot/GRTExceptions.c:  regenerated.
+	* m2/mc-boot/GRTint.c:  regenerated.
+	* m2/mc-boot/GSArgs.c:  regenerated.
+	* m2/mc-boot/GSFIO.c:  regenerated.
+	* m2/mc-boot/GStorage.c:  regenerated.
+	* m2/mc-boot/GStrCase.c:  regenerated.
+	* m2/mc-boot/GStrIO.c:  regenerated.
+	* m2/mc-boot/GStrLib.c:  regenerated.
+	* m2/mc-boot/GStringConvert.c:  regenerated.
+	* m2/mc-boot/GSysStorage.c:  regenerated.
+	* m2/mc-boot/Galists.c:  regenerated.
+	* m2/mc-boot/Gdecl.c:  regenerated.
+	* m2/mc-boot/Gkeyc.c:  regenerated.
+	* m2/mc-boot/Glists.c:  regenerated.
+	* m2/mc-boot/GmcComment.c:  regenerated.
+	* m2/mc-boot/GmcComp.c:  regenerated.
+	* m2/mc-boot/GmcError.c:  regenerated.
+	* m2/mc-boot/GmcFileName.c:  regenerated.
+	* m2/mc-boot/GmcLexBuf.c:  regenerated.
+	* m2/mc-boot/GmcMetaError.c:  regenerated.
+	* m2/mc-boot/GmcOptions.c:  regenerated.
+	* m2/mc-boot/GmcPreprocess.c:  regenerated.
+	* m2/mc-boot/GmcPretty.c:  regenerated.
+	* m2/mc-boot/GmcPrintf.c:  regenerated.
+	* m2/mc-boot/GmcSearch.c:  regenerated.
+	* m2/mc-boot/GmcStack.c:  regenerated.
+	* m2/mc-boot/GmcStream.c:  regenerated.
+	* m2/mc-boot/Gmcp1.c:  regenerated.
+	* m2/mc-boot/Gmcp2.c:  regenerated.
+	* m2/mc-boot/Gmcp3.c:  regenerated.
+	* m2/mc-boot/Gmcp4.c:  regenerated.
+	* m2/mc-boot/Gmcp5.c:  regenerated.
+	* m2/mc-boot/GnameKey.c:  regenerated.
+	* m2/mc-boot/GsymbolKey.c:  regenerated.
+	* m2/mc-boot/Gvarargs.c:  regenerated.
+	* m2/mc-boot/Gwlists.c:  regenerated.
+	* m2/mc/decl.mod:  (doProcedureC) emit __builtin_unreachable if
+	  all last statements perform a RETURN.
 
 2020-01-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

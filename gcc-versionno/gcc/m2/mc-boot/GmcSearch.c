@@ -307,6 +307,8 @@ unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStr
   newpath = DynamicStrings_KillString (newpath);
   completeSearchPath = DynamicStrings_KillString (completeSearchPath);
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -333,6 +335,8 @@ unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStri
   /* and try the GNU Modula-2 default extension  */
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "def", 3)));
   return mcSearch_findSourceFile (f, fullPath);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -359,6 +363,8 @@ unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStri
   /* and try the GNU Modula-2 default extension  */
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "mod", 3)));
   return mcSearch_findSourceFile (f, fullPath);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

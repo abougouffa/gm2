@@ -197,6 +197,8 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
       k = child->key;
     }
   return k;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -234,6 +236,8 @@ static comparison compare (ptrToChar pi, nameKey_Name j)
         }
     }
   return equal;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -273,6 +277,8 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
       } while (! (((*child) == NULL) || (result == equal)));
       return result;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -412,6 +418,8 @@ unsigned int nameKey_lengthKey (nameKey_Name key)
       p += 1;
     }
   return i;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -475,6 +483,8 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
       } while (! (child == NULL));
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -535,6 +545,8 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
         }
       return c1 == c2;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -552,6 +564,8 @@ void * nameKey_keyToCharStar (nameKey_Name key)
     {
       return Indexing_GetIndice (keyIndex, (unsigned int) key);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_nameKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

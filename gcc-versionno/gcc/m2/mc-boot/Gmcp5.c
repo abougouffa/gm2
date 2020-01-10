@@ -2429,6 +2429,8 @@ static void followNode (decl_node n)
 static decl_node push (decl_node n)
 {
   return mcStack_push (stk, (void *) n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2439,6 +2441,8 @@ static decl_node push (decl_node n)
 static decl_node pop (void)
 {
   return mcStack_pop (stk);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2449,6 +2453,8 @@ static decl_node pop (void)
 static decl_node replace (decl_node n)
 {
   return mcStack_replace (stk, (void *) n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2459,6 +2465,8 @@ static decl_node replace (decl_node n)
 static decl_node peep (void)
 {
   return push (pop ());
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2469,6 +2477,8 @@ static decl_node peep (void)
 static unsigned int depth (void)
 {
   return mcStack_depth (stk);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2499,6 +2509,8 @@ static unsigned int isQualident (decl_node n)
       return (type != NULL) && (decl_isRecord (type));
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2549,6 +2561,8 @@ static decl_node lookupWithSym (nameKey_Name i)
       d -= 1;
     }
   return decl_lookupSym (i);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2559,6 +2573,8 @@ static decl_node lookupWithSym (nameKey_Name i)
 static decl_node pushStmt (decl_node n)
 {
   return mcStack_push (stmtStk, (void *) n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2569,6 +2585,8 @@ static decl_node pushStmt (decl_node n)
 static decl_node popStmt (void)
 {
   return mcStack_pop (stmtStk);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2580,6 +2598,8 @@ static decl_node popStmt (void)
 static decl_node peepStmt (void)
 {
   return pushStmt (popStmt ());
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2590,6 +2610,8 @@ static decl_node peepStmt (void)
 static decl_node pushLoop (decl_node n)
 {
   return mcStack_push (loopStk, (void *) n);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2600,6 +2622,8 @@ static decl_node pushLoop (decl_node n)
 static decl_node popLoop (void)
 {
   return mcStack_pop (loopStk);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2611,6 +2635,8 @@ static decl_node popLoop (void)
 static decl_node peepLoop (void)
 {
   return pushLoop (popLoop ());
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2679,6 +2705,8 @@ static decl_node makeIndexedArray (unsigned int c, decl_node t)
       c -= 1;
     }
   return t;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -3210,6 +3238,8 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   return str;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -3704,6 +3734,8 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -3721,6 +3753,8 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -8356,6 +8390,8 @@ unsigned int mcp5_CompilationUnit (void)
   mcStack_kill (&stmtStk);
   mcStack_kill (&loopStk);
   return WasNoError;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcp5_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -619,6 +619,8 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
       /* avoid dangling else.  */
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -783,6 +785,8 @@ DynamicStrings_String mcOptions_handleOptions (void)
       i += 1;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -793,6 +797,8 @@ DynamicStrings_String mcOptions_handleOptions (void)
 unsigned int mcOptions_getQuiet (void)
 {
   return quiet;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -803,6 +809,8 @@ unsigned int mcOptions_getQuiet (void)
 unsigned int mcOptions_getVerbose (void)
 {
   return verbose;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -813,6 +821,8 @@ unsigned int mcOptions_getVerbose (void)
 unsigned int mcOptions_getInternalDebugging (void)
 {
   return internalDebugging;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -838,6 +848,8 @@ DynamicStrings_String mcOptions_getCppCommandLine (void)
         }
       return s;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -848,6 +860,8 @@ DynamicStrings_String mcOptions_getCppCommandLine (void)
 DynamicStrings_String mcOptions_getOutputFile (void)
 {
   return outputFile;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -858,6 +872,8 @@ DynamicStrings_String mcOptions_getOutputFile (void)
 unsigned int mcOptions_getExtendedOpaque (void)
 {
   return extendedOpaque;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -879,6 +895,8 @@ void mcOptions_setDebugTopological (unsigned int value)
 unsigned int mcOptions_getDebugTopological (void)
 {
   return debugTopological;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -889,6 +907,8 @@ unsigned int mcOptions_getDebugTopological (void)
 DynamicStrings_String mcOptions_getHPrefix (void)
 {
   return hPrefix;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -899,6 +919,8 @@ DynamicStrings_String mcOptions_getHPrefix (void)
 unsigned int mcOptions_getIgnoreFQ (void)
 {
   return ignoreFQ;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

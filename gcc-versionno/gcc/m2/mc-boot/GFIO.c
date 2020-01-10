@@ -493,6 +493,8 @@ static unsigned int Max (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -510,6 +512,8 @@ static unsigned int Min (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -634,6 +638,8 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
         }
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -779,6 +785,8 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
     {
       return -1;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -881,6 +889,8 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
     {
       return -1;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1276,6 +1286,8 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
         }
     }
   return -1;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1361,6 +1373,8 @@ unsigned int FIO_IsNoError (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       return (fd != NULL) && (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1378,6 +1392,8 @@ unsigned int FIO_IsActive (FIO_File f)
     {
       return (Indexing_GetIndice (FileInfo, (unsigned int) f)) != NULL;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
@@ -1391,6 +1407,8 @@ unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
    The following functions are wrappers for the above.
   */
   return FIO_exists (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high)
@@ -1401,6 +1419,8 @@ FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high)
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToRead (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high)
@@ -1411,6 +1431,8 @@ FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high)
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToWrite (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int towrite, unsigned int newfile)
@@ -1421,6 +1443,8 @@ FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openForRandom (&fname, StrLib_StrLen ((char *) fname, _fname_high), towrite, newfile);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1490,6 +1514,8 @@ unsigned int FIO_exists (void * fname, unsigned int flength)
       FIO_Close (f);
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1515,6 +1541,8 @@ FIO_File FIO_openToRead (void * fname, unsigned int flength)
       ConnectToUnix (f, FALSE, FALSE);
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1540,6 +1568,8 @@ FIO_File FIO_openToWrite (void * fname, unsigned int flength)
       ConnectToUnix (f, TRUE, TRUE);
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1567,6 +1597,8 @@ FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int tow
       ConnectToUnix (f, towrite, newfile);
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1635,6 +1667,8 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
     {
       return 0;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1692,6 +1726,8 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
         }
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1739,6 +1775,8 @@ unsigned int FIO_EOF (FIO_File f)
         }
     }
   return TRUE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1774,6 +1812,8 @@ unsigned int FIO_EOLN (FIO_File f)
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1795,6 +1835,8 @@ unsigned int FIO_WasEOLN (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       return (fd != NULL) && (fd->state == endofline);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1818,6 +1860,8 @@ char FIO_ReadChar (FIO_File f)
     {
       return ASCII_nul;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1976,6 +2020,8 @@ unsigned int FIO_ReadCardinal (FIO_File f)
 
   FIO_ReadAny (f, (unsigned char *) &c, (sizeof (c)-1));
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1997,6 +2043,8 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
     }
   FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, (sizeof (f)-1));
   return -1;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -2126,6 +2174,8 @@ long int FIO_FindPosition (FIO_File f)
         }
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

@@ -334,6 +334,8 @@ static decl_node initParser (DynamicStrings_String s)
 {
   mcQuiet_qprintf1 ((char *) "Compiling: %s\\n", 15, (unsigned char *) &s, (sizeof (s)-1));
   return peepInto (s);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -457,6 +459,8 @@ static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicS
       libc_exit (1);
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -491,6 +495,8 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
       fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
     }
   return doOpen (n, symName, fileName, exitOnFailure);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -532,6 +538,8 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
       fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
     }
   return doOpen (n, symName, fileName, exitOnFailure);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -635,6 +643,8 @@ void mcComp_compile (DynamicStrings_String s)
 unsigned int mcComp_getPassNo (void)
 {
   return currentPass;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcComp_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

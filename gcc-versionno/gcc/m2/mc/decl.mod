@@ -11511,9 +11511,15 @@ BEGIN
    doStatementsC (doP, n^.procedureF.beginStatements) ;
    IF n^.procedureF.returnType # NIL
    THEN
-      IF returnException AND (NOT isLastStatementReturn (n))
+      IF returnException
       THEN
-         doException (doP, 'ReturnException', n)
+         IF isLastStatementReturn (n)
+	 THEN
+            outText (doP, "/* static analysis guarentees a RETURN statement will be used before here.  */\n") ;
+            outText (doP, "__builtin_unreachable ();\n") ;
+         ELSE
+            doException (doP, 'ReturnException', n)
+         END
       END
    END ;
    doP := outKc (doP, "}\n") ;

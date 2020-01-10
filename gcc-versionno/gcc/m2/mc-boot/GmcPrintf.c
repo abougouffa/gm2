@@ -142,6 +142,8 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
 static unsigned int isDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -206,6 +208,8 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
       i += 1;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

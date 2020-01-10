@@ -79,6 +79,8 @@ static void removeFiles (void);
 static DynamicStrings_String makeTempFile (DynamicStrings_String ext)
 {
   return DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "/tmp/mctemp.", 12), ext);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -90,6 +92,8 @@ static DynamicStrings_String onExitDelete (DynamicStrings_String filename)
 {
   alists_includeItemIntoList (listOfFiles, (void *) DynamicStrings_Dup (filename));
   return filename;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -156,6 +160,8 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
       commandLine = DynamicStrings_KillString (commandLine);
       return onExitDelete (tempfile);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

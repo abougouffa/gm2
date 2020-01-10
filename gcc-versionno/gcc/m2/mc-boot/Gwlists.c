@@ -178,6 +178,8 @@ wlists_wlist wlists_initList (void)
   l->noOfElements = 0;
   l->next = NULL;
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -242,6 +244,8 @@ unsigned int wlists_getItemFromList (wlists_wlist l, unsigned int n)
       l = l->next;
     }
   return 0;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -275,6 +279,8 @@ unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c)
         }
       return l->noOfElements+(wlists_getIndexOfList (l->next, c));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -299,6 +305,8 @@ unsigned int wlists_noOfItemsInList (wlists_wlist l)
       } while (! (l == NULL));
       return t;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -402,6 +410,8 @@ unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -443,6 +453,8 @@ wlists_wlist wlists_duplicateList (wlists_wlist l)
       i += 1;
     }
   return m;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_wlists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

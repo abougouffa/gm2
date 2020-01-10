@@ -532,6 +532,8 @@ static tokenBucket peeptokenBucket (unsigned int *t)
     }
   mcDebug_assert (ct == mcLexBuf_currenttoken);
   return b;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -665,6 +667,8 @@ static sourceList newElement (void * s)
       l->right = NULL;
     }
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -681,6 +685,8 @@ static sourceList newList (void)
   l->right = l;
   l->name = NULL;
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1198,6 +1204,8 @@ static tokenBucket findtokenBucket (unsigned int *tokenNo)
       b = b->next;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1286,6 +1294,8 @@ static unsigned int isLastTokenEof (void)
       return b->buf.array[b->len-1].token == mcReserved_eoftok;  /* len should always be >0  */
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1297,6 +1307,8 @@ static unsigned int isLastTokenEof (void)
 mcComment_commentDesc mcLexBuf_getProcedureComment (void)
 {
   return procedureComment;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1313,6 +1325,8 @@ mcComment_commentDesc mcLexBuf_getBodyComment (void)
   b = bodyComment;
   bodyComment = NULL;
   return b;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1330,6 +1344,8 @@ mcComment_commentDesc mcLexBuf_getAfterComment (void)
   a = afterComment;
   afterComment = NULL;
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1359,6 +1375,8 @@ unsigned int mcLexBuf_openSource (DynamicStrings_String s)
           return FALSE;
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1495,6 +1513,8 @@ void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
 unsigned int mcLexBuf_getPreviousTokenLineNo (void)
 {
   return mcLexBuf_getLineNo ();
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1513,6 +1533,8 @@ unsigned int mcLexBuf_getLineNo (void)
     {
       return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1530,6 +1552,8 @@ unsigned int mcLexBuf_getTokenNo (void)
     {
       return nextTokNo-1;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1572,6 +1596,8 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
           return l->line;
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1590,6 +1616,8 @@ unsigned int mcLexBuf_getColumnNo (void)
     {
       return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1632,6 +1660,8 @@ unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
           return l->col;
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1667,6 +1697,8 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
         }
       return l->name;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1677,6 +1709,8 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
 DynamicStrings_String mcLexBuf_getFileName (void)
 {
   return mcLexBuf_findFileNameFromToken (mcLexBuf_getTokenNo (), 0);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

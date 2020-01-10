@@ -146,6 +146,8 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
       Arg[ArgIndex] = ASCII_nul;
     }
   return (*CmdIndex) < HighC;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -218,21 +220,29 @@ static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIn
 static unsigned int Escape (char ch)
 {
   return ch == esc;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 static unsigned int Space (char ch)
 {
   return (ch == space) || (ch == tab);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 static unsigned int DoubleQuote (char ch)
 {
   return ch == dquote;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 static unsigned int SingleQuote (char ch)
 {
   return ch == squote;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -260,6 +270,8 @@ unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigne
     i += 1;
   } while (! ((i > n) || ! Another));
   return i > n;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -292,6 +304,8 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
    END ;
   */
   return ArgNo;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_CmdArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -54,6 +54,8 @@ void Storage_REALLOCATE (void * *a, unsigned int Size)
 unsigned int Storage_Available (unsigned int Size)
 {
   return SysStorage_Available (Size);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_Storage_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

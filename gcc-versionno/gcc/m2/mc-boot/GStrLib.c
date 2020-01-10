@@ -85,6 +85,8 @@ static unsigned int IsWhite (char ch);
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -158,6 +160,8 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
       i += 1;
     }
   return Higha < Highb;  /* substrings are equal so we go on length  */
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high)
@@ -184,6 +188,8 @@ unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned
       i += 1;
     }
   return ! (((i <= higha) && (a[i] != ASCII_nul)) || ((i <= highb) && (b[i] != ASCII_nul)));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
@@ -202,6 +208,8 @@ unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
       Len += 1;
     }
   return Len;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)
@@ -269,6 +277,8 @@ unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsig
         }
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

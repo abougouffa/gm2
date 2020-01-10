@@ -190,6 +190,8 @@ FIO_File PushBackInput_Open (char *a_, unsigned int _a_high)
   Init ();
   StrLib_StrCopy ((char *) a, _a_high, (char *) &FileName.array[0], MaxFileName);
   return FIO_OpenToRead ((char *) a, _a_high);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -238,6 +240,8 @@ char PushBackInput_GetCh (FIO_File f)
         }
       return ch;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -258,6 +262,8 @@ char PushBackInput_PutCh (FIO_File f, char ch)
       Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 125, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/PushBackInput.mod", 53);
     }
   return ch;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -388,6 +394,8 @@ void PushBackInput_Close (FIO_File f)
 unsigned int PushBackInput_GetExitStatus (void)
 {
   return ExitStatus;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -415,6 +423,8 @@ unsigned int PushBackInput_GetColumnPosition (void)
     {
       return Column-StackPtr;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -425,6 +435,8 @@ unsigned int PushBackInput_GetColumnPosition (void)
 unsigned int PushBackInput_GetCurrentLine (void)
 {
   return LineNo;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_PushBackInput_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

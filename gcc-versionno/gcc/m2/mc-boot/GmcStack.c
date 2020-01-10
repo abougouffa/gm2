@@ -101,6 +101,8 @@ mcStack_stack mcStack_init (void)
   s->list = Indexing_InitIndex (1);
   s->count = 0;
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -133,6 +135,8 @@ void * mcStack_push (mcStack_stack s, void * a)
     }
   s->count += 1;
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -171,6 +175,8 @@ void * mcStack_replace (mcStack_stack s, void * a)
 
   b = mcStack_pop (s);
   return mcStack_push (s, a);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -181,6 +187,8 @@ void * mcStack_replace (mcStack_stack s, void * a)
 unsigned int mcStack_depth (mcStack_stack s)
 {
   return s->count;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

@@ -464,6 +464,8 @@ static unsigned int Max (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -481,6 +483,8 @@ static unsigned int Min (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -498,6 +502,8 @@ static long unsigned int LongMin (long unsigned int a, long unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -508,6 +514,8 @@ static long unsigned int LongMin (long unsigned int a, long unsigned int b)
 static unsigned int IsDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -527,6 +535,8 @@ static unsigned int IsDecimalDigitValid (char ch, unsigned int base, unsigned in
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -553,6 +563,8 @@ static unsigned int IsHexidecimalDigitValid (char ch, unsigned int base, unsigne
       /* avoid dangling else.  */
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -572,6 +584,8 @@ static unsigned int IsDecimalDigitValidLong (char ch, unsigned int base, long un
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -598,6 +612,8 @@ static unsigned int IsHexidecimalDigitValidLong (char ch, unsigned int base, lon
       /* avoid dangling else.  */
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -617,6 +633,8 @@ static unsigned int IsDecimalDigitValidShort (char ch, unsigned int base, short 
     {
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -643,6 +661,8 @@ static unsigned int IsHexidecimalDigitValidShort (char ch, unsigned int base, sh
       /* avoid dangling else.  */
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -672,6 +692,8 @@ static long double ToThePower10 (long double v, int power)
         }
     }
   return v;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -695,6 +717,8 @@ static unsigned int DetermineSafeTruncation (void)
       LogPower += 1;
     }
   return LogPower;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -707,6 +731,8 @@ static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned i
   M2RTS_HALT (-1);
   __builtin_unreachable ();
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -719,6 +745,8 @@ static DynamicStrings_String lrtos (long double r, unsigned int TotalWidth, unsi
   M2RTS_HALT (-1);
   __builtin_unreachable ();
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -837,6 +865,8 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -978,6 +1008,8 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1019,6 +1051,8 @@ static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1096,6 +1130,8 @@ DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, 
       return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), DynamicStrings_Mark (s));
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1140,6 +1176,8 @@ DynamicStrings_String StringConvert_CardinalToString (unsigned int c, unsigned i
       return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1189,6 +1227,8 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
     {
       return (int ) (Min ((unsigned int) INT_MAX, c));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1225,6 +1265,8 @@ unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned i
     }
   s = DynamicStrings_KillString (s);
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1305,6 +1347,8 @@ DynamicStrings_String StringConvert_LongIntegerToString (long int i, unsigned in
       return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1354,6 +1398,8 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
     {
       return (long int ) (LongMin ((long unsigned int) LONG_MAX, c));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1400,6 +1446,8 @@ DynamicStrings_String StringConvert_LongCardinalToString (long unsigned int c, u
       return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1436,6 +1484,8 @@ long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, u
     }
   s = DynamicStrings_KillString (s);
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1482,6 +1532,8 @@ DynamicStrings_String StringConvert_ShortCardinalToString (short unsigned int c,
       return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1518,6 +1570,8 @@ short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s,
     }
   s = DynamicStrings_KillString (s);
   return c;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1530,6 +1584,8 @@ int StringConvert_stoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 10, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1540,6 +1596,8 @@ int StringConvert_stoi (DynamicStrings_String s)
 DynamicStrings_String StringConvert_itos (int i, unsigned int width, char padding, unsigned int sign)
 {
   return StringConvert_IntegerToString (i, width, padding, sign, 10, FALSE);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1550,6 +1608,8 @@ DynamicStrings_String StringConvert_itos (int i, unsigned int width, char paddin
 DynamicStrings_String StringConvert_ctos (unsigned int c, unsigned int width, char padding)
 {
   return StringConvert_CardinalToString (c, width, padding, 10, FALSE);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1562,6 +1622,8 @@ unsigned int StringConvert_stoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 10, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1574,6 +1636,8 @@ int StringConvert_hstoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 16, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1586,6 +1650,8 @@ int StringConvert_ostoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 8, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1598,6 +1664,8 @@ int StringConvert_bstoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 2, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1610,6 +1678,8 @@ unsigned int StringConvert_hstoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 16, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1622,6 +1692,8 @@ unsigned int StringConvert_ostoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 8, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1634,6 +1706,8 @@ unsigned int StringConvert_bstoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 2, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1651,6 +1725,8 @@ long double StringConvert_StringToLongreal (DynamicStrings_String s, unsigned in
   s = DynamicStrings_KillString (s);
   (*found) = ! error;
   return value;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1777,6 +1853,8 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
       s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (' ')), TotalWidth-(DynamicStrings_Length (s))), DynamicStrings_Mark (s));
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1789,6 +1867,8 @@ double StringConvert_stor (DynamicStrings_String s)
   unsigned int found;
 
   return (double ) (StringConvert_StringToLongreal (s, &found));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1801,6 +1881,8 @@ long double StringConvert_stolr (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToLongreal (s, &found);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1851,6 +1933,8 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
         }
       return s;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1901,6 +1985,8 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
     {
       return s;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_StringConvert_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

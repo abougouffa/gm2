@@ -119,6 +119,8 @@ static DynamicStrings_String removeLater (DynamicStrings_String filename)
 {
   alists_includeItemIntoList (listOfFiles, (void *) filename);
   return filename;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -158,6 +160,8 @@ static FIO_File createTemporaryFile (unsigned int id)
   s = removeLater (FormatStrings_Sprintf2 (s, (unsigned char *) &p, (sizeof (p)-1), (unsigned char *) &id, (sizeof (id)-1)));
   f = SFIO_OpenToWrite (s);
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -206,6 +210,8 @@ FIO_File mcStream_openFrag (unsigned int id)
   (*p) = f;
   Indexing_PutIndice (frag, id, (void *) p);
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -237,6 +243,8 @@ FIO_File mcStream_combine (void)
   Indexing_ForeachIndiceInIndexDo (frag, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) copy});
   removeFiles ();
   return destFile;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcStream_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

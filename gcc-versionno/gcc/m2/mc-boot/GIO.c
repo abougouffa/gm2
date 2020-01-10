@@ -147,6 +147,8 @@ static void Init (void);
 static unsigned int IsDefaultFd (int fd)
 {
   return (fd <= MaxDefaultFd) && (fd >= 0);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

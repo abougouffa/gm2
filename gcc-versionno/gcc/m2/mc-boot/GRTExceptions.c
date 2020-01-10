@@ -455,6 +455,8 @@ static Handler findHandler (RTExceptions_EHBlock e, unsigned int number)
     {
       return h;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -528,6 +530,8 @@ static void * stripPath (void * s)
         }
     }
   return f;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -604,6 +608,8 @@ static RTExceptions_EHBlock New (void)
       freeEHB = freeEHB->right;
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -625,6 +631,8 @@ static Handler NewHandler (void)
       freeHandler = freeHandler->right;
     }
   return h;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -637,6 +645,8 @@ static Handler KillHandler (Handler h)
   h->right = freeHandler;
   freeHandler = h;
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -649,6 +659,8 @@ static Handler KillHandlers (Handler h)
   h->left->right = freeHandler;
   freeHandler = h;
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -664,6 +676,8 @@ static Handler InitHandler (Handler h, Handler l, Handler r, Handler s, unsigned
   h->left = l;
   h->stack = s;
   return h;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -934,6 +948,8 @@ void RTExceptions_SetExceptionBlock (RTExceptions_EHBlock source)
 RTExceptions_EHBlock RTExceptions_GetExceptionBlock (void)
 {
   return currentEHB;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -944,6 +960,8 @@ RTExceptions_EHBlock RTExceptions_GetExceptionBlock (void)
 void * RTExceptions_GetTextBuffer (RTExceptions_EHBlock e)
 {
   return &e->buffer;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -954,6 +972,8 @@ void * RTExceptions_GetTextBuffer (RTExceptions_EHBlock e)
 unsigned int RTExceptions_GetTextBufferSize (RTExceptions_EHBlock e)
 {
   return sizeof (e->buffer);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -965,6 +985,8 @@ unsigned int RTExceptions_GetTextBufferSize (RTExceptions_EHBlock e)
 unsigned int RTExceptions_GetNumber (RTExceptions_EHBlock source)
 {
   return source->number;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -983,6 +1005,8 @@ RTExceptions_EHBlock RTExceptions_InitExceptionBlock (void)
   e->handlers->left = e->handlers;
   e->right = e;
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -996,6 +1020,8 @@ RTExceptions_EHBlock RTExceptions_KillExceptionBlock (RTExceptions_EHBlock e)
   e->right = freeEHB;
   freeEHB = e;
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1094,6 +1120,8 @@ void RTExceptions_BaseExceptionsThrow (void)
 unsigned int RTExceptions_IsInExceptionState (void)
 {
   return inException;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1110,6 +1138,8 @@ unsigned int RTExceptions_SetExceptionState (unsigned int to)
   old = inException;
   inException = to;
   return old;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1163,6 +1193,8 @@ void RTExceptions_SetExceptionSource (void * source)
 void * RTExceptions_GetExceptionSource (void)
 {
   return currentSource;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_RTExceptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

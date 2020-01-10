@@ -420,6 +420,8 @@ static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b
       mcError_internalError ((char *) "different string returned", 25, (char *) "../../gcc-versionno/gcc/m2/mc/mcMetaError.mod", 45, 110);
     }
   return a;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -430,6 +432,8 @@ static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b
 static unsigned int isWhite (char ch)
 {
   return ch == ' ';
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -470,6 +474,8 @@ static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, Dyn
       varargs_arg (sym, (unsigned char *) &c, (sizeof (c)-1));
       return DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -519,6 +525,8 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
       }
       return o;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -540,6 +548,8 @@ static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, Dyna
     {
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -581,6 +591,8 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
           return o;
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -617,6 +629,8 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
       varargs_end (&mod);
       return o;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -643,6 +657,8 @@ static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, Dyna
       varargs_replace ((*sym), (unsigned char *) &n, (sizeof (n)-1));
       return x (o, doAscii (bol, (*sym), o));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -675,6 +691,8 @@ static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, 
           return x (o, doAscii (bol, (*sym), o));
         }
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -697,6 +715,8 @@ static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, Dynami
       varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -739,6 +759,8 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
         break;
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -757,6 +779,8 @@ static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int b
       e = doError (e, t, decl_getDeclaredDef (n));
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -775,6 +799,8 @@ static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int b
       e = doError (e, t, decl_getDeclaredMod (n));
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -793,6 +819,8 @@ static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, var
       e = doError (e, t, decl_getFirstUsed (n));
     }
   return e;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -816,6 +844,8 @@ static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings
       a = x (a, DynamicStrings_ConCatChar (a, ' '));
     }
   return x (a, DynamicStrings_ConCat (a, b));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -946,6 +976,8 @@ static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
       /* avoid dangling else.  */
       return o;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -968,6 +1000,8 @@ static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, Dynam
         }
     }
   return o;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -994,6 +1028,8 @@ static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_
         }
     }
   return r;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -1262,6 +1298,8 @@ static DynamicStrings_String doFormat (mcError_error *e, errorType *t, DynamicSt
   ebnf (e, t, &r, s, sym, &i, l);
   s = DynamicStrings_KillString (s);
   return r;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

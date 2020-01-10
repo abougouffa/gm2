@@ -134,6 +134,8 @@ unsigned int SysStorage_Available (unsigned int Size)
       libc_free (a);
       return TRUE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

@@ -170,6 +170,8 @@ Indexing_Index Indexing_InitIndex (unsigned int low)
   i->Used = 0;
   i->Map = (unsigned int) 0;
   return i;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -182,6 +184,8 @@ Indexing_Index Indexing_KillIndex (Indexing_Index i)
   Storage_DEALLOCATE (&i->ArrayStart, i->ArraySize);
   Storage_DEALLOCATE ((void **) &i, sizeof (_T1));
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -193,6 +197,8 @@ Indexing_Index Indexing_DebugIndex (Indexing_Index i)
 {
   i->Debug = TRUE;
   return i;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -342,6 +348,8 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
         }
     }
   return (*p);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -369,6 +377,8 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
       j += 1;
     }
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 

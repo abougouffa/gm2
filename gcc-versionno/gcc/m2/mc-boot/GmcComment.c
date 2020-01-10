@@ -173,6 +173,8 @@ static unsigned int Min (unsigned int a, unsigned int b)
     {
       return b;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -194,6 +196,8 @@ static DynamicStrings_String RemoveNewlines (DynamicStrings_String s)
         }
     }
   return s;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -216,6 +220,8 @@ static unsigned int seenProcedure (mcComment_commentDesc cd, nameKey_Name procNa
   res = DynamicStrings_EqualCharStar (s, a);
   s = DynamicStrings_KillString (s);
   return res;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -286,6 +292,8 @@ mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces)
   cd->procName = nameKey_NulName;
   cd->used = FALSE;
   return cd;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -314,6 +322,8 @@ DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd)
       return cd->content;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -334,6 +344,8 @@ void * mcComment_getCommentCharStar (mcComment_commentDesc cd)
     {
       return DynamicStrings_string (s);
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -368,6 +380,8 @@ DynamicStrings_String mcComment_getProcedureComment (mcComment_commentDesc cd)
       return cd->content;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -383,6 +397,8 @@ DynamicStrings_String mcComment_getAfterStatementComment (mcComment_commentDesc 
       return cd->content;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -398,6 +414,8 @@ DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc
       return cd->content;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -408,6 +426,8 @@ DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc
 unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd)
 {
   return (cd != NULL) && (cd->type == procedureHeading);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -418,6 +438,8 @@ unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd)
 unsigned int mcComment_isBodyComment (mcComment_commentDesc cd)
 {
   return (cd != NULL) && (cd->type == inBody);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -428,6 +450,8 @@ unsigned int mcComment_isBodyComment (mcComment_commentDesc cd)
 unsigned int mcComment_isAfterComment (mcComment_commentDesc cd)
 {
   return (cd != NULL) && (cd->type == afterStatement);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_mcComment_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

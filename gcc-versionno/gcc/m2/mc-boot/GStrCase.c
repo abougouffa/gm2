@@ -139,6 +139,8 @@ char StrCase_Cap (char ch)
       ch = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('a')))+ ((unsigned int) ('A'))));
     }
   return ch;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -155,6 +157,8 @@ char StrCase_Lower (char ch)
       ch = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))));
     }
   return ch;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_StrCase_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -69,6 +69,8 @@ unsigned int M2EXCEPTION_IsM2Exception (void)
    Returns FALSE if the program or coroutine is not in the exception state.  */
   e = RTExceptions_GetExceptionBlock ();
   return (RTExceptions_GetNumber (e)) != (UINT_MAX);
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_M2EXCEPTION_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

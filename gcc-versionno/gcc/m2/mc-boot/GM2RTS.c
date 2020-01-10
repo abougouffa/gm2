@@ -226,6 +226,8 @@ unsigned int M2RTS_InstallTerminationProcedure (PROC p)
       tPtr += 1;
       return TRUE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -264,6 +266,8 @@ unsigned int M2RTS_InstallInitialProcedure (PROC p)
       iPtr += 1;
       return TRUE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -412,6 +416,8 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
       l += 1;
     }
   return l;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)

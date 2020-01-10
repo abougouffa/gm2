@@ -86,6 +86,8 @@ unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
       (*s) = NULL;
       return FALSE;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -97,6 +99,8 @@ unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
 unsigned int SArgs_Narg (void)
 {
   return UnixArgs_ArgC;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 void _M2_SArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

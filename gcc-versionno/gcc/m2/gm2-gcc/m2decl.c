@@ -40,11 +40,6 @@ static GTY (()) tree param_type_list;
 static GTY (()) tree param_list = NULL_TREE; /* ready for the next time we
                                                 call/define a function.  */
 
-static void
-stop ()
-{
-}
-
 /* DeclareKnownVariable - declares a variable in scope, funcscope.
    Note that the global variable, current_function_decl, is altered
    if isglobal is TRUE.  */

@@ -250,6 +250,8 @@ static int Max (int i, int j)
     {
       return j;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 static int Min (int i, int j)
@@ -265,6 +267,8 @@ static int Min (int i, int j)
     {
       return j;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -287,6 +291,8 @@ static Vector FindVector (int fd, VectorType t)
       v = v->exists;
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -304,6 +310,8 @@ static Vector FindVectorNo (unsigned int vec)
       v = v->exists;
     }
   return v;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -329,6 +337,8 @@ static Vector FindPendingVector (unsigned int vec)
         }
     }
   return NULL;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -436,6 +446,8 @@ static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b)
   Selective_GetTime (b, &bs, &bm);
   Assertion_Assert (bm < Microseconds);
   return (as > bs) || ((as == bs) && (am >= bm));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -579,6 +591,8 @@ static unsigned int activatePending (unsigned int untilInterrupt, RTint_Despatch
     }
   RTco_signal (lock);
   return FALSE;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -637,6 +651,8 @@ unsigned int RTint_InitInputVector (int fd, unsigned int pri)
       RTco_signal (lock);
       return v->no;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -671,6 +687,8 @@ unsigned int RTint_InitOutputVector (int fd, unsigned int pri)
       RTco_signal (lock);
       return v->no;
     }
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
@@ -699,6 +717,8 @@ unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsign
   Exists = v;
   RTco_signal (lock);
   return VecNo;
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
 }
 
 
