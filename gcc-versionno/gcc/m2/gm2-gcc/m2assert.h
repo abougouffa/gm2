@@ -27,6 +27,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #define EXTERN extern
 #endif /* !m2assert_c.  */
 
+#if !defined(ASSERT)
 #define ASSERT(X, Y)                                                          \
   {                                                                           \
     if (!(X))                                                                 \
@@ -36,7 +37,9 @@ along with GNU Modula-2; see the file COPYING3.  If not see
                         #X);                                                  \
       }                                                                       \
   }
+#endif
 
+#if !defined(ASSERT_BOOL)
 #define ASSERT_BOOL(X)                                                        \
   {                                                                           \
     if ((X != 0) && (X != 1))                                                 \
@@ -46,6 +49,9 @@ along with GNU Modula-2; see the file COPYING3.  If not see
             __FILE__, __LINE__, #X, X);                                       \
       }                                                                       \
   }
+#endif
+
+#if !defined(ASSERT_CONDITION)
 #define ASSERT_CONDITION(X)                                                   \
   {                                                                           \
     if (!(X))                                                                 \
@@ -54,6 +60,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
                         #X);                                                  \
       }                                                                       \
   }
+#endif
 
 EXTERN void m2assert_AssertLocation (location_t location);
 

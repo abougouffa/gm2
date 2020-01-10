@@ -32,6 +32,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/time.h>
 
 #define HAVE_SELECT
 

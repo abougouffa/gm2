@@ -1,3 +1,11 @@
+2020-01-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2-gcc/m2assert.h:  (ASSERT) declare if not already set.
+          (ASSERT_BOOL) declare if not already set.  (ASSERT_CONDITION)
+          declare if not already set.
+	* m2/mc-boot-ch/GSelective.c:  include sys/time.h.
+	* m2/mc-boot-ch/Gwrapc.c:  include stdlib.h.
+
 2020-01-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/Make-lang.in:  (mc) add RTintdummy.o as a dependant

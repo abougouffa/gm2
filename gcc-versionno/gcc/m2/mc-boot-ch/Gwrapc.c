@@ -27,6 +27,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include <time.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 /* strtime returns the address of a string which describes the
    local time.  */
