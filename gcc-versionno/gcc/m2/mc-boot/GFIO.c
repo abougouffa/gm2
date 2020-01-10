@@ -1133,6 +1133,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
               FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
             }
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
@@ -1140,18 +1141,21 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
             {
               FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (-1);
+              __builtin_unreachable ();
             }
           else if ((use == openedforread) && (fd->usage == openedforwrite))
             {
               /* avoid dangling else.  */
               FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (-1);
+              __builtin_unreachable ();
             }
           else if (fd->state == connectionfailure)
             {
               /* avoid dangling else.  */
               FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (-1);
+              __builtin_unreachable ();
             }
           else if (towrite != fd->output)
             {
@@ -1160,11 +1164,13 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
                 {
                   FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
                   M2RTS_HALT (-1);
+                  __builtin_unreachable ();
                 }
               else
                 {
                   FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
                   M2RTS_HALT (-1);
+                  __builtin_unreachable ();
                 }
             }
         }
@@ -1173,6 +1179,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
     {
       FormatError ((char *) "this file has not been opened successfully\\n", 44);
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -1294,6 +1301,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
           if (fe == NULL)
             {
               M2RTS_HALT (-1);
+              __builtin_unreachable ();
             }
           else
             {
@@ -1308,6 +1316,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -1330,6 +1339,7 @@ static void Init (void)
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr})))
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -2136,6 +2146,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
@@ -2174,12 +2185,15 @@ void * FIO_getFileName (FIO_File f)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
           return fd->name.address;
         }
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -2198,12 +2212,15 @@ unsigned int FIO_getFileNameLength (FIO_File f)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
           return fd->name.size;
         }
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 

@@ -26,6 +26,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
+#   include "Gmcrts.h"
 #define _StdIO_H
 #define _StdIO_C
 
@@ -142,6 +143,7 @@ void StdIO_PushOutput (StdIO_ProcWrite p)
   if (StackWPtr == MaxStack)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -160,6 +162,7 @@ void StdIO_PopOutput (void)
   if (StackWPtr == 1)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -181,7 +184,10 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/StdIO.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -196,6 +202,7 @@ void StdIO_PushInput (StdIO_ProcRead p)
   if (StackRPtr == MaxStack)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -214,6 +221,7 @@ void StdIO_PopInput (void)
   if (StackRPtr == 1)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -235,7 +243,10 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/StdIO.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

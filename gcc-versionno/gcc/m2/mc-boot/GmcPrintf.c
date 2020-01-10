@@ -167,6 +167,7 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -414,6 +415,7 @@ void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
@@ -501,6 +503,7 @@ void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
@@ -629,6 +632,7 @@ void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)

@@ -262,7 +262,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, csizet, cssizet, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, cap, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, csizet, cssizet, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, cap, high, throw, unreachable, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -657,6 +657,7 @@ struct intrinsicT_r {
                       unsigned int noArgs;
                       decl_node type;
                       commentPair intrinsicComment;
+                      unsigned int postUnreachable;
                     };
 
 struct funccallT_r {
@@ -4118,6 +4119,12 @@ static void doInC (mcPretty_pretty p, decl_node l, decl_node r);
 static void doThrowC (mcPretty_pretty p, decl_node n);
 
 /*
+   doUnreachableC -
+*/
+
+static void doUnreachableC (mcPretty_pretty p, decl_node n);
+
+/*
    outNull -
 */
 
@@ -6502,6 +6509,7 @@ static decl_node newNode (nodeT k)
   if (d == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -6511,6 +6519,8 @@ static decl_node newNode (nodeT k)
       d->at.firstUsed = 0;
       return d;
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -6846,6 +6856,9 @@ static decl_node addToScope (decl_node n)
       return addTo (&s->impF.decls, n);
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -7612,7 +7625,10 @@ static decl_node makeVal (decl_node params)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -7630,7 +7646,10 @@ static decl_node makeCast (decl_node c, decl_node p)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
@@ -7644,6 +7663,7 @@ static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
   f->intrinsicF.args = p;
   f->intrinsicF.noArgs = noArgs;
   f->intrinsicF.type = NULL;
+  f->intrinsicF.postUnreachable = k == halt;
   initPair (&f->intrinsicF.intrinsicComment);
   return f;
 }
@@ -8151,6 +8171,7 @@ static DynamicStrings_String getStringContents (decl_node n)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* --fixme--  finish this.  */
+      __builtin_unreachable ();
       return NULL;  /* --fixme--  finish this.  */
     }
   else if (isString (n))
@@ -8164,6 +8185,9 @@ static DynamicStrings_String getStringContents (decl_node n)
       return getStringContents (n->unaryF.arg);
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -8417,6 +8441,7 @@ static decl_node makeBase (nodeT k)
 
       default:
         M2RTS_HALT (-1);  /* legal kind.  */
+        __builtin_unreachable ();
         break;
     }
   return n;
@@ -8753,6 +8778,10 @@ static decl_node doGetExprType (decl_node n)
         return NULL;
         break;
 
+      case unreachable:
+        return NULL;
+        break;
+
       case def:
       case imp:
       case module:
@@ -8765,6 +8794,7 @@ static decl_node doGetExprType (decl_node n)
       case assignment:
         /* statements.  */
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
 
       case plus:
@@ -8868,6 +8898,9 @@ static decl_node doGetExprType (decl_node n)
         __builtin_unreachable ();
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -9016,6 +9049,9 @@ static decl_node getSymScope (decl_node n)
         __builtin_unreachable ();
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -9088,6 +9124,7 @@ static DynamicStrings_String getString (decl_node n)
 static void doNone (decl_node n)
 {
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
 }
 
 
@@ -10008,6 +10045,21 @@ static void doThrowC (mcPretty_pretty p, decl_node n)
 
 
 /*
+   doUnreachableC -
+*/
+
+static void doUnreachableC (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isIntrinsic (n));
+  outText (p, (char *) "__builtin_unreachable", 21);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  mcDebug_assert ((expListLen (n->intrinsicF.args)) == 0);
+  outText (p, (char *) ")", 1);
+}
+
+
+/*
    outNull -
 */
 
@@ -10131,6 +10183,10 @@ static void doExprC (mcPretty_pretty p, decl_node n)
 
       case throw:
         doThrowC (p, n);
+        break;
+
+      case unreachable:
+        doUnreachableC (p, n);
         break;
 
       case re:
@@ -10637,6 +10693,7 @@ static void doString (mcPretty_pretty p, decl_node n)
    END
   */
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
 }
 
 
@@ -11724,7 +11781,10 @@ static decl_node doMin (decl_node n)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -11802,7 +11862,10 @@ static decl_node doMax (decl_node n)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -12286,6 +12349,7 @@ static void doVarientFieldC (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       i += 1;
     }
@@ -12320,11 +12384,13 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
           /* avoid dangling else.  */
           /* doVarientFieldC (p, n^.varientF.tag)  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
     }
   outText (p, (char *) "union", 5);
@@ -12353,6 +12419,7 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       i += 1;
     }
@@ -12536,6 +12603,7 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
       doFQNameC (p, n);
       mcPretty_print (p, (char *) ";\\n", 3);
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -14930,6 +14998,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
       else
         {
           M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to INCL')  */
+          __builtin_unreachable ();
         }
     }
 }
@@ -14967,6 +15036,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
       else
         {
           M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to EXCL')  */
+          __builtin_unreachable ();
         }
     }
 }
@@ -14984,6 +15054,7 @@ static void doNewC (mcPretty_pretty p, decl_node n)
   if (n->intrinsicF.args == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -15030,6 +15101,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
   if (n->intrinsicF.args == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -15063,6 +15135,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
       else
         {
           M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to DISPOSE')  */
+          __builtin_unreachable ();
         }
     }
 }
@@ -15078,6 +15151,7 @@ static void doCapC (mcPretty_pretty p, decl_node n)
   if (n->unaryF.arg == NULL)
     {
       M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
+      __builtin_unreachable ();
     }
   else
     {
@@ -15101,6 +15175,7 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
   if (n->unaryF.arg == NULL)
     {
       M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
+      __builtin_unreachable ();
     }
   else
     {
@@ -15129,6 +15204,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
   if (n->unaryF.arg == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -15166,6 +15242,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
       /* avoid dangling else.  */
       /* do nothing.  */
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -15228,6 +15305,7 @@ static unsigned int isIntrinsic (decl_node n)
 {
   switch (n->kind)
     {
+      case unreachable:
       case throw:
       case inc:
       case dec:
@@ -15288,6 +15366,7 @@ static void doReC (mcPretty_pretty p, decl_node n)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   if (t == realN)
     {
@@ -15297,6 +15376,7 @@ static void doReC (mcPretty_pretty p, decl_node n)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -15321,6 +15401,7 @@ static void doImC (mcPretty_pretty p, decl_node n)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   if (t == realN)
     {
@@ -15330,6 +15411,7 @@ static void doImC (mcPretty_pretty p, decl_node n)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
@@ -15373,6 +15455,10 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
   doCommentC (p, n->intrinsicF.intrinsicComment.body);
   switch (n->kind)
     {
+      case unreachable:
+        doUnreachableC (p, n);
+        break;
+
       case throw:
         doThrowC (p, n);
         break;
@@ -16086,6 +16172,7 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* need to handle another s^.kind.  */
+      __builtin_unreachable ();
     }
 }
 
@@ -17303,6 +17390,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case assignment:
         /* statements.  */
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
 
       case componentref:
@@ -17369,6 +17457,8 @@ static dependentState doDependants (alists_alist l, decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -18102,6 +18192,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case comment:
         break;
 
+      case unreachable:
       case throw:
       case halt:
       case new:
@@ -18592,10 +18683,6 @@ static DynamicStrings_String genKind (decl_node n)
         return DynamicStrings_InitString ((char *) "assignment", 10);
         break;
 
-      case call:
-        return DynamicStrings_InitString ((char *) "call", 4);
-        break;
-
       case if_:
         return DynamicStrings_InitString ((char *) "if", 2);
         break;
@@ -18767,6 +18854,9 @@ static DynamicStrings_String genKind (decl_node n)
         __builtin_unreachable ();
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -19467,6 +19557,7 @@ static void outC (mcPretty_pretty p, decl_node n)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   keyc_leaveScope (n);
 }
@@ -19574,6 +19665,7 @@ static void doVarientFieldM2 (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       i += 1;
     }
@@ -19609,6 +19701,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
     }
   mcPretty_setNeedSpace (p);
@@ -19636,6 +19729,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       i += 1;
     }
@@ -20224,6 +20318,7 @@ static void outM2 (mcPretty_pretty p, decl_node n)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -20346,6 +20441,7 @@ static void dbgRecord (alists_alist l, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
@@ -20400,6 +20496,7 @@ static void dbgVarient (alists_alist l, decl_node n)
         {
           /* avoid dangling else.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
@@ -20572,6 +20669,7 @@ static void addGenericBody (decl_node n, decl_node c)
 {
   switch (n->kind)
     {
+      case unreachable:
       case throw:
       case halt:
       case new:
@@ -20623,6 +20721,7 @@ static void addGenericAfter (decl_node n, decl_node c)
 {
   switch (n->kind)
     {
+      case unreachable:
       case throw:
       case halt:
       case new:
@@ -20827,6 +20926,7 @@ static decl_node doDupExpr (decl_node n)
       case stmtseq:
       case comment:
         M2RTS_HALT (-1);  /* should not be duplicating code.  */
+        __builtin_unreachable ();
         break;
 
       case nil:
@@ -20984,6 +21084,8 @@ static decl_node doDupExpr (decl_node n)
         CaseException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
         __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -21878,6 +21980,10 @@ decl_node decl_getType (decl_node n)
         return NULL;
         break;
 
+      case unreachable:
+        return NULL;
+        break;
+
       case def:
       case imp:
       case module:
@@ -21890,6 +21996,7 @@ decl_node decl_getType (decl_node n)
       case assignment:
         /* statements.  */
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
 
       case cmplx:
@@ -21985,6 +22092,9 @@ decl_node decl_getType (decl_node n)
         __builtin_unreachable ();
     }
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -22324,6 +22434,7 @@ decl_node decl_getScope (decl_node n)
         return systemN;
         break;
 
+      case unreachable:
       case min:
       case max:
         return NULL;
@@ -23364,6 +23475,10 @@ nameKey_Name decl_getSymName (decl_node n)
         return nameKey_makeKey ((char *) "THROW", 5);
         break;
 
+      case unreachable:
+        return nameKey_makeKey ((char *) "builtin_unreachable", 19);
+        break;
+
       case cmplx:
         return nameKey_makeKey ((char *) "CMPLX", 5);
         break;
@@ -23395,8 +23510,11 @@ nameKey_Name decl_getSymName (decl_node n)
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -23525,6 +23643,7 @@ void decl_addImportedModule (decl_node m, decl_node i, unsigned int scoped)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   if (scoped)
     {
@@ -23640,6 +23759,7 @@ void decl_enterScope (decl_node n)
   if (Indexing_IsIndiceInIndex (scopeStack, (void *) n))
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -24087,7 +24207,10 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -24116,7 +24239,10 @@ decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
     {
       /* avoid dangling else.  */
       M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
+      __builtin_unreachable ();
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/decl.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -24619,6 +24745,11 @@ void decl_addStatement (decl_node s, decl_node n)
     {
       mcDebug_assert (decl_isStatementSequence (s));
       Indexing_PutIndice (s->stmtF.statements, (Indexing_HighIndice (s->stmtF.statements))+1, (void *) n);
+      if ((isIntrinsic (n)) && n->intrinsicF.postUnreachable)
+        {
+          n->intrinsicF.postUnreachable = FALSE;
+          decl_addStatement (s, makeIntrinsicProc ((nodeT) unreachable, 0, (decl_node) NULL));
+        }
     }
 }
 

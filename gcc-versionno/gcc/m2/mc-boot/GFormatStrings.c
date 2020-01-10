@@ -223,6 +223,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 

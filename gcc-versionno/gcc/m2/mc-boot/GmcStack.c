@@ -24,6 +24,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <stddef.h>
 #   include "GStorage.h"
+#   include "Gmcrts.h"
 #define _mcStack_H
 #define _mcStack_C
 
@@ -146,6 +147,7 @@ void * mcStack_pop (mcStack_stack s)
   if (s->count == 0)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -154,6 +156,8 @@ void * mcStack_pop (mcStack_stack s)
       Indexing_DeleteIndice (s->list, Indexing_HighIndice (s->list));
       return a;
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/mcStack.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -192,11 +196,14 @@ void * mcStack_access (mcStack_stack s, unsigned int i)
   if ((i > s->count) || (i == 0))
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
       return Indexing_GetIndice (s->list, i);
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/mcStack.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 void _M2_mcStack_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

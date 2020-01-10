@@ -164,6 +164,7 @@ void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unu
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles})))
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 

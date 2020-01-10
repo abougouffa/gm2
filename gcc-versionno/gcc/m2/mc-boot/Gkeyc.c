@@ -1343,6 +1343,7 @@ void keyc_leaveScope (decl_node n)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -1378,6 +1379,7 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
         {
           /* mangleN must always succeed.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
     }
   else if (scopes)
@@ -1421,6 +1423,7 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
         {
           /* mangleN must always succeed.  */
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
     }
   else if (scopes)

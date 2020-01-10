@@ -36,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include <stddef.h>
 #include <stdlib.h>
 #   include "GStorage.h"
+#   include "Gmcrts.h"
 #define _Indexing_H
 #define _Indexing_C
 
@@ -205,11 +206,14 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
   if (i == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
       return (n >= i->Low) && (n <= i->High);
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/Indexing.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -222,11 +226,14 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
   if (i == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
       return i->High;
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/Indexing.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -239,11 +246,14 @@ unsigned int Indexing_LowIndice (Indexing_Index i)
   if (i == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
       return i->Low;
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/Indexing.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -263,6 +273,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
       if (n < i->Low)
         {
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
       else
         {
@@ -317,6 +328,7 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
   if (! (Indexing_InBounds (i, n)))
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   b = i->ArrayStart;
   b += (n-i->Low)*sizeof (void *);
@@ -326,6 +338,7 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
       if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
         {
           M2RTS_HALT (-1);
+          __builtin_unreachable ();
         }
     }
   return (*p);
@@ -407,6 +420,7 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
   else
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 

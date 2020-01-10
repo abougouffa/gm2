@@ -45,6 +45,30 @@
 	* m2/mc-boot/GmcStream.c:  regenerated.
 	* m2/mc-boot/GnameKey.c:  regenerated.
 	* m2/mc-boot/Gvarargs.c:  regenerated.
+	* m2/mc/decl.mod:  removed call enumerated field.
+	* m2/mc-boot/GAssertion.c:  regenerated.
+	* m2/mc-boot/GDebug.c:  regenerated.
+	* m2/mc-boot/GDynamicStrings.c:  regenerated.
+	* m2/mc-boot/GFIO.c:  regenerated.
+	* m2/mc-boot/GFormatStrings.c:  regenerated.
+	* m2/mc-boot/GIndexing.c:  regenerated.
+	* m2/mc-boot/GM2RTS.c:  regenerated.
+	* m2/mc-boot/GNumberIO.c:  regenerated.
+	* m2/mc-boot/GRTExceptions.c:  regenerated.
+	* m2/mc-boot/GStdIO.c:  regenerated.
+	* m2/mc-boot/GStringConvert.c:  regenerated.
+	* m2/mc-boot/Gdecl.c:  regenerated.
+	* m2/mc-boot/Gkeyc.c:  regenerated.
+	* m2/mc-boot/GmcError.c:  regenerated.
+	* m2/mc-boot/GmcLexBuf.c:  regenerated.
+	* m2/mc-boot/GmcPreprocess.c:  regenerated.
+	* m2/mc-boot/GmcPrintf.c:  regenerated.
+	* m2/mc-boot/GmcStack.c:  regenerated.
+	* m2/mc-boot/GmcStream.c:  regenerated.
+	* m2/mc-boot/GnameKey.c:  regenerated.
+	* m2/mc-boot/Gvarargs.c:  regenerated.
+	* m2/mc/decl.mod:  introduced unreachable intrinsic node
+	  which is issued after HALT and an exception.
 
 2020-01-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

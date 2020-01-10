@@ -485,6 +485,7 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
   return s;
@@ -572,6 +573,7 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
 
       default:
         M2RTS_HALT (-1);
+        __builtin_unreachable ();
         break;
     }
   return s;
@@ -704,6 +706,7 @@ void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigne
     }
   outString (DynamicStrings_Mark (DynamicStrings_InitString ((char *) file, _file_high)), line, 0, DynamicStrings_ConCat (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "*** internal error *** ", 23)), DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high))));
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
 }
 
 
@@ -1116,6 +1119,7 @@ void mcError_flushErrors (void)
     {
       M2RTS_ExitOnHalt (1);
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
 }
 
@@ -1159,6 +1163,7 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
     }
   M2RTS_ExitOnHalt (1);
   M2RTS_HALT (-1);
+  __builtin_unreachable ();
 }
 
 void _M2_mcError_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

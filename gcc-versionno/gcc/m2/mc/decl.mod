@@ -105,7 +105,7 @@ TYPE
 	    (* statements.  *)
             loop, while, for, repeat,
 	    case, caselabellist, caselist, range,
-	    assignment, call,
+	    assignment,
 	    if, elsif,
 	    (* expressions.  *)
 	    constexp,
@@ -113,7 +113,7 @@ TYPE
 	    cast, val,
 	    plus, sub, div, mod, mult, divide, in,
 	    adr, size, tsize, ord, float, trunc, chr, abs, cap,
-	    high, throw,
+	    high, throw, unreachable,
 	    cmplx, re, im,
 	    min, max,
             componentref, pointerref, arrayref, deref,
@@ -124,6 +124,7 @@ TYPE
     node = POINTER TO RECORD
                          CASE kind: nodeT OF
 
+                         unreachable,
 			 throw,
                          new,
                          dispose,
@@ -260,6 +261,7 @@ TYPE
                        noArgs          : CARDINAL ;
                        type            : node ;
                        intrinsicComment: commentPair ;
+                       postUnreachable : BOOLEAN ;
                     END ;
 
        fixupInfo = RECORD
@@ -3563,6 +3565,7 @@ BEGIN
    f^.intrinsicF.args := p ;
    f^.intrinsicF.noArgs := noArgs ;
    f^.intrinsicF.type := NIL ;
+   f^.intrinsicF.postUnreachable := (k = halt) ;
    initPair (f^.intrinsicF.intrinsicComment) ;
    RETURN f
 END makeIntrinsicProc ;
@@ -4197,6 +4200,7 @@ BEGIN
       trunc           :  RETURN makeKey ('TRUNC') |
       high            :  RETURN makeKey ('HIGH') |
       throw           :  RETURN makeKey ('THROW') |
+      unreachable     :  RETURN makeKey ('builtin_unreachable') |
       cmplx           :  RETURN makeKey ('CMPLX') |
       re              :  RETURN makeKey ('RE') |
       im              :  RETURN makeKey ('IM') |
@@ -4904,6 +4908,7 @@ BEGIN
       (* blocks.  *)
       procedure       :  RETURN procedureF.returnType |
       throw           :  RETURN NIL |
+      unreachable     :  RETURN NIL |
       def,
       imp,
       module,
@@ -5100,6 +5105,7 @@ BEGIN
       (* blocks.  *)
       procedure       :  RETURN procedureF.returnType |
       throw           :  RETURN NIL |
+      unreachable     :  RETURN NIL |
       def,
       imp,
       module,
@@ -5322,6 +5328,7 @@ BEGIN
       size,
       tsize,
       throw           :  RETURN systemN |
+      unreachable,
       min,
       max             :  RETURN NIL |
       vardecl         :  RETURN vardeclF.scope |
@@ -6174,6 +6181,21 @@ END doThrowC ;
 
 
 (*
+   doUnreachableC -
+*)
+
+PROCEDURE doUnreachableC (p: pretty; n: node) ;
+BEGIN
+   assert (isIntrinsic (n)) ;
+   outText (p, "__builtin_unreachable") ;
+   setNeedSpace (p) ;
+   outText (p, '(') ;
+   assert (expListLen (n^.intrinsicF.args) = 0) ;
+   outText (p, ')')
+END doUnreachableC ;
+
+
+(*
    outNull -
 *)
 
@@ -6240,6 +6262,7 @@ BEGIN
       min             :  doMinC (p, n) |
       max             :  doMaxC (p, n) |
       throw           :  doThrowC (p, n) |
+      unreachable     :  doUnreachableC (p, n) |
       re              :  doReC (p, n) |
       im              :  doImC (p, n) |
       cmplx           :  doCmplx (p, n) |
@@ -10476,6 +10499,7 @@ PROCEDURE isIntrinsic (n: node) : BOOLEAN ;
 BEGIN
    CASE n^.kind OF
 
+   unreachable,
    throw,
    inc,
    dec,
@@ -10607,14 +10631,15 @@ BEGIN
    doCommentC (p, n^.intrinsicF.intrinsicComment.body) ;
    CASE n^.kind OF
 
-   throw:   doThrowC (p, n) |
-   halt:    doHalt (p, n) |
-   inc:     doInc (p, n) |
-   dec:     doDec (p, n) |
-   incl:    doInclC (p, n) |
-   excl:    doExclC (p, n) |
-   new:     doNewC (p, n) |
-   dispose: doDisposeC (p, n)
+   unreachable: doUnreachableC (p, n) |
+   throw      : doThrowC (p, n) |
+   halt       : doHalt (p, n) |
+   inc        : doInc (p, n) |
+   dec        : doDec (p, n) |
+   incl       : doInclC (p, n) |
+   excl       : doExclC (p, n) |
+   new        : doNewC (p, n) |
+   dispose    : doDisposeC (p, n)
 
    END ;
    outText (p, ";") ;
@@ -13088,6 +13113,7 @@ BEGIN
    return          :  visitReturn (v, n, p) |
    stmtseq         :  visitStmtSeq (v, n, p) |
    comment         : |
+   unreachable,
    throw,
    halt,
    new,
@@ -13297,7 +13323,6 @@ BEGIN
    for             :  RETURN InitString ('for') |
    repeat          :  RETURN InitString ('repeat') |
    assignment      :  RETURN InitString ('assignment') |
-   call            :  RETURN InitString ('call') |
    if              :  RETURN InitString ('if') |
    elsif           :  RETURN InitString ('elsif') |
    (* expressions.  *)
@@ -15091,7 +15116,12 @@ BEGIN
    IF n#NIL
    THEN
       assert (isStatementSequence (s)) ;
-      PutIndice (s^.stmtF.statements, HighIndice (s^.stmtF.statements) + 1, n)
+      PutIndice (s^.stmtF.statements, HighIndice (s^.stmtF.statements) + 1, n) ;
+      IF isIntrinsic (n) AND (n^.intrinsicF.postUnreachable)
+      THEN
+         n^.intrinsicF.postUnreachable := FALSE ;
+         addStatement (s, makeIntrinsicProc (unreachable, 0, NIL))
+      END
    END
 END addStatement ;
 
@@ -15115,6 +15145,7 @@ PROCEDURE addGenericBody (n, c: node);
 BEGIN
    CASE n^.kind OF
 
+   unreachable,
    throw,
    halt,
    new,
@@ -15144,6 +15175,7 @@ PROCEDURE addGenericAfter (n, c: node);
 BEGIN
    CASE n^.kind OF
 
+   unreachable,
    throw,
    halt,
    new,

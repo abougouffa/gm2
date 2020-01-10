@@ -38,6 +38,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
+#   include "Gmcrts.h"
 #define _nameKey_H
 #define _nameKey_C
 
@@ -298,6 +299,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   if (p == NULL)
     {
       M2RTS_HALT (-1);  /* out of memory error  */
+      __builtin_unreachable ();
     }
   else
     {
@@ -312,6 +314,8 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
       (*p) = ASCII_nul;
       return doMakeKey (n, higha);
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/nameKey.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 
@@ -342,6 +346,7 @@ nameKey_Name nameKey_makekey (void * a)
       if (p == NULL)
         {
           M2RTS_HALT (-1);  /* out of memory error  */
+          __builtin_unreachable ();
         }
       else
         {
@@ -359,6 +364,8 @@ nameKey_Name nameKey_makekey (void * a)
           return doMakeKey (n, higha);
         }
     }
+  ReturnException ("../../gcc-versionno/gcc/m2/mc/nameKey.def", 20, 1);
+  __builtin_unreachable ();
 }
 
 

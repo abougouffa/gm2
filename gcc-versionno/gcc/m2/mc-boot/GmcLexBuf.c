@@ -656,6 +656,7 @@ static sourceList newElement (void * s)
   if (l == NULL)
     {
       M2RTS_HALT (-1);
+      __builtin_unreachable ();
     }
   else
     {
@@ -1116,6 +1117,7 @@ static void doGetToken (void)
           if (listOfTokens.tail == NULL)
             {
               M2RTS_HALT (-1);
+              __builtin_unreachable ();
             }
         }
       if (nextTokNo >= listOfTokens.lastBucketOffset)
