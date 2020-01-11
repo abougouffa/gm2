@@ -1,3 +1,7 @@
+2020-01-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2-gcc/m2assert.h:  remove quotes in format specifiers.
+
 2020-01-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2-gcc/m2assert.h:  (ASSERT) declare if not already set.
