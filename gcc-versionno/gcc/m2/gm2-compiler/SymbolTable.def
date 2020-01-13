@@ -157,7 +157,7 @@ EXPORT QUALIFIED NulSym,
                  IsEmptyFieldVarient,
                  PutFieldEnumeration,
                  PutSubrange,
-      	       	 PutSet,
+      	       	 PutSet, IsSetPacked,
                  PutArraySubscript, GetArraySubscript,
                  PutArray,
 		 PutArrayLarge, IsArrayLarge,
@@ -1393,7 +1393,14 @@ PROCEDURE PutSubrange (Sym: CARDINAL; LowSym, HighSym: CARDINAL;
    PutSet - places SimpleType as the type for set, Sym.
 *)
 
-PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL) ;
+PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL; packed: BOOLEAN) ;
+
+
+(*
+   IsSetPacked - returns TRUE if Sym is packed.
+*)
+
+PROCEDURE IsSetPacked (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -2879,7 +2886,7 @@ PROCEDURE IsDeclaredPackedResolved (sym: CARDINAL) : BOOLEAN ;
 
 (*
    GetPackedEquivalent - returns the packed equivalent of type, sym.
-                         sym must be a type, subrange or enumerated type.
+                         sym must be a type, subrange, set or enumerated type.
 *)
 
 PROCEDURE GetPackedEquivalent (sym: CARDINAL) : CARDINAL ;

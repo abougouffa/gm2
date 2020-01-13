@@ -160,7 +160,7 @@ EXTERN tree m2type_BuildSmallestTypeRange (location_t location, tree low,
                                            tree high);
 EXTERN tree m2type_BuildSetTypeFromSubrange (location_t location, char *name,
                                              tree subrangeType, tree lowval,
-                                             tree highval);
+                                             tree highval, int ispacked);
 EXTERN int m2type_GetBitsPerBitset (void);
 EXTERN tree m2type_GetM2RType (void);
 EXTERN tree m2type_GetM2ZType (void);
@@ -193,7 +193,7 @@ EXTERN tree m2type_BuildEnumerator (location_t location, char *name,
 EXTERN tree m2type_BuildPointerType (tree totype);
 EXTERN tree m2type_BuildConstPointerType (tree totype);
 EXTERN tree m2type_BuildSetType (location_t location, char *name, tree type,
-                                 tree lowval, tree highval);
+                                 tree lowval, tree highval, int ispacked);
 EXTERN void *m2type_BuildStartSetConstructor (tree type);
 EXTERN void m2type_BuildSetConstructorElement (void *p, tree value);
 EXTERN tree m2type_BuildEndSetConstructor (void *p);

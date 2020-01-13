@@ -209,7 +209,7 @@ BEGIN
       high := MakeConstLit (MakeKey (highBit), Cardinal) ;
       subrange := MakeSubrange (BuiltinTokenNo, NulName) ;
       PutSubrange (subrange, low, high, Cardinal) ;
-      PutSet (type, subrange) ;
+      PutSet (type, subrange, FALSE) ;
       MapType (type, name, '', '', needsExporting, t) ;
       RETURN type
    END

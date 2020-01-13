@@ -558,6 +558,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
                 packedInfo: PackedInfo ;      (* the equivalent packed type  *)
+                ispacked : BOOLEAN ;
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
@@ -9687,6 +9688,7 @@ BEGIN
             Size := InitValue() ;      (* Size of this set            *)
             InitPacked(packedInfo) ;        (* not packed and no      *)
                                             (* equivalent (yet).      *)
+            ispacked := FALSE ;        (* Not yet known to be packed. *)
             oafamily := oaf ;          (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclaredTok(tok, At)   (* Declared here          *)
@@ -9702,7 +9704,7 @@ END MakeSet ;
    PutSet - places SimpleType as the type for set, Sym.
 *)
 
-PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL) ;
+PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL; packed: BOOLEAN) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -9712,8 +9714,9 @@ BEGIN
 
       ErrorSym: |
       SetSym: WITH Set DO
-      	         Type := SimpleType    (* Index to a subrange symbol  *)
+      	         Type := SimpleType ;  (* Index to a subrange symbol  *)
       	       	     	      	       (* or an enumeration type.     *)
+                 ispacked := packed
               END
       ELSE
          InternalError('expecting a Set symbol', __FILE__, __LINE__)
@@ -9734,6 +9737,20 @@ BEGIN
    pSym := GetPsym(Sym) ;
    RETURN( pSym^.SymbolType=SetSym )
 END IsSet ;
+
+
+(*
+   IsSetPacked - returns TRUE if Sym is packed.
+*)
+
+PROCEDURE IsSetPacked (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   CheckLegal (Sym) ;
+   pSym := GetPsym (Sym) ;
+   RETURN (pSym^.SymbolType=SetSym) AND pSym^.Set.ispacked
+END IsSetPacked ;
 
 
 (*

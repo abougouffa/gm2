@@ -68,7 +68,7 @@ BEGIN
    Assert(Word#NulSym) ;
    Bitnum := MakeSubrange(BuiltinTokenNo, MakeKey('BITNUM')) ;
    PutSubrange(Bitnum, MinBitset, MaxBitset, Cardinal) ;
-   PutSet(Bitset, Bitnum) ;
+   PutSet(Bitset, Bitnum, FALSE) ;
 
    PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetWordType())) ;
    PopSize(Bitset)

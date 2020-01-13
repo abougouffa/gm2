@@ -1,3 +1,31 @@
+2020-01-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/bnf/m2-2.bnf:  (SetType) detect whether the set
+          was described as PACKED and pass a boolean into
+	  BuildSetType.
+	* m2/gm2-compiler/M2Bitset.mod:  PutSet extra parameter.
+	* m2/gm2-compiler/M2GCCDeclare.mod:  (DeclareLargeOrSmallSet)
+	  pass packed to BuildSetType.
+	* m2/gm2-compiler/M2System.mod:  (AttemptToCreateSetType)
+	  PutSet extra boolean (FALSE) parameter.
+	* m2/gm2-compiler/P2SymBuild.def:  (BuildSetType)
+	  extra parameter ispacked.
+	* m2/gm2-compiler/P2SymBuild.mod:  (BuildSetType)
+	  call PutSet with an extra boolean parameter.
+	* m2/gm2-compiler/SymbolTable.def:  (IsSetPacked)
+	  New procedure function declaration.
+	* m2/gm2-compiler/SymbolTable.mod:  (IsSetPacked)
+          New procedure function implementation.  (PutSet)
+	  add a third parameter which determines whether the set is packed.
+	* m2/gm2-gcc/m2assert.h:  remove ' from the format string.
+	* m2/gm2-gcc/m2type.c:  (build_set_type) use TYPE_PACKED.
+	  (BuildSetTypeFromSubrange) re-implemented.
+	* m2/gm2-gcc/m2type.def:  (BuildSetType) extra boolean parameter.
+	* m2/gm2-gcc/m2type.h:  (BuildSetType) extra boolean parameter.
+	* testsuite/gm2/iso/run/pass/onebyte2.mod:  (New file).
+	* testsuite/gm2/iso/run/pass/onebyte.mod:  above changes allow
+	  this test code to pass.
+
 2020-01-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2-gcc/m2assert.h:  remove quotes in format specifiers.

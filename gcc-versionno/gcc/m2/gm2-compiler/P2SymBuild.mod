@@ -121,6 +121,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetDeclaredDef, GetDeclaredMod,
                         RequestSym,
                         PutDeclared,
+                        GetPackedEquivalent,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -2049,7 +2050,7 @@ END BuildPointerType ;
                   |------------|              |-------------|
 *)
 
-PROCEDURE BuildSetType ;
+PROCEDURE BuildSetType (ispacked: BOOLEAN) ;
 VAR
    tok    : CARDINAL ;
    name   : Name ;
@@ -2058,9 +2059,9 @@ VAR
 BEGIN
    PopTtok(Type, tok) ;
    PopT(name) ;
-   SetType := MakeSet(tok, name) ;
+   SetType := MakeSet (tok, name) ;
    CheckForExportedImplementation(SetType) ;   (* May be an exported hidden type *)
-   PutSet(SetType, Type) ;
+   PutSet(SetType, Type, ispacked) ;
    PushT(name) ;
    Annotate("%1n||set type name") ;
    PushTtok (SetType, tok) ;

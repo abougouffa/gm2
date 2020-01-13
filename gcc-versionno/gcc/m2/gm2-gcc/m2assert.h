@@ -45,7 +45,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
     if ((X != 0) && (X != 1))                                                 \
       {                                                                       \
         internal_error (                                                      \
-            "%s:%d:the value %s is not a BOOLEAN, it's value was %d",         \
+            "%s:%d:the value %s is not a BOOLEAN as the value is %d",         \
             __FILE__, __LINE__, #X, X);                                       \
       }                                                                       \
   }

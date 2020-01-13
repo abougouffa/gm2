@@ -870,7 +870,7 @@ PROCEDURE BuildPointerType ;
                   |------------|              |-------------|
 *)
 
-PROCEDURE BuildSetType ;
+PROCEDURE BuildSetType (ispacked: BOOLEAN) ;
 
 
 (*

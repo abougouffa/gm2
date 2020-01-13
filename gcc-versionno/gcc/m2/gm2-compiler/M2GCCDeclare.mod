@@ -83,7 +83,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsProcedure, IsProcedureNested, IsModule,
                         IsDefImp,
       	       	     	IsSubscript, IsVarient, IsFieldVarient,
-      	       	     	IsType, IsProcType, IsSet,
+      	       	     	IsType, IsProcType, IsSet, IsSetPacked,
                         IsConst, IsConstSet, IsConstructor,
                         IsFieldEnumeration,
                         IsExported, IsImported,
@@ -5066,7 +5066,7 @@ BEGIN
          PushIntegerTree(lowtree) ;
          PushCard(bpw-1) ;
          Addn ;
-         GccField := BuildFieldRecord(location, NIL, BuildSetType(location, NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
+         GccField := BuildFieldRecord(location, NIL, BuildSetType(location, NIL, Mod2Gcc(type), lowtree, PopIntegerTree(), FALSE)) ;
          PushIntegerTree(lowtree) ;
          PushCard(bpw) ;
          Addn ;
@@ -5077,7 +5077,7 @@ BEGIN
          BitsInSet := PopIntegerTree()
       ELSE
          (* printf2('range is %a..%a\n', GetSymName(low), GetSymName(high)) ; *)
-         GccField := BuildFieldRecord(location, NIL, BuildSetType(location, NIL, Mod2Gcc(type), lowtree, hightree)) ;
+         GccField := BuildFieldRecord(location, NIL, BuildSetType(location, NIL, Mod2Gcc(type), lowtree, hightree, FALSE)) ;
          PushCard(0) ;
          BitsInSet := PopIntegerTree()
       END ;
@@ -5106,18 +5106,21 @@ PROCEDURE DeclareLargeOrSmallSet (sym: CARDINAL;
                                   n: Name; type: CARDINAL; low, high: CARDINAL) : Tree ;
 VAR
    location: location_t ;
+   packed  : BOOLEAN ;
 BEGIN
    PushNoOfBits(type, low, high) ;
    PushCard(GetBitsPerBitset()) ;
+   packed := IsSetPacked (sym) ;
    IF Less(GetDeclaredMod(type))
    THEN
       location := TokenToLocation(GetDeclaredMod(sym)) ;
       (* small set *)
       (* PutSetSmall(sym) ; *)
-      RETURN( BuildSetType(location, KeyToCharStar(n), Mod2Gcc(type), Mod2Gcc(low), Mod2Gcc(high)) )
+      RETURN BuildSetType (location, KeyToCharStar(n),
+                           Mod2Gcc(type), Mod2Gcc(low), Mod2Gcc(high), packed)
    ELSE
       (* PutSetLarge(sym) ; *)
-      RETURN( DeclareLargeSet(n, type, low, high) )
+      RETURN DeclareLargeSet (n, type, low, high)   (* --fixme-- finish packed here as well.  *)
    END
 END DeclareLargeOrSmallSet ;
 

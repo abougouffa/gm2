@@ -43,7 +43,7 @@ static int broken_set_debugging_info = TRUE;
 
 struct GTY (()) struct_constructor
 {
-  /* constructor_type, the type that we are constructing */
+  /* constructor_type, the type that we are constructing.  */
   tree GTY ((skip (""))) constructor_type;
   /* constructor_fields, the list of fields belonging to
      constructor_type.  Used by SET and RECORD constructors.  */
@@ -915,7 +915,7 @@ noBitsRequired (tree values)
    The values low..high all have type, range_type.  */
 
 static tree
-build_set_type (tree domain, tree range_type, int allow_void)
+build_set_type (tree domain, tree range_type, int allow_void, int ispacked)
 {
   tree type;
 
@@ -935,6 +935,7 @@ build_set_type (tree domain, tree range_type, int allow_void)
   type = make_node (SET_TYPE);
   TREE_TYPE (type) = range_type;
   TYPE_DOMAIN (type) = domain;
+  TYPE_PACKED (type) = ispacked;
 
   return type;
 }
@@ -994,14 +995,16 @@ build_bitset_type (location_t location)
       m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset () - 1));
   layout_type (bitnum_type_node);
 
+#if 1
   if (broken_set_debugging_info)
     return unsigned_type_node;
+#endif
 
   ASSERT ((COMPLETE_TYPE_P (bitnum_type_node)), bitnum_type_node);
 
   return m2type_BuildSetTypeFromSubrange (
       location, NULL, bitnum_type_node, m2decl_BuildIntegerConstant (0),
-      m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset () - 1));
+      m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset () - 1), FALSE);
 }
 
 /* BuildSetTypeFromSubrange - constructs a set type from a
@@ -1009,55 +1012,31 @@ build_bitset_type (location_t location)
 
 tree
 m2type_BuildSetTypeFromSubrange (location_t location, char *name,
-                                 tree subrangeType, tree lowval, tree highval)
+                                 tree subrangeType, tree lowval, tree highval, int ispacked)
 {
   m2assert_AssertLocation (location);
   lowval = m2expr_FoldAndStrip (lowval);
   highval = m2expr_FoldAndStrip (highval);
 
+#if 0
   if (broken_set_debugging_info)
     return unsigned_type_node;
   else
+#endif
+    if (ispacked)
     {
       tree noelements = m2expr_BuildAdd (
-          location, m2expr_BuildSub (location, highval, lowval, FALSE),
+	  location, m2expr_BuildSub (location, highval, lowval, FALSE),
           integer_one_node, FALSE);
-      tree settype;
-
-      layout_type (subrangeType);
-      settype = build_set_type (subrangeType,
-                                convert_type_to_range (subrangeType), 0);
-      if (m2expr_CompareTrees (noelements,
-                               m2decl_BuildIntegerConstant (SET_WORD_SIZE))
-          > 0)
-        error ("internal error: not expecting an internal set type to have "
-               "more bits than a machine word");
-
-      if (m2expr_CompareTrees (noelements,
-                               m2decl_BuildIntegerConstant (SET_WORD_SIZE))
-          == 0)
-        TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (m2type_GetWordType ());
-      else
-        TYPE_MAX_VALUE (settype) = m2expr_FoldAndStrip (m2expr_BuildSub (
+      highval = m2expr_FoldAndStrip (m2expr_BuildSub (
             location, m2expr_BuildLSL (location, m2expr_GetWordOne (location),
                                        noelements, FALSE),
             m2expr_GetIntegerOne (location), FALSE));
-      TYPE_MIN_VALUE (settype) = m2expr_GetIntegerZero (location),
-
-                     layout_type (settype);
-      ASSERT ((COMPLETE_TYPE_P (settype)), settype);
-
-      if ((name == NULL) || (strcmp (name, "") == 0))
-        /* no modula-2 name.  */
-        return settype;
-      else
-        {
-          /* declared as TYPE foo = SET OF [x..y] ;  */
-          settype = m2type_DeclareKnownType (location, name, settype);
-          layout_type (m2tree_skip_type_decl (settype));
-          return settype;
-        }
+      lowval = m2expr_GetIntegerZero (location);
+      return m2type_BuildSmallestTypeRange (location, lowval, highval);
     }
+  else
+    return unsigned_type_node;
 }
 
 /* build_m2_size_set_type - build and return a set type with,
@@ -1080,7 +1059,7 @@ build_m2_size_set_type (location_t location, int precision)
 
   return m2type_BuildSetTypeFromSubrange (
       location, NULL, bitnum_type_node, m2decl_BuildIntegerConstant (0),
-      m2decl_BuildIntegerConstant (precision - 1));
+      m2decl_BuildIntegerConstant (precision - 1), FALSE);
 }
 
 /* build_m2_specific_size_type - build a specific data type matching
@@ -2231,16 +2210,18 @@ m2type_BuildConstPointerType (tree totype)
 
 tree
 m2type_BuildSetType (location_t location, char *name, tree type, tree lowval,
-                     tree highval)
+                     tree highval, int ispacked)
 {
   tree range = build_range_type (m2tree_skip_type_decl (type),
                                  m2expr_FoldAndStrip (lowval),
                                  m2expr_FoldAndStrip (highval));
 
+  TYPE_PACKED (range) = ispacked;
   m2assert_AssertLocation (location);
   return m2type_BuildSetTypeFromSubrange (location, name, range,
                                           m2expr_FoldAndStrip (lowval),
-                                          m2expr_FoldAndStrip (highval));
+                                          m2expr_FoldAndStrip (highval),
+					  ispacked);
 }
 
 /* push_constructor - returns a new compound constructor frame.  */

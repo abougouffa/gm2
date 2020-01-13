@@ -829,9 +829,14 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
-SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % BuildNulName %
-                                        SimpleType                         % BuildSetType %
+SetType :=                                                                 % VAR ispacked: BOOLEAN ; %
+                                                                           % ispacked := FALSE %
+           ( "SET"                                                         % ispacked := FALSE %
+                   | "PACKEDSET"                                           % ispacked := TRUE %
+                                 ) "OF"                                    % BuildNulName %
+                                        SimpleType                         % BuildSetType (ispacked) %
          =:
+
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %
                               Type                                         % BuildPointerType %

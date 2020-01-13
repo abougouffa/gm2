@@ -145,7 +145,7 @@ PROCEDURE BuildStartSetConstructor (type: Tree) : Constructor ;
     BuildSetType - creates a SET OF [lowval..highval]
 *)
 
-PROCEDURE BuildSetType (location: location_t; name: ADDRESS; type: Tree; lowval: Tree; highval: Tree) : Tree ;
+PROCEDURE BuildSetType (location: location_t; name: ADDRESS; type: Tree; lowval: Tree; highval: Tree; ispacked: BOOLEAN) : Tree ;
 
 
 (*
@@ -333,7 +333,9 @@ PROCEDURE GetM2RType () : Tree ;
 *)
 
 PROCEDURE BuildSetTypeFromSubrange (location: location_t; name: ADDRESS;
-                                    subrangeType: Tree; lowval: Tree; highval: Tree) : Tree ;
+                                    subrangeType: Tree;
+                                    lowval: Tree; highval: Tree;
+                                    ispacked: BOOLEAN) : Tree ;
 
 
 (*
