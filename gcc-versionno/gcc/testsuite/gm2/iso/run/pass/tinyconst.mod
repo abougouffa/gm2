@@ -1,4 +1,4 @@
-(* conststrarray.mod provides a test to access a constant array.
+(* tinyconst.mod minimal array access test.
 
 Copyright (C) 2020 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -19,13 +19,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  *)
 
-MODULE conststrarray ;
+MODULE tinyconst ;
 
-FROM libc IMPORT exit, printf ;
-FROM SYSTEM IMPORT SIZE, ADR ;
+FROM libc IMPORT printf, exit ;
 
 TYPE
-   array = ARRAY [0..26] OF CHAR ;
+   array = ARRAY [0..25] OF CHAR ;
 
 CONST
    str = array { "A", "B", "C", "D", "E", "F", "G", "H",
@@ -33,27 +32,17 @@ CONST
                  "Q", "R", "S", "T", "U", "V", "X", "Y",
                  "Z" } ;
 
-PROCEDURE assert (b: BOOLEAN; file: ARRAY OF CHAR; line: CARDINAL) ;
-BEGIN
-   IF NOT b
-   THEN
-      printf ("%s:%d:assert failed\n", ADR (file), line) ;
-      r := 1
-   END
-END assert ;
-
-
 VAR
-   s: array ;
-   c: CARDINAL ;
+   z: CHAR ;
    r: INTEGER ;
 BEGIN
-   r := 0 ;
-   s := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ;
-   FOR c := 0 TO 25 DO
-      printf ("c = %d, s[c] = %c, str[c] = %c, %c\n", c, s[c], str[c], CHR (ORD ('A')+c)) ;
-      assert (s[c] = CHR (ORD ('A')+c), __FILE__, __LINE__) ;
-      assert (s[c] = str[c], __FILE__, __LINE__)
+   z := str[25] ;
+   printf ("z should be z = %c\n", z) ;
+   IF z = 'Z'
+   THEN
+      r := 0
+   ELSE
+      r := 1
    END ;
    exit (r)
-END conststrarray.
+END tinyconst.
