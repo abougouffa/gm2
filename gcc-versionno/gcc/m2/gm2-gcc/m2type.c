@@ -2513,30 +2513,22 @@ m2type_BuildSubrangeType (location_t location, char *name, tree type,
     }
 }
 
+/* BuildCharConstantChar - creates a character constant given a character, ch.  */
+
+tree
+m2type_BuildCharConstantChar (location_t location, char ch)
+{
+  tree id = build_int_cst (char_type_node, (int) ch);
+  id = m2convert_BuildConvert (location, m2type_GetM2CharType (), id, FALSE);
+  return m2block_RememberConstant (id);
+}
+
 /* BuildCharConstant - creates a character constant given a, string.  */
 
 tree
 m2type_BuildCharConstant (location_t location, const char *string)
 {
-  int result = (int)string[0];
-  tree id;
-
-#if 0
-  unsigned num_bits = TYPE_PRECISION (char_type_node) * strlen(string);
-
-
-  if (TYPE_UNSIGNED (char_type_node) || ((result >> (num_bits - 1)) & 1) == 0)
-    id = build_int_cst (integer_type_node,
-                        result & ((unsigned HOST_WIDE_INT) ~0
-                                  >> (HOST_BITS_PER_WIDE_INT - num_bits)));
-  else
-    id = build_int_cst (integer_type_node,
-                        result | ~((unsigned HOST_WIDE_INT) ~0
-                                   >> (HOST_BITS_PER_WIDE_INT - num_bits)));
-#endif
-  id = build_int_cst (char_type_node, result);
-  id = m2convert_BuildConvert (location, m2type_GetM2CharType (), id, FALSE);
-  return m2block_RememberConstant (id);
+  return m2type_BuildCharConstantChar (location, string[0]);
 }
 
 /* RealToTree - convert a real number into a Tree.  */

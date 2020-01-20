@@ -35,7 +35,8 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED Name, NulName,
                  MakeKey, GetKey, LengthKey, IsKey, WriteKey,
-                 IsSameExcludingCase, KeyToCharStar, makekey ;
+                 IsSameExcludingCase, KeyToCharStar, makekey,
+                 CharKey ;
 
 
 CONST
@@ -109,6 +110,13 @@ PROCEDURE IsSameExcludingCase (key1, key2: Name) : BOOLEAN ;
 *)
 
 PROCEDURE KeyToCharStar (key: Name) : ADDRESS ;
+
+
+(*
+   CharKey - returns the key[i] character.
+*)
+
+PROCEDURE CharKey (key: Name; i: CARDINAL) : CHAR ;
 
 
 END NameKey.

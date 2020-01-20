@@ -75,6 +75,13 @@ PROCEDURE BuildCharConstant (location: location_t; string: ADDRESS) : Tree ;
 
 
 (*
+   BuildCharConstantChar - creates a character constant given a character, ch.
+*)
+
+PROCEDURE BuildCharConstantChar (location: location_t; ch: CHAR) : Tree ;
+
+
+(*
     BuildArrayConstructorElement - adds, value, to the constructor_element_list.
 *)
 

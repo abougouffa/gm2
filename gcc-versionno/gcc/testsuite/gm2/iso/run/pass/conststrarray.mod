@@ -30,8 +30,8 @@ TYPE
 CONST
    str = array { "A", "B", "C", "D", "E", "F", "G", "H",
                  "I", "J", "K", "L", "M", "N", "O", "P",
-                 "Q", "R", "S", "T", "U", "V", "X", "Y",
-                 "Z" } ;
+                 "Q", "R", "S", "T", "U", "V", "W", "X",
+                 "Y", "Z" } ;
 
 PROCEDURE assert (b: BOOLEAN; file: ARRAY OF CHAR; line: CARDINAL) ;
 BEGIN

@@ -1,3 +1,19 @@
+2020-01-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith) reformatted.
+          (CheckGetCharFromString) New procedure function.
+          (InitialiseArrayOfCharWith) New procedure function.
+          (ConstructArrayConstant) Reformatted.
+	* m2/gm2-compiler/M2GCCDeclare.mod:  (IsConstDependants)
+          reformatted.
+	* m2/gm2-compiler/NameKey.def:  (CharKey) declared exported.
+	* m2/gm2-compiler/NameKey.mod:  (CharKey) New procedure function.
+	* m2/gm2-gcc/m2type.c:  (BuildCharConstantChar) New function.
+          (BuildCharConstant) use BuildCharConstantChar.
+	* m2/gm2-gcc/m2type.def:  (BuildCharConstantChar) declared.
+	* m2/gm2-gcc/m2type.h:  (BuildCharConstantChar) declared.
+	* Fixes bugs shown in testsuite/gm2/iso/run/pass/conststrarray.mod.
+
 2020-01-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/bnf/m2-2.bnf:  (SetType) detect whether the set

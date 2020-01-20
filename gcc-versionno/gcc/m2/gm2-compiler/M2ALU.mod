@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE M2ALU ;
 
 FROM ASCII IMPORT nul ;
 FROM SYSTEM IMPORT WORD ;
-FROM NameKey IMPORT KeyToCharStar, MakeKey ;
+FROM NameKey IMPORT KeyToCharStar, MakeKey, CharKey ;
 FROM M2Error IMPORT InternalError, FlushErrors ;
 FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
@@ -51,7 +51,7 @@ FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaErrorStringT0, M
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
-                        MakeConstLit, GetArraySubscript, GetStringLength,
+                        MakeConstLit, GetArraySubscript,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
                         IsConstString, SkipTypeAndSubrange, GetDeclaredMod,
                         GetSubrange, GetSymName, GetNth, GetString, GetStringLength,
@@ -74,8 +74,9 @@ FROM m2misc IMPORT DebugTree ;
 FROM m2type IMPORT RealToTree, Constructor, GetIntegerType, GetLongRealType,
                    BuildStartSetConstructor, BuildSetConstructorElement, BuildEndSetConstructor,
                    BuildRecordConstructorElement, BuildEndRecordConstructor, BuildStartRecordConstructor,
-                   BuildNumberOfArrayElements, BuildCharConstant,
-                   BuildArrayConstructorElement, BuildStartArrayConstructor, BuildEndArrayConstructor ;
+                   BuildNumberOfArrayElements, BuildCharConstant, BuildCharConstantChar,
+                   BuildArrayConstructorElement, BuildStartArrayConstructor, BuildEndArrayConstructor,
+                   GetM2CharType ;
 
 FROM m2convert IMPORT ConvertConstantAndCheck, ToWord, ToInteger, ToCardinal, ToBitset ;
 FROM m2block IMPORT RememberConstant ;
@@ -4813,35 +4814,128 @@ END CheckElementString ;
 PROCEDURE InitialiseArrayWith (tokenno: CARDINAL; cons: Tree;
                                v: PtrToValue; el, high, low, baseType, arrayType: CARDINAL) : Tree ;
 VAR
-   i     : CARDINAL ;
+   location: location_t ;
+   i       : CARDINAL ;
    indice,
-   value : Tree ;
+   value   : Tree ;
 BEGIN
+   location := TokenToLocation (tokenno) ;
    i := 0 ;
    WHILE el#NulSym DO
-      PushValue(low) ;
+      PushValue (low) ;
       ConvertToInt ;
-      PushInt(i) ;
+      PushInt (i) ;
       Addn ;
-      indice := PopIntegerTree() ;
-      value := CheckElementString(el, arrayType, baseType, tokenno) ;
-      value := ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(arrayType), value) ;
-      BuildArrayConstructorElement(cons, value, indice) ;
-      PushValue(low) ;
-      ConvertToInt ;
-      PushInt(i) ;
-      Addn ;
-      PushValue(high) ;
-      ConvertToInt ;
-      IF GreEqu(tokenno)
+      indice := PopIntegerTree () ;
+      value := CheckElementString (el, arrayType, baseType, tokenno) ;
+      IF value = NIL
       THEN
-         RETURN( BuildEndArrayConstructor(cons) )
+         MetaErrorT0 (tokenno, '{%W}too few characters found when trying to construct a compound literal array') ;
+         value := GetCardinalZero (location)
       END ;
-      INC(i) ;
-      el := GetConstructorElement(tokenno, v, i+1)
+      value := ConvertConstantAndCheck (location, Mod2Gcc (arrayType), value) ;
+      BuildArrayConstructorElement (cons, value, indice) ;
+      PushValue (low) ;
+      ConvertToInt ;
+      PushInt (i) ;
+      Addn ;
+      PushValue (high) ;
+      ConvertToInt ;
+      IF GreEqu (tokenno)
+      THEN
+         RETURN BuildEndArrayConstructor (cons)
+      END ;
+      INC (i) ;
+      el := GetConstructorElement (tokenno, v, i+1)
    END ;
-   RETURN( BuildEndArrayConstructor(cons) )
+   RETURN BuildEndArrayConstructor (cons)
 END InitialiseArrayWith ;
+
+
+(*
+   CheckGetCharFromString - return char from the position, arrayIndex, in the list of
+                            constDecl elements.
+*)
+
+PROCEDURE CheckGetCharFromString (location: location_t;
+                                  tokenno: CARDINAL ;
+                                  constDecl: PtrToValue;
+                                  arrayIndex: CARDINAL) : Tree ;
+VAR
+   elementIndex: CARDINAL ;
+   element     : CARDINAL ;
+   offset,
+   totalLength : CARDINAL ;
+   key         : Name ;
+BEGIN
+   totalLength := 0 ;
+   elementIndex := 1 ;
+   REPEAT
+      element := GetConstructorElement (tokenno, constDecl, elementIndex) ;
+      offset := totalLength ;
+      IF IsConstString (element)
+      THEN
+         INC (totalLength, GetStringLength (element)) ;
+         IF totalLength > arrayIndex
+         THEN
+            key := GetString (element) ;
+            DEC (arrayIndex, offset) ;
+            RETURN BuildCharConstantChar (location, CharKey (key, arrayIndex))
+         END
+      ELSIF IsConst (element) AND (SkipType (GetType (element)) = Char) AND IsValueSolved (element)
+      THEN
+         INC (totalLength) ;
+         IF totalLength > arrayIndex
+         THEN
+            PushValue (element) ;
+            RETURN ConvertConstantAndCheck (location, GetM2CharType (), PopIntegerTree ())
+         END
+      ELSE
+         InternalError ('const char should be resolved', __FILE__, __LINE__)
+      END ;
+      INC (elementIndex)
+   UNTIL element = NulSym ;
+   RETURN GetCardinalZero (location)
+END CheckGetCharFromString ;
+
+
+(*
+   InitialiseArrayOfCharWith -
+*)
+
+PROCEDURE InitialiseArrayOfCharWith (tokenno: CARDINAL; cons: Tree;
+                                     constDecl: PtrToValue; el, high, low, baseType, arrayType: CARDINAL) : Tree ;
+VAR
+   location  : location_t ;
+   arrayIndex: CARDINAL ;      (* arrayIndex is the char position index of the final string.  *)
+   indice,
+   value     : Tree ;
+BEGIN
+   location := TokenToLocation (tokenno) ;
+   arrayIndex := 0 ;
+   WHILE el#NulSym DO
+      PushValue (low) ;
+      ConvertToInt ;
+      PushInt (arrayIndex) ;
+      Addn ;
+      indice := PopIntegerTree () ;
+      value := CheckGetCharFromString (location, tokenno, constDecl, arrayIndex) ;
+      value := ConvertConstantAndCheck (location, Mod2Gcc (arrayType), value) ;
+      BuildArrayConstructorElement (cons, value, indice) ;
+      PushValue (low) ;
+      ConvertToInt ;
+      PushInt (arrayIndex) ;
+      Addn ;
+      PushValue (high) ;
+      ConvertToInt ;
+      IF GreEqu (tokenno)
+      THEN
+         RETURN BuildEndArrayConstructor (cons)
+      END ;
+      INC (arrayIndex)
+   END ;
+   RETURN BuildEndArrayConstructor (cons)
+END InitialiseArrayOfCharWith ;
 
 
 (*
@@ -4851,7 +4945,7 @@ END InitialiseArrayWith ;
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
 VAR
    n1, n2    : Name ;
-   el,
+   el1, el2,
    baseType,
    Subrange,
    Subscript,
@@ -4870,20 +4964,24 @@ BEGIN
          THEN
             n1 := GetSymName(constructorType) ;
             n2 := GetSymName(baseType) ;
-            printf2('ConstructArrayConstant of type %a and baseType %a\n', n1, n2)
+            printf2 ('ConstructArrayConstant of type %a and baseType %a\n', n1, n2)
          END ;
          cons := BuildStartArrayConstructor(Mod2Gcc(baseType)) ;
 
          GetArrayLimits(baseType, low, high) ;
          arrayType := GetType(baseType) ;
 
-         el := GetConstructorElement(tokenno, v, 1) ;
-         IF IsString(baseType) AND IsString(el)
+         el1 := GetConstructorElement(tokenno, v, 1) ;
+         el2 := GetConstructorElement(tokenno, v, 2) ;
+         IF (el2 = NulSym) AND IsString(baseType) AND IsString(el1)
          THEN
             (* constructorType is ARRAY [low..high] OF CHAR and using a string to initialise it *)
-            RETURN( InitialiseArrayOfCharWithString(tokenno, cons, v, el, baseType, arrayType) )
+            RETURN InitialiseArrayOfCharWithString (tokenno, cons, v, el1, baseType, arrayType)
+         ELSIF SkipType(arrayType)=Char
+         THEN
+            RETURN InitialiseArrayOfCharWith (tokenno, cons, v, el1, high, low, baseType, arrayType)
          ELSE
-            RETURN( InitialiseArrayWith(tokenno, cons, v, el, high, low, baseType, arrayType) )
+            RETURN InitialiseArrayWith (tokenno, cons, v, el1, high, low, baseType, arrayType)
          END
       END
    END

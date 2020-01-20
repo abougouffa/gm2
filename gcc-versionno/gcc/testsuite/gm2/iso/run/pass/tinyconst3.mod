@@ -1,4 +1,4 @@
-(* tinyconst.mod minimal array access test.
+(* tinyconst3.mod minimal array access test.
 
 Copyright (C) 2020 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  *)
 
-MODULE tinyconst ;
+MODULE tinyconst3 ;
 
 FROM libc IMPORT printf, exit ;
 
@@ -27,16 +27,15 @@ TYPE
    array = ARRAY [0..25] OF CHAR ;
 
 CONST
-   str = array { "A", "B", "C", "D", "E", "F", "G", "H",
-                 "I", "J", "K", "L", "M", "N", "O", "P",
-                 "Q", "R", "S", "T", "U", "V", "W", "X",
-                 "Y", "Z" } ;
+   str = array { "ABCDEFGHIJKLMNOPQRSTUVWXYZ" } ;
 
 VAR
    z: CHAR ;
+   s: array ;
    r: INTEGER ;
 BEGIN
-   z := str[25] ;
+   s := str ;
+   z := s[25] ;
    printf ("z should be z = %c\n", z) ;
    IF z = 'Z'
    THEN
@@ -45,4 +44,4 @@ BEGIN
       r := 1
    END ;
    exit (r)
-END tinyconst.
+END tinyconst3.

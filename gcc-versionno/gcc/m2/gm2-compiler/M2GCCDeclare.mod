@@ -1729,20 +1729,20 @@ PROCEDURE IsConstDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
    type: CARDINAL ;
 BEGIN
-   Assert(IsConst(sym)) ;
-   type := GetSType(sym) ;
-   IF type#NulSym
+   Assert (IsConst (sym)) ;
+   type := GetSType (sym) ;
+   IF type # NulSym
    THEN
-      IF NOT q(type)
+      IF NOT q (type)
       THEN
-         RETURN( FALSE )
+         RETURN FALSE
       END
    END ;
-   IF IsConstSet(sym) OR IsConstructor(sym)
+   IF IsConstSet (sym) OR IsConstructor (sym)
    THEN
-      RETURN( IsConstructorDependants(sym, q) )
+      RETURN IsConstructorDependants (sym, q)
    END ;
-   RETURN( IsValueSolved(sym) )
+   RETURN IsValueSolved (sym)
 END IsConstDependants ;
 
 
@@ -4093,14 +4093,14 @@ VAR
    l: List ;
    i: CARDINAL ;
 BEGIN
-   InitList(l) ;
-   IncludeItemIntoList(l, sym) ;
+   InitList (l) ;
+   IncludeItemIntoList (l, sym) ;
    i := 1 ;
-   WHILE i<=NoOfItemsInList(l) DO
-      PrintVerboseFromList(l, i) ;
-      INC(i)
+   WHILE i<=NoOfItemsInList (l) DO
+      PrintVerboseFromList (l, i) ;
+      INC (i)
    END ;
-   KillList(l)
+   KillList (l)
 END PrintVerbose ;
 
 

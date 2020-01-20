@@ -205,6 +205,7 @@ EXTERN tree m2type_BuildEndArrayConstructor (void *p);
 EXTERN void m2type_BuildArrayConstructorElement (void *p, tree value,
                                                  tree indice);
 EXTERN tree m2type_BuildCharConstant (location_t location, const char *string);
+EXTERN tree m2type_BuildCharConstantChar (location_t location, char ch);
 EXTERN tree m2type_BuildSubrangeType (location_t location, char *name,
                                       tree type, tree lowval, tree highval);
 EXTERN tree m2type_gm2_unsigned_type (tree type);

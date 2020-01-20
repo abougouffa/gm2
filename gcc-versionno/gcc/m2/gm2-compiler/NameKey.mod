@@ -391,6 +391,24 @@ BEGIN
 END WriteKey ;
 
 
+(*
+   CharKey - returns the key[i] character.
+*)
+
+PROCEDURE CharKey (key: Name; i: CARDINAL) : CHAR ;
+VAR
+   p: PtrToChar ;
+BEGIN
+   IF i >= LengthKey (key)
+   THEN
+      HALT
+   END ;
+   p := KeyToCharStar (key) ;
+   INC (p, i) ;
+   RETURN p^
+END CharKey ;
+
+
 BEGIN
    LastIndice := 0 ;
    KeyIndex := InitIndex(1) ;
