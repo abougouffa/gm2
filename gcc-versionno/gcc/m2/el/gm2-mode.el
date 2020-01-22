@@ -1,4 +1,4 @@
-;; Copyright (C) 1985-2019
+;; Copyright (C) 1985-2020
 
 ;; Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@
 
 ;; Modula-2 mode editing commands for Emacs
 
-;; Author Gaius Mulley <gaius@glam.ac.uk>
+;; Author Gaius Mulley <gaius.mulley@southwales.ac.uk>
 ;;    keywords can be displayed in lowercase and optionally underlined.
 ;;    reserved procedures and functions displayed in lowercase bold and optionally italic.
 ;;    contains automatic indentation

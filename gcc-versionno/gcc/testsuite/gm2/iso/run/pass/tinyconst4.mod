@@ -27,7 +27,7 @@ TYPE
    array = ARRAY [0..25] OF CHAR ;
 
 CONST
-   str = array { "ABCDEFGHIJKLMNOPQRSTUVWXYZ                     " } ;
+   str = array { "ABCDEFGHIJKLMNOPQRSTUVWXYZ" } ;
 
 VAR
    z: CHAR ;
