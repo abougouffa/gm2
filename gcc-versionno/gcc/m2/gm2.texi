@@ -3301,62 +3301,21 @@ Note that as per
 @node Development, Dejagnu, Solaris gcc-4.7 build, Top
 @section Development sources via git
 
-Development sources can be downloaded via git but they must be grafted
-carefully onto an existing GCC release.  The notes in this section
-document how this is achieved, however a prepared git and GCC release
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-git-latest.tar.gz, is available}
-and it is created upon each commit.
-
 The source code in the git can be
 @uref{http://git.savannah.gnu.org/cgit/gm2.git/tree, browsed}.
-However if you want to obtain the latest sources via git then type the
-following:
+
+These sources can be obtained via:
 
 @example
-$ git clone git://git.sv.gnu.org/gm2.git
+$ git clone http://floppsie.comp.glam.ac.uk/gm2
 @end example
 
-This will checkout a copy of GNU Modula-2 into one subdirectory,
-@file{gm2}.  The checkout also includes the complete testsuite and
-gm2 libraries.
-
-This version of GNU Modula-2 needs to be placed on top of
-the GCC source tree and have various patches applied before
-GNU Modula-2 can be built. Please check the
-@uref{http://www.nongnu.org/gm2, GNU Modula-2 homepage} for details
-about which GCC releases are supported by GNU Modula-2.
-
-Once you have downloaded the correct GCC release from
-@uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC
-archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
-@file{gm2} directories are at the same level, you can graft @file{gm2}
-onto @file{gcc-@value{version-GCC}} by:
-
-@example
-$ mkdir -p combined/gm2
-$ mv gcc-@value{version-GCC} combined/gm2/gcc-versionno
-$ tar cf - gm2 | ( cd combined ; tar xf - )
-@end example
-
-If the directory
-@samp{combined/gm2/gcc-versionno/gcc/gm2/patches/gcc/@value{version-GCC}}
-exists then the patch files inside that directory can be applied to the
-@samp{gcc-versionno} tree. This is done via:
-
-@example
-$ cd combined/gm2/gcc-versionno
-$ if [ -d gcc/gm2/patches/gcc/@value{version-GCC} ] ; then
-     for i in gcc/gm2/patches/gcc/@value{version-GCC}/* ; do
-        if [ -f $i ] ; then
-           patch -p1 < $i
-        fi
-     done
-  fi
-@end example
-
-Note that if you download a tarball from
-@url{http://floppsie.comp.glam.ac.uk} then any patching will have
-already been applied.  @xref{Obtaining, , ,}.
+This will clone a copy of the @file{GCC} repository onto which the
+@file{gm2} repository has been grafted.
+This combined repository contains the @file{gm2-master}, @file{gm2-9}
+@file{gm2-8} and @file{gm2-6} branches which correspond to the current
+@file{GCC} releases.  It also has all the relevant @file{gm2} related
+patches for @file{GCC} applied.  @xref{Obtaining, , ,}.
 
 @node Dejagnu, Cygwin, Development, Top
 @section Stress testing GM2

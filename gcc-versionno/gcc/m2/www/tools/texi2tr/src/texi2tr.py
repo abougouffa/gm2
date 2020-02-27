@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 
 import sys
 import os
@@ -393,7 +393,7 @@ def scanFor (contents, state):
 
 
 #
-#  parseFile - 
+#  parseFile -
 #
 
 def parseFile (contents, state):
@@ -423,6 +423,9 @@ def doSet (content, state):
         des, expr = content.split()[0:2]
     elif len(content.split()) == 2:
         des, expr = content.split()
+    else:
+        des = content.split ()[0]
+        expr = True
     values[des] = expr
     return "", state
 
@@ -450,7 +453,7 @@ def doTitlepageEnd (state):
 
 def doCenter (content, state):
     global html, title, inTitlePage
-    
+
     if inTitlePage:
         return content, state
     elif state == ignore:
@@ -540,6 +543,37 @@ def doIfhtml (content, state):
         pushState('ifhtml', state)
         return '', state
 
+def doIftex (content, state):
+    return doConsume(content, ignore, 'iftex')
+
+def doIfNottex (content, state):
+    if state == ignore:
+        return doConsume(content, state, 'ifnottex')
+    else:
+        pushState('ifnottex', state)
+        return '', state
+
+def doIfSet (content, state):
+    if state == ignore:
+        return doConsume(content, state, 'ifset')
+    else:
+        if content in functions:
+            pushState('ifset', state)
+            return '', state
+        else:
+            return doConsume(content, ignore, 'ifset')
+
+def doIfClear (content, state):
+    if state == ignore:
+        return doConsume(content, state, 'ifset')
+    else:
+        if content in functions:
+            return doConsume(content, ignore, 'ifclear')
+        else:
+            pushState('ifclear', state)
+            return '', state
+
+
 def doPass (content, state):
     return content, state
 
@@ -627,7 +661,7 @@ def doNode (content, state):
         return "", state
     frags += [['text', html.collectFragment('node')]]
     html.setFilename(safeName(label) + '.html')
-    frags += [['text', html.collectFragment('node')]]    
+    frags += [['text', html.collectFragment('node')]]
     frags += [['node', navigation.addNode(html, content)]]
     return "", state
 
@@ -692,7 +726,7 @@ def doSubSection (content, state):
     html.h4End()
     html.paraBegin()
     return "", state
-    
+
 def doUref (content, state):
     global html
     if state != ignore:
@@ -802,6 +836,29 @@ def doItemizeEnd (state):
         html.paraBegin()
 
 #
+#  doMacro - define a texi macro.
+#
+
+def doMacro (content, state):
+    global html
+    if state == ignore:
+        return doConsume(content, state, 'macro')
+    else:
+        print ("macro seen")
+        pushState('macro', state)
+        return "", state
+
+#
+#  doMacroEnd - terminates the current macro.
+#
+
+def doMacroEnd (state):
+    global html
+    if state != ignore:
+        print ("end of macro seen")
+
+
+#
 #  doTable - collect the format specifier and emit the start
 #
 
@@ -831,7 +888,7 @@ def doTableEnd (state):
         html.paraBegin()
 
 #
-#  doItem - 
+#  doItem -
 #
 
 def doItem (content, state):
@@ -857,6 +914,39 @@ def doItem (content, state):
             html.tableRightBegin()
             html.paraBegin()
         return "", state
+
+
+#
+#  doAlias - alias one macro by another.
+#
+
+def doAlias (content, state):
+    if state == ignore:
+        return skipLine (content, state)
+    else:
+        # --fixme-- this needs to be completed.
+        return "", state
+
+#
+#  doTex - perform commands in tex.
+#
+
+def doTex (content, state):
+    global html
+    if state == ignore:
+        return doConsume(content, state, 'tex')
+    else:
+        pushState('tex', state)
+        return "", ignore
+
+#
+#  doTexEnd - terminates the tex statement sequence.
+#
+
+def doTexEnd (state):
+    global html
+    if state != ignore:
+        pass
 
 #
 #
@@ -1068,6 +1158,7 @@ def generateSectionIndex (html):
 
 def populateFunctions ():
     global functions
+    functions['alias'] = doAlias
     functions['bullet'] = doBullet
     functions['bye'] = doBye
     functions['c'] = doComment
@@ -1085,17 +1176,24 @@ def populateFunctions ():
     functions['example'] = doExample
     endFunctions['example'] = doExampleEnd
     functions['file'] = doSamp
+    functions['finalout'] = doPass
     functions['findex'] = doFindex
     functions['footnote'] = doFootnote
     functions['heading'] = doHeading
     functions['i'] = doI
     functions['image'] = doIgnore
     functions['include'] = doInclude
+    functions['ifclear'] = doIfClear
     functions['ifhtml'] = doIfhtml
     functions['ifinfo'] = doIfinfo
+    functions['iftex'] = doIftex
+    functions['ifnottex'] = doIfNottex
+    functions['ifset'] = doIfSet
     functions['item'] = doItem
     functions['itemize'] = doItemize
     endFunctions['itemize'] = doItemizeEnd
+    functions['macro'] = doMacro
+    endFunctions['macro'] = doMacroEnd
     functions['menu'] = doMenu
     endFunctions['menu'] = doMenuEnd
     functions['node'] = doNode
@@ -1107,18 +1205,23 @@ def populateFunctions ():
     functions['value'] = doValue
     functions['var'] = doVar
     functions['samp'] = doSamp
+    functions['sc'] = doStrong
     functions['section'] = doSection
     functions['set'] = doSet
     functions['setchapternewpage'] = doPass
     functions['setfilename'] = doSetfilename
     functions['settitle'] = doSettitle
+    functions['smallbook'] = doPass
     functions['smallexample'] = doSmallExample
     endFunctions['smallexample'] = doSmallExampleEnd
     functions['sp'] = doPass
     functions['strong'] = doStrong
     functions['subsection'] = doSubSection
+    functions['subtitle'] = doPass # doSubTitle
     functions['table'] = doTable
     endFunctions['table'] = doTableEnd
+    functions['tex'] = doTex
+    endFunctions['tex'] = doTexEnd
     functions['top'] = doTop
     functions['titlepage'] = doTitlepage
     endFunctions['titlepage'] = doTitlepageEnd

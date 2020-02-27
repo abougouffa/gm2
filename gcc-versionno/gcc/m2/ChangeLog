@@ -1,3 +1,10 @@
+2020-02-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2.texi:  updated obtaining source via git
+          given the merged repository at floppsie.
+	* m2/www/tools/texi2tr/src/texi2tr.py:  changes to include
+	  many more texinfo commands.
+
 2020-01-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/el/gm2-mode.el:  corrected email address.
