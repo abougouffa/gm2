@@ -3307,6 +3307,15 @@ The source code in the git can be
 These sources can be obtained via:
 
 @example
+$ git clone https://git.savannah.nongnu.org/git/gm2.git
+@end example
+
+However you will probably want the combined @code{gcc} and @code{gm2}
+sources which are available below.  This second repository is large
+(about 3GB) but it contains all @code{gcc} branches and @code{gm2}
+releases applied to those branches.
+
+@example
 $ git clone http://floppsie.comp.glam.ac.uk/gm2
 @end example
 

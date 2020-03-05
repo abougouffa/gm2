@@ -1,3 +1,8 @@
+2020-03-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/gm2.texi:  added more detail about the gm2 repository
+          and branches.
+
 2020-03-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/www/tools/texi2tr/src/navigation.py:  use __next__ rather
