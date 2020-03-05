@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright (C) 2011
+# Copyright (C) 2011-2020
 #               Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -45,6 +45,7 @@ nodeName = False
 tableSpecifier = []
 enumerateSpecifier = []
 menuText = ""
+macroText = ""
 frags = []
 outputFile = sys.stdout.write
 rootName = ""
@@ -52,11 +53,15 @@ baseName = "texi2tr-%d.html"
 indexFunc = {}
 indexSections = {}
 html = None
+macroDef = {}
+macroContent = {}
+currentMacro = None
+
 
 # output state
-ignore, passthrough, arguments, menu = list(range(4))
+ignore, passthrough, arguments, menu, macro = list (range (5))
 
-currentMenu = navigation.menuInfo(True)
+currentMenu = navigation.menuInfo (True)
 
 
 
@@ -156,7 +161,7 @@ def readFile (filename):
 #
 
 def doState(contents, state):
-    global lineNo, html, menu, menuText
+    global lineNo, html, menu, menuText, macroText
     debugf('doState')
     if state == passthrough:
         html.write(contents)
@@ -164,6 +169,8 @@ def doState(contents, state):
         argStack[0] += contents
     elif state == menu:
         menuText += contents
+    elif state == macro:
+        macroText += contents
 
 #
 #  skipLine - removes the first line from contents.
@@ -272,17 +279,52 @@ def parseArgs (contents, i, delim):
         return "", args
 
 
+def endMacroSeen (content, args):
+    if (content == "end") and (args == "macro"):
+        return (content == "end") and (args == "macro")
+    return False
+
+
+#
+#  substitute - given a macro, command, substute its parameters
+#               with args.
+#
+
+def substitute (command, args):
+    contents = macroContent[command]
+    formalParameters = macroDef[command]
+    for count, param in enumerate (formalParameters.split (",")):
+        param = param.rstrip ()
+        param = param.lstrip ()
+        if count < len (args):
+            contents = contents.replace ("\\" + param + "\\", args[count])
+    return contents
+
+
 #
 #  call - call the function, command, with args and state.
 #
 
 def call (command, args, state):
-    global functions
+    global functions, macroDef, macroContent, macroText
 
-    if command in functions:
+    # printf ("command = %s,  state = %d\n", command, state)
+    if (state == macro) and (not endMacroSeen (command, args)):
+        macroText += "@"
+        macroText += command
+        macroText += "{"
+        macroText += args
+        macroText += "}"
+        return "", state
+    elif command in macroContent:
+        # need to substitute args into macro
+        return substitute (command, args), state
+    elif command in functions:
         return functions[command](args, state)
     else:
-        error("unknown command '" + command + "'")
+        # printf ("********* unknown command %s\n", command)
+        # error("unknown command '" + command + "'")
+        return "", state
 
 #
 #  collectNonProcessedArgs - returns the arguments but without
@@ -318,63 +360,69 @@ def collectNonProcessedArgs (command, contents):
 #
 
 def switchAt (contents, state):
-    debugf('switchAt')
+    global macroText
 
-    if len(contents)>0:
-        contents = contents[1:]
-        if (contents[0] == '@') or (contents[0] == '{') or (contents[0] == '}') or (contents[0] == '.'):
-            if state==arguments:
-                # still need to escape it
-                doState('@', state)
-            doState(contents[0], state)
-            debugf('return 1st switchAt')
-            return contents[1:], state
-        else:
-            # search for space or {
-            l = contents.find('\n')
-            if l>=0:
-                i = contents.find(' ', 0, l)
-                j = contents.find('{', 0, l)
-            else:
-                i = contents.find(' ')
-                j = contents.find('{')
-            if (i>=0) and ((j == -1) or (i<j)):
-                command = contents.split()[0]
-                if command in ['c', 'comment']:
-                    contents, args = collectNonProcessedArgs(command, contents)
-                    return contents, state
-                elif command in ['table']:
-                    contents, args = collectNonProcessedArgs(command, contents)
-                    c, s = call(command, args, state)
-                    contents = c + contents
-                    return contents, s
-                contents, args = parseArgs(contents, i, '\n')
-                debugf('space delimited' + command + "<" + args + ">")
-                debugf('return 3rd switchAt')
-                c, s = call(command, args, state)
-                contents = c + contents
-                return contents, s
-            elif (j>=0) and ((i == -1) or (j<i)):
-                command = contents.split('{')[0]
-                contents, args = parseArgs(contents, j, '}')
-                debugf('brace delimited' + command + "<" + args + ">")
-                debugf('return 4th switchAt')
-                c, s = call(command, args, state)
-                contents = c + contents
-                return contents, s
-            else:
-                command = contents.split()[0]
-                i = contents.find('\n')
-                if (i>=0) and (i<len(contents)):
-                    contents = contents[i+1:]
-                args = ""
-                debugf(command + "<" + args + ">")
-                debugf('return 4th switchAt')
-                c, s = call(command, args, state)
-                contents = c + contents
-                return contents, s
+    debugf('switchAt')
+    if len (contents) > 0:
+        return prepareCall (contents, state)
     debugf('return final switchAt')
     return contents, state
+
+
+def prepareCall (contents, state):
+    contents = contents[1:]
+    if (contents[0] == '@') or (contents[0] == '{') or (contents[0] == '}') or (contents[0] == '.'):
+        if state==arguments:
+            # still need to escape it
+            doState('@', state)
+        doState(contents[0], state)
+        debugf('return 1st switchAt')
+        return contents[1:], state
+    else:
+        # search for space or {
+        l = contents.find('\n')
+        if l>=0:
+            i = contents.find(' ', 0, l)
+            j = contents.find('{', 0, l)
+        else:
+            i = contents.find(' ')
+            j = contents.find('{')
+        if (i>=0) and ((j == -1) or (i<j)):
+            command = contents.split()[0]
+            if command in ['c', 'comment']:
+                contents, args = collectNonProcessedArgs(command, contents)
+                return contents, state
+            elif command in ['table']:
+                contents, args = collectNonProcessedArgs(command, contents)
+                c, s = call(command, args, state)
+                contents = c + contents
+                return contents, s
+            contents, args = parseArgs(contents, i, '\n')
+            debugf('space delimited' + command + "<" + args + ">")
+            debugf('return 3rd switchAt')
+            c, s = call(command, args, state)
+            contents = c + contents
+            return contents, s
+        elif (j>=0) and ((i == -1) or (j<i)):
+            command = contents.split('{')[0]
+            contents, args = parseArgs(contents, j, '}')
+            debugf('brace delimited' + command + "<" + args + ">")
+            debugf('return 4th switchAt')
+            c, s = call(command, args, state)
+            contents = c + contents
+            return contents, s
+        else:
+            command = contents.split()[0]
+            i = contents.find('\n')
+            if (i>=0) and (i<len(contents)):
+                contents = contents[i+1:]
+            args = ""
+            debugf(command + "<" + args + ">")
+            debugf('return 4th switchAt')
+            c, s = call(command, args, state)
+            contents = c + contents
+            return contents, s
+
 
 
 #
@@ -522,6 +570,11 @@ def doCode (content, state):
         html.pop()
     return "", state
 
+def doBr (content, state):
+    global html
+    return "", state
+    # html.br ()
+
 #
 #  doQuotation -
 #
@@ -544,7 +597,11 @@ def doIfhtml (content, state):
         return '', state
 
 def doIftex (content, state):
-    return doConsume(content, ignore, 'iftex')
+    if state == ignore:
+        return doConsume(content, state, 'iftex')
+    else:
+        pushState('iftex', state)
+        return '', state
 
 def doIfNottex (content, state):
     if state == ignore:
@@ -554,31 +611,69 @@ def doIfNottex (content, state):
         return '', state
 
 def doIfSet (content, state):
+    # printf ("ifset %s\n", content)
     if state == ignore:
         return doConsume(content, state, 'ifset')
     else:
-        if content in functions:
-            pushState('ifset', state)
+        pushState('ifset', state)
+        # print ("values = ", values)
+        if content in values:
+            # printf ("values contains %s\n", content)
             return '', state
         else:
-            return doConsume(content, ignore, 'ifset')
+            # printf ("values does not contain %s\n", content)
+            return '', ignore
 
 def doIfClear (content, state):
     if state == ignore:
-        return doConsume(content, state, 'ifset')
+        return doConsume(content, state, 'ifclear')
     else:
-        if content in functions:
+        if content in values:
             return doConsume(content, ignore, 'ifclear')
         else:
             pushState('ifclear', state)
             return '', state
 
+def doCopying (content, state):
+    if state == ignore:
+        return doConsume(content, state, 'copying')
+    else:
+        html.end()
+        pushState('copying', state)
+        html.paraBegin()
+        return '', state
+
+def doCopyingEnd (state):
+    global html
+    if state != ignore:
+        html.end()   # end of paragraph
 
 def doPass (content, state):
     return content, state
 
-def doIgnore (content, state):
+def doIgnoreTag (content, state):
     return "", state
+
+def doIgnore (content, state):
+    pushState ('ignore', state)
+    return "", ignore
+
+def doIgnoreEnd (state):
+    pass
+
+def doFormat (content, state):
+    pushState ('format', state)
+    return "", state
+
+def doFormatEnd (state):
+    pass
+
+def doDirentry (content, state):
+    pushState ('direntry', state)
+    return "", state
+
+def doDirentryEnd (state):
+    pass
 
 def pushState (keyword, state):
     global statementStack
@@ -589,7 +684,8 @@ def pushState (keyword, state):
 
 def popState (keyword):
     state = statementStack[keyword][0]
-    if len(statementStack[keyword]) == 1:
+    # printf ("statement stack  %s\n", statementStack[keyword])
+    if len (statementStack[keyword]) == 1:
         statementStack[keyword] = []
     else:
         statementStack[keyword] = statementStack[keyword][1:]
@@ -601,16 +697,22 @@ def doConsume (content, state, keyword):
 
 def doEnd (content, state):
     global statementStack, endFunctions
-    keyword = content.split()[0]
+    keyword = content.split ()[0]
     if keyword in statementStack:
-        if len(statementStack[keyword]) == 0:
-            error("unexpected end '" + keyword + "'")
+        if len (statementStack[keyword]) == 0:
+            error ("unexpected end '" + keyword + "'")
         else:
             if keyword in endFunctions:
-                endFunctions[keyword](state)
-            state = popState(keyword)
+                # printf ("end %s\n", keyword)
+                endFunctions[keyword] (state)
+            else:
+                # printf ("end function %s missing\n", keyword)
+                pass
+            # printf ("end %s: old state = %d", keyword, state)
+            state = popState (keyword)
+            # printf (", new state = %d", state)
     else:
-        error("'@end " + keyword + "'" + " without '@" + keyword + "'")
+        error ("'@end " + keyword + "'" + " without '@" + keyword + "'")
     return "", state
 
 def doExampleEnd (state):
@@ -631,25 +733,25 @@ def doCopyright (content, state):
 #
 
 def safeName (name):
-    name = string.replace(name, "%", "")
-    name = string.replace(name, "^", "")
-    name = string.replace(name, ")", "")
-    name = string.replace(name, "(", "")
-    name = string.replace(name, "[", "")
-    name = string.replace(name, "]", "")
-    name = string.replace(name, "{", "")
-    name = string.replace(name, "}", "")
-    name = string.replace(name, "<", "")
-    name = string.replace(name, ">", "")
-    name = string.replace(name, "'", "")
-    name = string.replace(name, "?", "")
-    name = string.replace(name, "*", "")
-    name = string.replace(name, "/", "")
-    name = string.replace(name, '"', "")
-    name = string.replace(name, "'", "")
-    name = string.replace(name, "`", "")
-    name = string.replace(name, "~", "")
-    name = string.replace(name, " ", "_")
+    name = name.replace ("%", "")
+    name = name.replace ("^", "")
+    name = name.replace (")", "")
+    name = name.replace ("(", "")
+    name = name.replace ("[", "")
+    name = name.replace ("]", "")
+    name = name.replace ("{", "")
+    name = name.replace ("}", "")
+    name = name.replace ("<", "")
+    name = name.replace (">", "")
+    name = name.replace ("'", "")
+    name = name.replace ("?", "")
+    name = name.replace ("*", "")
+    name = name.replace ("/", "")
+    name = name.replace ('"', "")
+    name = name.replace ("'", "")
+    name = name.replace ("`", "")
+    name = name.replace ("~", "")
+    name = name.replace (" ", "_")
     return name.lower()
 
 def doNode (content, state):
@@ -840,22 +942,27 @@ def doItemizeEnd (state):
 #
 
 def doMacro (content, state):
-    global html
+    global html, currentMacro, macroDef
     if state == ignore:
-        return doConsume(content, state, 'macro')
+        return doConsume (content, state, 'macro')
     else:
-        print ("macro seen")
-        pushState('macro', state)
-        return "", state
+        # print ("macro seen:  defn = ", content)
+        currentMacro = content.split ("{")[0]
+        macroDef[currentMacro] = content
+        pushState ('macro', state)
+        return "", macro
 
 #
 #  doMacroEnd - terminates the current macro.
 #
 
 def doMacroEnd (state):
-    global html
-    if state != ignore:
-        print ("end of macro seen")
+    global macroText, macroContent, currentMacro
+    if state == macro:
+        macroContent[currentMacro] = macroText
+        print ("macro defined: ", currentMacro, "contents", macroText)
+        currentMacro = None
+        macroText = ""
 
 
 #
@@ -1158,7 +1265,9 @@ def generateSectionIndex (html):
 
 def populateFunctions ():
     global functions
+    functions['*'] = doBr
     functions['alias'] = doAlias
+    functions['author'] = doIgnoreTag
     functions['bullet'] = doBullet
     functions['bye'] = doBye
     functions['c'] = doComment
@@ -1166,7 +1275,12 @@ def populateFunctions ():
     functions['chapter'] = doChapter
     functions['code'] = doCode
     functions['comment'] = doComment
+    functions['copying'] = doCopying
+    endFunctions['copying'] = doCopyingEnd
     functions['copyright'] = doCopyright
+    functions['dircategory'] = doIgnoreTag
+    functions['direntry'] = doDirentry
+    endFunctions['direntry'] = doDirentryEnd
     functions['display'] = doDisplay
     endFunctions['display'] = doDisplayEnd
     functions['email'] = doEmail
@@ -1179,10 +1293,15 @@ def populateFunctions ():
     functions['finalout'] = doPass
     functions['findex'] = doFindex
     functions['footnote'] = doFootnote
+    functions['format'] = doFormat
+    endFunctions['format'] = doFormatEnd
     functions['heading'] = doHeading
     functions['i'] = doI
-    functions['image'] = doIgnore
+    functions['ignore'] = doIgnore
+    endFunctions['ignore'] = doIgnoreEnd
+    functions['image'] = doIgnoreTag
     functions['include'] = doInclude
+    functions['insertcopying'] = doIgnoreTag
     functions['ifclear'] = doIfClear
     functions['ifhtml'] = doIfhtml
     functions['ifinfo'] = doIfinfo
@@ -1222,14 +1341,16 @@ def populateFunctions ():
     endFunctions['table'] = doTableEnd
     functions['tex'] = doTex
     endFunctions['tex'] = doTexEnd
-    functions['top'] = doTop
+    functions['title'] = doIgnoreTag
     functions['titlepage'] = doTitlepage
     endFunctions['titlepage'] = doTitlepageEnd
     functions['titlefont'] = doTitlefont
+    functions['top'] = doTop
     functions['unnumbered'] = doChapter
     functions['unnumberedsec'] = doSection
     functions['uref'] = doUref
     functions['url'] = doUref
+    functions['versionsubtitle'] = doIgnoreTag
     functions['vskip'] = doPass
     functions['xref'] = doXref
 

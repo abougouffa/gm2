@@ -1,3 +1,13 @@
+2020-03-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/www/tools/texi2tr/src/navigation.py:  use __next__ rather
+          than next.
+	* m2/www/tools/texi2tr/src/outputdev.py:  defensively test for
+          None as the output file.
+	* m2/www/tools/texi2tr/src/texi2tr.py:  added many new texinfo
+          commands and conditionals.  Added support for macros.
+	  (safeName) converted to Python3.
+
 2020-02-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/gm2.texi:  updated obtaining source via git

@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 
 import sys
 import os
@@ -162,7 +162,7 @@ class htmlDevice:
             self.anchorCount = 0
         return f, s
     #
-    #  encodeChar - 
+    #  encodeChar -
     #
     def _encodeChar (self, c):
         global char2code
@@ -214,7 +214,10 @@ class htmlDevice:
     def closeFragment (self):
         self.deviceFooter()
         if config.multipleFragments:
-            self.output.close()
+            if self.output == None:
+                sys.stderr.write ('output channel is None')
+            else:
+                self.output.close()
     #
     #  copyright - output the (C) symbol.
     #
@@ -518,7 +521,7 @@ class htmlDevice:
     def deviceFooter (self):
         self.raw(self._safeOpen('footer.ht', 'footer template "footer.ht"'))
     #
-    #  safeOpen - 
+    #  safeOpen -
     #
     def _safeOpen (self, filename, description):
         try:

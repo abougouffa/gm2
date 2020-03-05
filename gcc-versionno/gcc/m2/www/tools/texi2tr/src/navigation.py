@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 
 import sys
 import os
@@ -34,10 +34,10 @@ class nodeInfo:
     #  record the texinfo nodes
     #
     def __init__ (self, me, n, p, u):
-        self.name  = me
-        self.next  = n
-        self.prev  = p
-        self.up    = u
+        self.name     = me
+        self.__next__ = n
+        self.prev     = p
+        self.up       = u
     def selectTab (self, root, selected):
         if (root != None) and (root._isShort()):
             for i in root.list:
