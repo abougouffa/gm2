@@ -1757,7 +1757,7 @@ END doProcTypeCheck ;
 
 
 (*
-   AfterResolved - a though test for type compatibility.
+   AfterResolved - a thorough test for type compatibility.
 *)
 
 PROCEDURE AfterResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ;
