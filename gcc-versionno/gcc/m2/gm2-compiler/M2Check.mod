@@ -33,8 +33,13 @@ IMPLEMENTATION MODULE M2Check ;
 *)
 
 FROM M2Base IMPORT IsParameterCompatible, IsAssignmentCompatible, IsExpressionCompatible ;
-FROM Lists IMPORT InitList, KillList, IncludeItemIntoList ;
-FROM Indexing IMPORT InitIndex, GetIndice, PutIndice, KillIndice ;
+FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, KillIndex, HighIndice, LowIndice ;
+FROM M2Error IMPORT Error, InternalError ;
+FROM SymbolTable IMPORT NulSym, IsRecord, IsSet, GetDType, GetSType, IsType, SkipType ;
+FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax ;
+FROM m2expr IMPORT AreConstantsEqual ;
+FROM SymbolConversion IMPORT Mod2Gcc ;
 FROM Storage IMPORT ALLOCATE ;
 
 
@@ -42,23 +47,42 @@ TYPE
    pair = POINTER TO RECORD
                         left, right: CARDINAL ;
                         pairStatus : status ;
+                        next       : pair ;
                      END ;
 
-   typeCheckFunction = PROCEDURE (status; tinfo; CARDINAL; CARDINAL) : status ;
+   typeCheckFunction = PROCEDURE (status, tInfo, CARDINAL, CARDINAL) : status ;
 
-   tInfo = RECORD
-              kind     : (parameter, assignment, expression) ;
-              actual,
-              formal,
-              left,
-              right,
-              procedure,
-              nth      : CARDINAL ;
-              error    : Error ;
-              checkFunc: typeCheckFunction ;
-           END ;
+   tInfo = POINTER TO RECORD
+                         kind      : (parameter, assignment, expression) ;
+                         actual,
+                         formal,
+                         left,
+                         right,
+                         procedure,
+                         nth       : CARDINAL ;
+                         error     : Error ;
+                         checkFunc : typeCheckFunction ;
+                         visited,
+                         resolved,
+                         unresolved: List ;
+                      END ;
 
-   status = (true, false, unknown, visit, unused) ;
+   status = (true, false, unknown, visited, unused) ;
+
+
+VAR
+   pairFreeList : pair ;
+   tinfoFreeList: tInfo ;
+
+
+(*
+   isKnown - returns BOOLEAN:TRUE if result is status:true or status:false.
+*)
+
+PROCEDURE isKnown (result: status) : BOOLEAN ;
+BEGIN
+   RETURN (result = true) OR (result = false) OR (result = visited)
+END isKnown ;
 
 
 (*
@@ -134,7 +158,7 @@ BEGIN
    THEN
       RETURN result
    ELSE
-      CASE tinfo.kind OF
+      CASE tinfo^.kind OF
 
       parameter :  IF IsParameterCompatible (left, right)
                    THEN
@@ -182,9 +206,9 @@ BEGIN
 *)
       ELSIF IsRecord (left) AND IsRecord (right)
       THEN
-         RETURN checkRecordEquivalence (result, info, left, right)
+         RETURN checkRecordEquivalence (result, tinfo, left, right)
       ELSE
-         RETURN checkBaseEquivalence (result, info, left, right)
+         RETURN checkBaseEquivalence (result, tinfo, left, right)
       END
    END
 END checkTypeKindEquivalence ;
@@ -201,13 +225,103 @@ END isSkipEquivalence ;
 
 
 (*
+   checkValueEquivalence -
+*)
+
+PROCEDURE checkValueEquivalence (result: status; tinfo: tInfo;
+                                 left, right: CARDINAL) : status ;
+BEGIN
+   IF isKnown (result)
+   THEN
+      RETURN result
+   ELSIF left = right
+   THEN
+      RETURN true
+   ELSE
+      IF AreConstantsEqual (Mod2Gcc (left), Mod2Gcc (right))
+      THEN
+         RETURN true
+      ELSE
+         RETURN false
+      END
+   END
+END checkValueEquivalence ;
+
+
+(*
+   and -
+*)
+
+PROCEDURE and (left, right: status) : status ;
+BEGIN
+   IF (left = true) AND (right = true)
+   THEN
+      RETURN true
+   ELSE
+      RETURN false
+   END
+END and ;
+
+
+(*
    checkTypeRangeEquivalence -
 *)
 
 PROCEDURE checkTypeRangeEquivalence (result: status; tinfo: tInfo;
                                      left, right: CARDINAL) : status ;
-VAR
-   result: status ;
+BEGIN
+   result := visit (result, tinfo, left, right) ;
+   result := checkSkipEquivalence (result, tinfo, left, right) ;
+   result2 := checkValueEquivalence (result, tinfo, GetTypeMin (left), GetTypeMin (right)) ;
+   result3 := checkValueEquivalence (result, tinfo, GetTypeMax (left), GetTypeMax (right)) ;
+   RETURN return (and (result2, result3), tinfo, left, right)
+END checkTypeRangeEquivalence ;
+
+
+(*
+   return -
+*)
+
+PROCEDURE return (result: status; tinfo: tInfo; left, right: CARDINAL) : status ;
+BEGIN
+   IF result # unknown
+   THEN
+      IF isKnown (result)
+      THEN
+         include (tinfo^.resolved, left, right)
+      END
+   END ;
+   exclude (tinfo^.visited, left, right) ;
+   RETURN result
+END return ;
+
+
+(*
+   visit - check that we have not already visited left/right.  If we have seen this
+           pair then it will return visited.
+*)
+
+PROCEDURE visit (result: status; tinfo: tInfo; left, right: CARDINAL) : status ;
+BEGIN
+   IF isKnown (result)
+   THEN
+      RETURN result
+   ELSIF in (tinfo^.visited, left, right)
+   THEN
+      RETURN visited
+   ELSE
+      include (tinfo^.visited, left, right, result) ;
+      RETURN result
+   END
+END visit ;
+
+
+(*
+   checkSkipEquivalence - return true if left right are equivalent.
+*)
+
+PROCEDURE checkSkipEquivalence (result: status; tinfo: tInfo;
+                                left, right: CARDINAL) : status ;
 BEGIN
    IF isKnown (result)
    THEN
@@ -216,10 +330,9 @@ BEGIN
    THEN
       RETURN true
    ELSE
-      result := checkValueEquivalence (result, tinfo, GetTypeMin (left), GetTypeMin (right)) ;
-      RETURN checkValueEquivalence (result, tinfo, GetTypeMax (left), GetTypeMax (right))
+      RETURN result
    END
-END checkTypeRangeEquivalence ;
+END checkSkipEquivalence ;
 
 
 (*
@@ -229,16 +342,11 @@ END checkTypeRangeEquivalence ;
 PROCEDURE checkSetEquivalent (result: status; tinfo: tInfo;
                               left, right: CARDINAL) : status ;
 BEGIN
-   IF isKnown (result)
-   THEN
-      RETURN result
-   ELSIF isSkipEquivalence (left, right)
-   THEN
-      RETURN true
-   ELSE
-      result := checkTypeKindEquivalence (result, tinfo, GetDType (left), GetDType (right)) ;
-      RETURN checkTypeRangeEquivalence (result, tinfo, GetDType (left), GetDType (right)) ;
-   END
+   result := visit (result, tinfo, left, right) ;
+   result := checkSkipEquivalence (result, tinfo, left, right) ;
+   result := checkTypeKindEquivalence (result, tinfo, GetDType (left), GetDType (right)) ;
+   result := checkTypeRangeEquivalence (result, tinfo, GetDType (left), GetDType (right)) ;
+   RETURN return (result, tinfo, left, right)
 END checkSetEquivalent ;
 
 
@@ -258,9 +366,9 @@ END checkRecordEquivalence ;
                                   equivalence, array, generic and type kind.
 *)
 
-PROCEDURE determineParameterCompatible (tinfo: tInfo; left, right: CARDINAL) : status ;
+PROCEDURE determineParameterCompatible (result: status; tinfo: tInfo; left, right: CARDINAL) : status ;
 BEGIN
-   result := checkTypeEquivalence (unknown, tinfo, GetDType (left), GetDType (right)) ;
+   result := checkTypeEquivalence (result, tinfo, GetDType (left), GetDType (right)) ;
    result := checkArrayOfTypeEquivalence (result, tinfo, GetSType (left), GetSType (right)) ;
    result := checkGenericTypeEquivalence (result, tinfo, GetSType (left), GetSType (right)) ;
    result := checkTypeKindEquivalence (result, tinfo, GetSType (left), GetSType (right)) ;
@@ -274,11 +382,11 @@ END determineParameterCompatible ;
 
 PROCEDURE getCompatible (result: status; tinfo: tInfo; left, right: CARDINAL) : status ;
 BEGIN
-   IF in (resolved, left, right)
+   IF in (tinfo^.resolved, left, right)
    THEN
-      RETURN getStatus (resolved, left, right)
+      RETURN getStatus (tinfo^.resolved, left, right)
    ELSE
-      RETURN tinfo.checkFunc (result, tinfo, left, right)
+      RETURN tinfo^.checkFunc (result, tinfo, left, right)
    END
 END getCompatible ;
 
@@ -293,19 +401,16 @@ END getCompatible ;
 
 PROCEDURE doCheck (tinfo: tInfo) : BOOLEAN ;
 BEGIN
-   WHILE get (unresolved, left, right, unknown) DO
-      IF NOT in (visited, left, right)
+   WHILE get (tinfo^.unresolved, left, right, unknown) DO
+      IF NOT in (tinfo^.visited, left, right)
       THEN
-         result := tinfo.checkFunc (unknown, tinfo, left, right) ;
+         result := tinfo^.checkFunc (unknown, tinfo, left, right) ;
          IF isKnown (result)
          THEN
             (* remove this pair from the unresolved list.  *)
-            exclude (unresolved, left, right) ;
-            include (resolved, left, right, result) ;  (* if this needed?  *)
+            exclude (tinfo^.unresolved, left, right) ;
+            include (tinfo^.resolved, left, right, result) ;  (* is this needed?  *)
             RETURN result = true
-         ELSE
-            (* We set to mark as visited and move on.  *)
-            include (visited, left, right)
          END
       END
    END ;
@@ -318,8 +423,21 @@ END doCheck ;
 *)
 
 PROCEDURE in (pairs: Index; left, right: CARDINAL) : BOOLEAN ;
+VAR
+   i, n: CARDINAL ;
+   p   : pair ;
 BEGIN
-   RETURN ...
+   i := 1 ;
+   n := HighIndice (pairs) ;
+   WHILE i <= n DO
+      p := GetIndice (pairs, i) ;
+      IF (p # NIL) AND (p^.left = left) AND (p^.right = right)
+      THEN
+         RETURN TRUE
+      END ;
+      INC (i)
+   END ;
+   RETURN FALSE
 END in ;
 
 
@@ -336,7 +454,7 @@ BEGIN
    i := 1 ;
    n := HighIndicec (pairs) ;
    WHILE i <= n DO
-      GetIndex (pairs, i, p) ;
+      p := GetIndice (pairs, i) ;
       IF p^.pairStatus = s
       THEN
          left := p^.left ;
@@ -350,6 +468,92 @@ END get ;
 
 
 (*
+   newPair -
+*)
+
+PROCEDURE newPair () : pair ;
+VAR
+   p: pair ;
+BEGIN
+   IF pairFreeList = NIL
+   THEN
+      NEW (p)
+   ELSE
+      p := pairFreeList ;
+      pairFreeList := p^.next
+   END ;
+   Assert (p # NIL) ;
+   RETURN p
+END newPair ;
+
+
+(*
+   disposePair - adds pair, p, to the free list.
+*)
+
+PROCEDURE disposePair (p: pair) ;
+BEGIN
+   p^.next := pairFreeList ;
+   pairFreeList := p
+END disposePair ;
+
+
+(*
+   deconstructList -
+*)
+
+PROCEDURE deconstructList (l: List) : List ;
+VAR
+   p: pair ;
+   i: CARDINAL ;
+BEGIN
+   i := 1 ;
+   n := HighIndice (pairs) ;
+   WHILE i <= n DO
+      p := GetIndice (pairs, i) ;
+      IF p # NIL
+      THEN
+         disposePair (p)
+      END ;
+      INC (i)
+   END ;
+   KillList (l) ;
+   RETURN NIL
+END deconstructList ;
+
+
+(*
+   deconstruct - deallocate the List data structure.
+*)
+
+PROCEDURE deconstruct (tinfo: tInfo) ;
+BEGIN
+   tInfo.visited := deconstructList (tInfo.visited) ;
+   tInfo.resolved := deconstructList (tInfo.resolved) ;
+   tInfo.unresolved := deconstructList (tInfo.unresolved)
+END deconstruct ;
+
+
+(*
+   newtInfo -
+*)
+
+PROCEDURE newtInfo () : tInfo ;
+VAR
+   tinfo: tInfo ;
+BEGIN
+   IF tinfoFreeList = NIL
+   THEN
+      NEW (tinfo)
+   ELSE
+      tinfo := tinfoFreeList ;
+      tinfoFreeList := tinfoFreeList^.next
+   END ;
+   RETURN tinfo
+END newtInfo ;
+
+
+(*
    ParameterTypeCompatible - returns TRUE if the nth procedure parameter formal
                              is compatible with actual.
 *)
@@ -360,40 +564,44 @@ VAR
    formalT, actualT: CARDINAL ;
    tinfo           : tInfo ;
 BEGIN
+   tinfo := newtInfo () ;
    formalT := GetSType (formal) ;
    actualT := GetSType (actual) ;
-   tinfo.kind := parameter ;
-   tinfo.actual := actual ;
-   tinfo.formal := formal ;
-   tinfo.procedure := procedure ;
-   tinfo.nth := nth ;
-   tinfo.error := NIL ;
-   tinfo.left := formalT ;
-   tinfo.right := actualT ;
-   tinfo.checkFunc := determineParameterCompatible ;
-   include (unresolved, pairs, actual, formal) ;
+   tinfo^.kind := parameter ;
+   tinfo^.actual := actual ;
+   tinfo^.formal := formal ;
+   tinfo^.procedure := procedure ;
+   tinfo^.nth := nth ;
+   tinfo^.error := NIL ;
+   tinfo^.left := formalT ;
+   tinfo^.right := actualT ;
+   tinfo^.checkFunc := determineParameterCompatible ;
+   tinfo^.visited := InitIndex (1) ;
+   tinfo^.resolved := InitIndex (1) ;
+   tinfo^.unresolved := InitIndex (1) ;
+   include (tinfo^.unresolved, actual, formal, unresolved) ;
    IF doCheck (tinfo, pairs)
    THEN
-      KillList (visited) ;
+      deconstruct (tinfo) ;
       RETURN TRUE
    ELSE
-      KillList (visited) ;
+      deconstruct (tinfo) ;
       RETURN FALSE
    END
 END ParameterTypeCompatible ;
 
 
 (*
-   Init -
+   init - initialise all global data structures for this module.
 *)
 
-PROCEDURE Init ;
+PROCEDURE init ;
 BEGIN
-   visited := InitIndex (1) ;
-   unresolved := InitIndex (1)
-END Init ;
+   pairFreeList  := NIL ;
+   tinfoFreeList := NIL
+END init ;
 
 
 BEGIN
-   Init
+   init
 END M2Check.

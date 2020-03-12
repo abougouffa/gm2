@@ -741,7 +741,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
                      PCSymBuild.def    PCBuild.def     M2Const.def     M2DebugStack.def \
                      M2DriverOptions.def               ObjectFiles.def M2ColorString.def \
-                     M2Emit.def
+                     M2Emit.def        M2Check.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -761,7 +761,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
                      PCSymBuild.mod    M2Const.mod     M2DebugStack.mod \
                      M2DriverOptions.mod               ObjectFiles.mod M2ColorString.mod \
-                     M2Emit.mod
+                     M2Emit.mod        M2Check.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
