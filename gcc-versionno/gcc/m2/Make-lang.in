@@ -656,7 +656,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
                      PCBuild.def     M2Const.def     M2DebugStack.def \
                      M2DriverOptions.def             ObjectFiles.def \
-                     M2ColorString.def               M2Emit.def
+                     M2ColorString.def               M2Emit.def      M2Check.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      M2AsmUtil.mod   M2Optimize.mod  M2StackWord.mod \
@@ -678,7 +678,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      PCSymBuild.mod  M2Const.mod     M2DebugStack.mod \
                      M2DriverOptions.mod \
                      SymbolKey.mod   NameKey.mod     Lists.mod       ObjectFiles.mod \
-                     M2ColorString.mod               M2Emit.mod
+                     M2ColorString.mod               M2Emit.mod      M2Check.mod
 
 GM2-GCC-DEFS      =  m2builtins.def  m2except.def    m2convert.def   m2decl.def \
                      m2except.def    m2expr.def      m2misc.def      m2block.def \

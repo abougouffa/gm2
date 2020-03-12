@@ -33,9 +33,9 @@ IMPLEMENTATION MODULE M2Check ;
 *)
 
 FROM M2Base IMPORT IsParameterCompatible, IsAssignmentCompatible, IsExpressionCompatible ;
-FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList ;
-FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, KillIndex, HighIndice, LowIndice ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, KillIndex, HighIndice, LowIndice, IncludeIndiceIntoIndex ;
 FROM M2Error IMPORT Error, InternalError ;
+FROM M2Debug IMPORT Assert ;
 FROM SymbolTable IMPORT NulSym, IsRecord, IsSet, GetDType, GetSType, IsType, SkipType ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax ;
 FROM m2expr IMPORT AreConstantsEqual ;
@@ -64,7 +64,8 @@ TYPE
                          checkFunc : typeCheckFunction ;
                          visited,
                          resolved,
-                         unresolved: List ;
+                         unresolved: Index ;
+                         next      : tInfo ;
                       END ;
 
    status = (true, false, unknown, visited, unused) ;
@@ -269,6 +270,8 @@ END and ;
 
 PROCEDURE checkTypeRangeEquivalence (result: status; tinfo: tInfo;
                                      left, right: CARDINAL) : status ;
+VAR
+   result2, result3: status ;
 BEGIN
    result := visit (result, tinfo, left, right) ;
    result := checkSkipEquivalence (result, tinfo, left, right) ;
@@ -276,6 +279,70 @@ BEGIN
    result3 := checkValueEquivalence (result, tinfo, GetTypeMax (left), GetTypeMax (right)) ;
    RETURN return (and (result2, result3), tinfo, left, right)
 END checkTypeRangeEquivalence ;
+
+
+(*
+   include - include pair left:right into pairs with status, s.
+*)
+
+PROCEDURE include (pairs: Index; left, right: CARDINAL; s: status) ;
+VAR
+   p: pair ;
+BEGIN
+   p := newPair () ;
+   p^.left := left ;
+   p^.right := right ;
+   p^.pairStatus := s ;
+   p^.next := NIL ;
+   IncludeIndiceIntoIndex (pairs, p)
+END include ;
+
+
+(*
+   exclude - exclude pair left:right from pairs.
+*)
+
+PROCEDURE exclude (pairs: Index; left, right: CARDINAL) ;
+VAR
+   p   : pair ;
+   i, n: CARDINAL ;
+BEGIN
+   i := 1 ;
+   n := HighIndice (pairs) ;
+   WHILE i <= n DO
+      p := GetIndice (pairs, i) ;
+      IF (p # NIL) AND (p^.left = left) AND (p^.right = right)
+      THEN
+         PutIndice (pairs, i, NIL) ;
+         disposePair (p) ;
+         RETURN
+      END ;
+      INC (i)
+   END
+END exclude ;
+
+
+(*
+   getStatus -
+*)
+
+PROCEDURE getStatus (pairs: Index; left, right: CARDINAL) : status ;
+VAR
+   p   : pair ;
+   i, n: CARDINAL ;
+BEGIN
+   i := 1 ;
+   n := HighIndice (pairs) ;
+   WHILE i <= n DO
+      p := GetIndice (pairs, i) ;
+      IF (p # NIL) AND (p^.left = left) AND (p^.right = right)
+      THEN
+         RETURN p^.pairStatus
+      END ;
+      INC (i)
+   END ;
+   RETURN unknown
+END getStatus ;
 
 
 (*
@@ -288,7 +355,7 @@ BEGIN
    THEN
       IF isKnown (result)
       THEN
-         include (tinfo^.resolved, left, right)
+         include (tinfo^.resolved, left, right, result)
       END
    END ;
    exclude (tinfo^.visited, left, right) ;
@@ -392,6 +459,31 @@ END getCompatible ;
 
 
 (*
+   get -
+*)
+
+PROCEDURE get (pairs: Index; VAR left, right: CARDINAL; s: status) : BOOLEAN ;
+VAR
+   i, n: CARDINAL ;
+   p   : pair ;
+BEGIN
+   i := 1 ;
+   n := HighIndice (pairs) ;
+   WHILE i <= n DO
+      p := GetIndice (pairs, i) ;
+      IF (p # NIL) AND (p^.pairStatus = s)
+      THEN
+         left := p^.left ;
+         right := p^.right ;
+         RETURN TRUE
+      END ;
+      INC (i)
+   END ;
+   RETURN FALSE
+END get ;
+
+
+(*
    doCheck - keep obtaining an unresolved pair and check for the
              type compatibility.  This is the main check routine used by
              parameter, assignment and expression compatibility.
@@ -400,6 +492,9 @@ END getCompatible ;
 *)
 
 PROCEDURE doCheck (tinfo: tInfo) : BOOLEAN ;
+VAR
+   result     : status ;
+   left, right: CARDINAL ;
 BEGIN
    WHILE get (tinfo^.unresolved, left, right, unknown) DO
       IF NOT in (tinfo^.visited, left, right)
@@ -442,32 +537,6 @@ END in ;
 
 
 (*
-   get - returns TRUE if a pair can be found in pairs which have a status
-         of s.  If true then left, right is set to the pair of symbols.
-*)
-
-PROCEDURE get (pairs: Index; VAR left, right: CARDINAL; s: status) : BOOLEAN ;
-VAR
-   i, n: CARDINAL ;
-   p   : pair ;
-BEGIN
-   i := 1 ;
-   n := HighIndicec (pairs) ;
-   WHILE i <= n DO
-      p := GetIndice (pairs, i) ;
-      IF p^.pairStatus = s
-      THEN
-         left := p^.left ;
-         right := p^.right ;
-         RETURN TRUE
-      END ;
-      INC (i)
-   END ;
-   RETURN FALSE
-END get ;
-
-
-(*
    newPair -
 *)
 
@@ -499,13 +568,13 @@ END disposePair ;
 
 
 (*
-   deconstructList -
+   deconstructIndex -
 *)
 
-PROCEDURE deconstructList (l: List) : List ;
+PROCEDURE deconstructIndex (pairs: Index) : Index ;
 VAR
-   p: pair ;
-   i: CARDINAL ;
+   p   : pair ;
+   i, n: CARDINAL ;
 BEGIN
    i := 1 ;
    n := HighIndice (pairs) ;
@@ -517,9 +586,8 @@ BEGIN
       END ;
       INC (i)
    END ;
-   KillList (l) ;
-   RETURN NIL
-END deconstructList ;
+   RETURN KillIndex (pairs)
+END deconstructIndex ;
 
 
 (*
@@ -528,9 +596,9 @@ END deconstructList ;
 
 PROCEDURE deconstruct (tinfo: tInfo) ;
 BEGIN
-   tInfo.visited := deconstructList (tInfo.visited) ;
-   tInfo.resolved := deconstructList (tInfo.resolved) ;
-   tInfo.unresolved := deconstructList (tInfo.unresolved)
+   tinfo^.visited := deconstructIndex (tinfo^.visited) ;
+   tinfo^.resolved := deconstructIndex (tinfo^.resolved) ;
+   tinfo^.unresolved := deconstructIndex (tinfo^.unresolved)
 END deconstruct ;
 
 
@@ -579,8 +647,8 @@ BEGIN
    tinfo^.visited := InitIndex (1) ;
    tinfo^.resolved := InitIndex (1) ;
    tinfo^.unresolved := InitIndex (1) ;
-   include (tinfo^.unresolved, actual, formal, unresolved) ;
-   IF doCheck (tinfo, pairs)
+   include (tinfo^.unresolved, actual, formal, unknown) ;
+   IF doCheck (tinfo)
    THEN
       deconstruct (tinfo) ;
       RETURN TRUE
