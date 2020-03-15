@@ -547,7 +547,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;  /* create new slot  */
       }
   }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/gm2-libs/FIO.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -2242,7 +2242,7 @@ void * FIO_getFileName (FIO_File f)
           return fd->name.address;
         }
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/gm2-libs/FIO.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -2269,7 +2269,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
           return fd->name.size;
         }
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/FIO.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/gm2-libs/FIO.def", 20, 1);
   __builtin_unreachable ();
 }
 

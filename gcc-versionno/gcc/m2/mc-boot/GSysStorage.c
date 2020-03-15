@@ -76,7 +76,7 @@ void SysStorage_ALLOCATE (void * *a, unsigned int Size)
   (*a) = libc_malloc ((size_t) Size);
   if ((*a) == NULL)
     {
-      Debug_Halt ((char *) "out of memory error", 19, 33, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/SysStorage.mod", 50);
+      Debug_Halt ((char *) "out of memory error", 19, 33, (char *) "../../gm2-floppsie/gcc/m2/gm2-libs/SysStorage.mod", 49);
     }
 }
 
@@ -106,7 +106,7 @@ void SysStorage_REALLOCATE (void * *a, unsigned int Size)
       (*a) = libc_realloc ((*a), (size_t) Size);
       if ((*a) == NULL)
         {
-          Debug_Halt ((char *) "out of memory error", 19, 62, (char *) "../../gcc-versionno/gcc/m2/gm2-libs/SysStorage.mod", 50);
+          Debug_Halt ((char *) "out of memory error", 19, 62, (char *) "../../gm2-floppsie/gcc/m2/gm2-libs/SysStorage.mod", 49);
         }
     }
 }

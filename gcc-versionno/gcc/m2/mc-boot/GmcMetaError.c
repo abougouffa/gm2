@@ -405,7 +405,7 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
   s = DynamicStrings_ConCatChar (s, '^');
   s = SFIO_WriteS (FIO_StdOut, s);
   FIO_WriteLine (FIO_StdOut);
-  mcError_internalError ((char *) m, _m_high, (char *) "../../gcc-versionno/gcc/m2/mc/mcMetaError.mod", 45, 98);
+  mcError_internalError ((char *) m, _m_high, (char *) "../../gm2-floppsie/gcc/m2/mc/mcMetaError.mod", 44, 98);
 }
 
 
@@ -417,7 +417,7 @@ static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b
 {
   if (a != b)
     {
-      mcError_internalError ((char *) "different string returned", 25, (char *) "../../gcc-versionno/gcc/m2/mc/mcMetaError.mod", 45, 110);
+      mcError_internalError ((char *) "different string returned", 25, (char *) "../../gm2-floppsie/gcc/m2/mc/mcMetaError.mod", 44, 110);
     }
   return a;
   /* static analysis guarentees a RETURN statement will be used before here.  */
@@ -731,7 +731,7 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
       case chained:
         if (e == NULL)
           {
-            mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gcc-versionno/gcc/m2/mc/mcMetaError.mod", 45, 356);
+            mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gm2-floppsie/gcc/m2/mc/mcMetaError.mod", 44, 356);
           }
         else
           {
@@ -755,7 +755,7 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
 
 
       default:
-        mcError_internalError ((char *) "unexpected enumeration value", 28, (char *) "../../gcc-versionno/gcc/m2/mc/mcMetaError.mod", 45, 370);
+        mcError_internalError ((char *) "unexpected enumeration value", 28, (char *) "../../gm2-floppsie/gcc/m2/mc/mcMetaError.mod", 44, 370);
         break;
     }
   return e;

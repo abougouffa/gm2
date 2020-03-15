@@ -52,8 +52,10 @@ TYPE
 
    typeCheckFunction = PROCEDURE (status, tInfo, CARDINAL, CARDINAL) : status ;
 
+   checkType = (parameter, assignment, expression) ;
+
    tInfo = POINTER TO RECORD
-                         kind      : (parameter, assignment, expression) ;
+                         kind      : checkType ;
                          actual,
                          formal,
                          left,

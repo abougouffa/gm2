@@ -582,7 +582,7 @@ static unsigned int activatePending (unsigned int untilInterrupt, RTint_Despatch
 
 
               default:
-                CaseException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 20, 1);
+                CaseException ("../../gm2-floppsie/gcc/m2/gm2-libs/RTint.def", 20, 1);
                 __builtin_unreachable ();
             }
           v = v->pending;
@@ -736,7 +736,7 @@ void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int s
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 271, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 271, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -761,7 +761,7 @@ void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *s
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 297, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 297, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -787,7 +787,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
   v = FindVectorNo (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 324, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
+      M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 324, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
     }
   else
     {
@@ -796,7 +796,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
       RTco_signal (lock);
       return l;
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/gm2-libs/RTint.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -821,7 +821,7 @@ void RTint_IncludeVector (unsigned int vec)
       v = FindVectorNo (vec);
       if (v == NULL)
         {
-          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 352, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
+          M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 352, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
         }
       else
         {
@@ -868,7 +868,7 @@ void RTint_ExcludeVector (unsigned int vec)
   v = FindPendingVector (vec);
   if (v == NULL)
     {
-      M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 395, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
+      M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 395, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
     }
   else
     {
@@ -969,7 +969,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/m2/gm2-libs/RTint.def", 20, 1);
+                    CaseException ("../../gm2-floppsie/gcc/m2/gm2-libs/RTint.def", 20, 1);
                     __builtin_unreachable ();
                 }
               v = v->pending;
@@ -982,7 +982,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
         }
       if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
         {
-          M2RTS_Halt ((char *) "../../gcc-versionno/gcc/m2/gm2-libs/RTint.mod", 45, 707, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
+          M2RTS_Halt ((char *) "../../gm2-floppsie/gcc/m2/gm2-libs/RTint.mod", 44, 707, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
         }
       /* printf('}
       ') ;  */

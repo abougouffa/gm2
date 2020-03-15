@@ -291,7 +291,7 @@ static decl_node examineCompilationUnit (void)
     }
   mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "failed to find module name", 26)));
   libc_exit (1);
-  ReturnException ("../../gcc-versionno/gcc/m2/mc/mcComp.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/mc/mcComp.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -321,7 +321,7 @@ static decl_node peepInto (DynamicStrings_String s)
       mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &s, (sizeof (s)-1));
       libc_exit (1);
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/mc/mcComp.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/mc/mcComp.def", 20, 1);
   __builtin_unreachable ();
 }
 

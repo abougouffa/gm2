@@ -979,6 +979,9 @@ BEGIN
    add (keywords, 'void') ;
    add (keywords, 'volatile') ;
    add (keywords, 'while') ;
+   add (keywords, 'and') ;
+   add (keywords, 'or') ;
+   add (keywords, 'not') ;
 END initKeywords ;
 
 

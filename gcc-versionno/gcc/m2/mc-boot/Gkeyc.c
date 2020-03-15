@@ -784,7 +784,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
         return TRUE;
       }
   }
-  ReturnException ("../../gcc-versionno/gcc/m2/mc/keyc.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/mc/keyc.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -909,6 +909,9 @@ static void initKeywords (void)
   add (keywords, (char *) "void", 4);
   add (keywords, (char *) "volatile", 8);
   add (keywords, (char *) "while", 5);
+  add (keywords, (char *) "and", 3);
+  add (keywords, (char *) "or", 2);
+  add (keywords, (char *) "not", 3);
 }
 
 

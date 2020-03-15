@@ -320,7 +320,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
       (*p) = ASCII_nul;
       return doMakeKey (n, higha);
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/mc/nameKey.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/mc/nameKey.def", 20, 1);
   __builtin_unreachable ();
 }
 
@@ -370,7 +370,7 @@ nameKey_Name nameKey_makekey (void * a)
           return doMakeKey (n, higha);
         }
     }
-  ReturnException ("../../gcc-versionno/gcc/m2/mc/nameKey.def", 20, 1);
+  ReturnException ("../../gm2-floppsie/gcc/m2/mc/nameKey.def", 20, 1);
   __builtin_unreachable ();
 }
 

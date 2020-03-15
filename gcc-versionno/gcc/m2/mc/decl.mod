@@ -8125,11 +8125,11 @@ BEGIN
       print (p, "is enumeration type name required\n")
    ELSIF isType (n)
    THEN
-      doFQNameC (p, n)
+      doFQNameC (p, n) ;
    ELSIF isProcType (n)
    THEN
-      print (p, "is proc type name required\n") ;
-      stop
+      doFQNameC (p, n) ;
+      outText (p, "_t")
    ELSIF isArray (n)
    THEN
       doArrayNameC (p, n)
@@ -9070,7 +9070,13 @@ BEGIN
             RETURN
          ELSE
             outText (p, 'static_cast<') ;
-            doTypeNameC (p, type) ;
+            IF isProcType (skipType (type))
+            THEN
+               doTypeNameC (p, type) ;
+               outText (p, "_t")
+            ELSE
+               doTypeNameC (p, type)
+            END ;
             noSpace (p) ;
             outText (p, '> (') ;
             doExprC (p, e) ;
